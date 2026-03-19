@@ -1,0 +1,12 @@
+{
+  "name": "kj_stargate",
+  "version": "0.9.0",
+  "title": "Stargate",
+  "author": "TheKingJo",
+  "contact": "",
+  "homepage": "",
+  "description": "",
+  "factorio_version":"2.0",
+  "dependencies": [
+	"base"]
+}
