@@ -2,6 +2,7 @@ if script.active_mods["gvv"] then require("__gvv__.gvv")() end
 util = require("utils")
 
 local sgName = "kj_stargate"
+local dhdName = "kj_dhd"
 local sgOffset = {x = 0, y = 3}
 --at start check for existing char tables
 --regen when not existing
@@ -13,22 +14,67 @@ function addAddressToGlobal(surface, address)
     if not storage.addresses[surface.name] then storage.addresses[surface.name] = address end
 end
 
-function addGateToGlobal(entity)
-    if not storage.stargates then storage.stargates = {} end
+
+function addGateToGlobal(entity, dhd)
     local sName = entity.surface.name
+    if not storage.stargates then storage.stargates = {} end
     if not storage.stargates[sName] then storage.stargates[sName] = {} end
+
 	table.insert(storage.stargates[sName], {
         entity = entity,
         pos = entity.position,
+        dhd = dhd,
     })
-	return entity
+	return storage.stargates[sName][#storage.stargates[sName]]
+end
+
+function addDhdToGlobal(entity, gate)
+    local sName = entity.surface.name
+    if not storage.dhd then storage.dhd = {} end
+    if not storage.dhd[sName] then storage.dhd[sName] = {} end
+
+	table.insert(storage.dhd[sName], {
+        entity = entity,
+        pos = entity.position,
+        stargate = gate,
+    })
+	return storage.dhd[sName][#storage.dhd[sName]]
 end
 
 function removeGateFromGlobal(entity)
+    local sName = entity.surface.name
     if not storage.stargates then return end
-    for i, sg in ipairs(storage.stargates) do
+    if not storage.stargates[sName] then return end
+
+    for i, sg in ipairs(storage.stargates[sName]) do
         if sg.entity == entity then
-            storage.stargates[i] = nil
+            if sg.dhd ~= nil then
+                local stargate = util.findInGlobal("stargates", util.findEntity("stargates", sg.dhd.entity, entity))
+                sg.dhd.stargate = stargate
+
+                if stargate ~= nil then
+                    stargate.dhd = sg.dhd
+                end
+            end
+
+            table.remove(storage.stargates[sName], i)
+            return
+        end
+    end
+end
+
+function removeDhdFromGlobal(entity)
+    local sName = entity.surface.name
+    if not storage.dhd then return end
+    if not storage.dhd[sName] then return end
+
+    for i, dhd in ipairs(storage.dhd[sName]) do
+        if dhd.entity == entity then
+            if dhd.stargate ~= nil then
+                dhd.stargate.dhd = nil
+            end
+
+            table.remove(storage.dhd[sName], i)
             return
         end
     end
@@ -98,6 +144,54 @@ function tempRandomTP(player, vehicle)
     table.insert(storage.players, {tick = game.tick + 15, player = player})
 end
 
+function OnBuilt(e)
+	local ent = e.entity
+    if not ent.valid then return end
+    game.print("Placed "..ent.name)
+
+	if ent.name == sgName then
+        local shortestDhd = util.findEntity("dhd", dhdName, ent)
+
+        local stargate = addGateToGlobal(ent, util.findInGlobal("dhd", shortestDhd))
+        if shortestDhd ~= nil then
+            local dhd = util.findInGlobal("dhd", shortestDhd)
+
+            if dhd ~= nil and dhd.stargate == nil then
+                dhd.stargate = stargate
+            end
+        else
+            game.print("Couldn't find DHD nearby!")
+        end
+    elseif ent.name == dhdName then
+        local shortestGate = util.findEntity("stargates", sgName, ent)
+
+        local dhd = addDhdToGlobal(ent, util.findInGlobal("stargates", shortestGate))
+        if shortestGate ~= nil then
+            local stargate = util.findInGlobal("stargates", shortestGate)
+
+            if stargate ~= nil and stargate.dhd == nil then
+                stargate.dhd = dhd
+            end
+        else
+            game.print("Couldn't find Stargate nearby!")
+        end
+    end
+end
+
+function OnRemoved(e)
+	local ent = e.entity
+    if not ent.valid then return end
+    game.print("Removed "..ent.name)
+
+	if ent.name == sgName then
+        util.removeFromGlobal("stargates", dhdName, ent)
+
+    elseif ent.name == dhdName then
+
+        util.removeFromGlobal("dhd", sgName, ent)
+    end
+end
+
 function OnPlayerMoved(e)
     if not storage.stargates then return end
     local player = game.players[e.player_index]
@@ -137,26 +231,6 @@ function OnTick(e)
                 table.remove(storage.players, i)
             end
         end
-    end
-end
-
-function OnBuilt(e)
-	local ent = e.entity
-
-	if ent.valid and ent.name == sgName then
-        game.print("Placed "..ent.name)
-
-        addGateToGlobal(ent)
-    end
-end
-
-function OnRemoved(e)
-	local ent = e.entity
-
-	if ent.valid and ent.name == sgName then
-        game.print("Removed "..ent.name)
-
-        removeGateFromGlobal(ent)
     end
 end
 
