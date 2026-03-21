@@ -1,8 +1,8 @@
 local functions = {}
 local dhdSearchRadius = 15
-local contrary = {
+local opposite = {
     dhd = "stargate",
-    stargates = "dhd",
+    stargate = "dhd",
 }
 
 function functions.getDistance(pos1, pos2)
@@ -35,6 +35,27 @@ function functions.positionInBoundingBox(pos, area)
     return false
 end
 
+---@param name string name of storage table
+---@param entity LuaEntity the created entity
+---@param excludeEntity? LuaEntity entity to ignore in search
+---@return LuaEntity can be nil when nothing found
+function functions.findEntity(name, entity, excludeEntity)
+    local entities = game.surfaces[entity.surface_index].find_entities_filtered{position = entity.position, radius = dhdSearchRadius, name = "kj_"..name}
+    local distance = 100000
+    local shortestEntity
+    for _, ent in ipairs(entities) do
+        if ent ~= excludeEntity then
+            local dist = functions.getDistance(ent.position, entity.position)
+            local obj = functions.findInGlobal(name, ent)
+            if dist < distance and obj ~= nil and obj[opposite[name]] == nil then
+                shortestEntity = ent
+                distance = dist
+            end
+        end
+    end
+    return shortestEntity
+end
+
 ---@return table [if it exists in global]
 function functions.findInGlobal(name, entity)
     if entity == nil then return nil end
@@ -51,35 +72,45 @@ function functions.findInGlobal(name, entity)
     return nil
 end
 
-function functions.findEntity(name, entName, entity, excludeEntity)
-    local entities = game.surfaces[entity.surface_index].find_entities_filtered{position = entity.position, radius = dhdSearchRadius, name = entName}
-    local distance = 100000
-    local shortestEntity
-    for _, ent in ipairs(entities) do
-        if ent ~= excludeEntity then
-            local dist = functions.getDistance(ent.position, entity.position)
-            if dist < distance and functions.findInGlobal(name, entity) == nil then --- hier stimmt was nich, er muss feststellen ob das schon belegt ist
-                shortestEntity = ent
-                distance = dist
-            end
-        end
-    end
-    return shortestEntity
-end
-
-function functions.removeFromGlobal(name, entName, entity)
+---@param name string name of storage table
+---@param entity LuaEntity the entity of the entry to be added
+function functions.addToGlobal(name, entity)
     local sName = entity.surface.name
     if not storage[name] then return end
     if not storage[name][sName] then return end
 
-    for i, obj in ipairs(storage[name][sName]) do
-        if obj.entity == entity then
-            if obj[contrary[name]] ~= nil then
-                local entry = functions.findInGlobal(name, functions.findEntity(name, entName, obj[contrary[name]].entity, entity))
-                obj[contrary[name]][name] = entry
+    local shortestOppEnt = functions.findEntity(opposite[name], entity)
+    local shortestOppEntObj = functions.findInGlobal(opposite[name], shortestOppEnt)
 
-                if entry ~= nil then
-                    entry[contrary[name]] = obj[contrary[name]]
+	table.insert(storage[name][sName], {
+        entity = entity,
+        pos = entity.position,
+        [opposite[name]] = shortestOppEntObj,
+    })
+
+    if shortestOppEnt ~= nil and shortestOppEntObj ~= nil and shortestOppEntObj[name] == nil then
+        shortestOppEntObj[name] = storage[name][sName][#storage[name][sName]]
+    else
+        game.print("Couldn't find "..opposite[name].." nearby!")
+    end
+end
+
+---@param name string name of storage table
+---@param entity LuaEntity the entity of the entry to be deleted
+function functions.removeFromGlobal(name, entity)
+    local sName = entity.surface.name
+    if not storage[name] then return end
+    if not storage[name][sName] then return end
+
+    for i, storObj in ipairs(storage[name][sName]) do
+        if storObj.entity == entity then
+            if storObj[opposite[name]] ~= nil then --object to be removed has mapped opposite entity - find new or nil it
+                local shortestOppEnt = functions.findEntity(name, storObj[opposite[name]].entity, entity)
+                local shortestOppEntObj = functions.findInGlobal(name, shortestOppEnt)
+                storObj[opposite[name]][name] = shortestOppEntObj
+
+                if shortestOppEntObj ~= nil then
+                    shortestOppEntObj[opposite[name]] = storObj[opposite[name]]
                 end
             end
 
