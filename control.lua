@@ -23,10 +23,10 @@ function generateAdress(surface)
 
     --char table
     local chars = {}
-    for i = string.byte("A"), string.byte("N") do
+    for i = string.byte("A"), string.byte("S") do
         table.insert(chars, string.char(i))
     end
-    for i = string.byte("a"), string.byte("n") do
+    for i = string.byte("a"), string.byte("s") do
         table.insert(chars, string.char(i))
     end
 
@@ -84,7 +84,10 @@ function OnBuilt(e)
     game.print("Placed "..ent.name)
 
 	if ent.name == sgName then --stargate placed
-        util.addToGlobal("stargate", ent)
+        local content = {
+            active = false
+        }
+        util.addToGlobal("stargate", ent, content)
 
     elseif ent.name == dhdName then --dhd placed
         util.addToGlobal("dhd", ent)
@@ -98,9 +101,11 @@ function OnRemoved(e)
 
 	if ent.name == sgName then
         util.removeFromGlobal("stargate", ent)
+        ent.destructible = false
 
     elseif ent.name == dhdName then
         util.removeFromGlobal("dhd", ent)
+        ent.destructible = false
     end
 end
 

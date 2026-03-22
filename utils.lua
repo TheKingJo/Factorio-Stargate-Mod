@@ -74,7 +74,8 @@ end
 
 ---@param name string name of storage table
 ---@param entity LuaEntity the entity of the entry to be added
-function functions.addToGlobal(name, entity)
+---@param addContent? table additional content to add to the storage entry
+function functions.addToGlobal(name, entity, addContent)
     local sName = entity.surface.name
     if not storage[name] then return end
     if not storage[name][sName] then return end
@@ -82,11 +83,13 @@ function functions.addToGlobal(name, entity)
     local shortestOppEnt = functions.findEntity(opposite[name], entity)
     local shortestOppEntObj = functions.findInGlobal(opposite[name], shortestOppEnt)
 
-	table.insert(storage[name][sName], {
+    local content = {
         entity = entity,
         pos = entity.position,
         [opposite[name]] = shortestOppEntObj,
-    })
+    }
+    for k, v in pairs(addContent) do content[k] = v end
+	table.insert(storage[name][sName], content)
 
     if shortestOppEnt ~= nil and shortestOppEntObj ~= nil and shortestOppEntObj[name] == nil then
         shortestOppEntObj[name] = storage[name][sName][#storage[name][sName]]

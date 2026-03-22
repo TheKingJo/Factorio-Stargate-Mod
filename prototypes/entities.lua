@@ -197,3 +197,42 @@ data:extend({
         }
     }
 })
+
+
+--char table
+local chars = {"z"}
+for i = string.byte("A"), string.byte("S") do
+    table.insert(chars, string.char(i))
+end
+for i = string.byte("a"), string.byte("s") do
+    table.insert(chars, string.char(i))
+end
+for i, char in ipairs(chars) do
+    if i == 1 then
+        goto continue
+    end
+    data:extend({
+        {
+            type = "virtual-signal",
+            name = "kj_sg_glyph_"..char,
+            icon = "__kj_stargate__/graphics/glyphs/"..string.format("%04d", i)..".png",
+            icon_size = 128,
+            localised_name = {"", {"virtual-signal-name.kj_sg_glyph"}, " ", tostring(i-1)},
+            localised_description = {"", {"virtual-signal-description.kj_sg_glyph"}, tostring(i-1)},
+            order = tostring(string.format("%03d", i-1)),
+        },
+    })
+    ::continue::
+end
+
+data:extend({
+    {
+        type = "virtual-signal",
+        name = "kj_sg_glyph_poe_1",
+        icon = "__kj_stargate__/graphics/glyphs/0001.png",
+        icon_size = 128,
+        localised_name = {"", {"virtual-signal-name.kj_sg_glyph_poe"}, " 1"},
+        localised_description = {"", {"virtual-signal-description.kj_sg_glyph_poe"}, " 1"},
+        order = "poe-1",
+    },
+})

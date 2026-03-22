@@ -16,8 +16,8 @@ data:extend({
     {
         type = "item-with-entity-data",
         name = "kj_dhd",
-        icon = data.raw["item"]["iron-plate"].icon,
-        icon_size = data.raw["item"]["iron-plate"].icon_size,
+        icon = "__kj_stargate__/graphics/entities/dhd/icon.png",
+        icon_size = 128,
         subgroup = "transport",
         order = "0",
         --inventory_move_sound = item_sounds.vehicle_inventory_move,
