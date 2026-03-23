@@ -1,12 +1,113 @@
 data:extend({
     {
         type = "simple-entity",
-        name = "kj_stargate",
-        collision_box = {{-1.5, -0.5}, {1.5, 0.5}},
-        selection_box = {{-1.5, -0.5}, {1.5, 0.5}},
-		collision_mask = {layers = {}},
-        minable = {mining_time = 1, result = "kj_stargate"},
+        name = "kj_stargate_placement",
+        icon = "__kj_stargate__/graphics/entities/stargate/icon.png",
+        icon_size = 128,
+        collision_box = {{-3.9, -2.4}, {3.9, 2.4}},
+        selection_box = {{-4,   -2.5}, {4,   2.5}},
+        minable = {mining_time = 1, result = "kj_stargate_placement"},
+        picture = {
+            layers = {
+                {
+                    width = 704,
+                    height = 704,
+                    shift = {1.25, -1.5},
+                    scale = 0.5,
+                    filename = "__kj_stargate__/graphics/entities/stargate/gate.png",
+                },
+                {
+                    width = 704,
+                    height = 704,
+                    shift = {1.25, -1.5},
+                    scale = 0.5,
+                    draw_as_shadow = true,
+                    filename = "__kj_stargate__/graphics/entities/stargate/gate_shadow.png",
+                },
+            }
+        }
     },
+    {
+        type = "simple-entity",
+        name = "kj_stargate_base",
+        icon = "__kj_stargate__/graphics/entities/stargate/icon.png",
+        icon_size = 128,
+        flags = {"placeable-neutral", "placeable-off-grid", "not-flammable"},
+        --collision_box = {{-1.5, -0.5}, {1.5, 0.5}},
+        --selection_box = {{-1.5, -0.5}, {1.5, 0.5}},
+        render_layer = "object-under",
+		collision_mask = {layers = {}},
+        minable = {mining_time = 1, result = "kj_stargate_placement"},
+        picture = {
+            layers = {
+                {
+                    width = 704,
+                    height = 704,
+                    shift = {1.25, -1.5},
+                    scale = 0.5,
+                    filename = "__kj_stargate__/graphics/entities/stargate/gate.png",
+                },
+                {
+                    width = 704,
+                    height = 704,
+                    shift = {1.25, -1.5},
+                    scale = 0.5,
+                    draw_as_shadow = true,
+                    filename = "__kj_stargate__/graphics/entities/stargate/gate_shadow.png",
+                },
+                --[[{
+                    width = 704,
+                    height = 704,
+                    shift = {1.25, -1.5},
+                    scale = 0.5,
+                    blend_mode = "additive",
+                    draw_as_glow = true,
+                    filename = "__kj_stargate__/graphics/entities/stargate/gate_light.png",
+                },]]
+            }
+        }
+    },
+    {
+        type = "simple-entity",
+        name = "kj_stargate_transferArea",
+        icon = "__kj_stargate__/graphics/entities/stargate/icon.png",
+        icon_size = 128,
+        flags = {"placeable-neutral", "placeable-off-grid", "not-flammable"},
+        collision_mask = {layers = {}},
+        collision_box = {{-1.5, -0.3}, {1.5, 0.3}},
+        selection_box = {{-1.5, -0.3}, {1.5, 0.3}},
+        minable = {mining_time = 1, result = "kj_stargate_placement"},
+    },
+    {
+        type = "simple-entity",
+        name = "kj_stargate_colliderVert",
+        icon = "__kj_stargate__/graphics/entities/stargate/icon.png",
+        icon_size = 128,
+        flags = {"placeable-neutral", "placeable-off-grid", "not-flammable"},
+        collision_box = {{-0.5, -1.5}, {0.5, 2}},
+        minable = {mining_time = 1, result = "kj_stargate_placement"},
+    },
+    {
+        type = "simple-entity",
+        name = "kj_stargate_colliderHori",
+        icon = "__kj_stargate__/graphics/entities/stargate/icon.png",
+        icon_size = 128,
+        flags = {"placeable-neutral", "placeable-off-grid", "not-flammable"},
+        collision_box = {{-3, -0.225}, {3, 0.225}},
+        minable = {mining_time = 1, result = "kj_stargate_placement"},
+    },
+    {
+        type = "simple-entity-with-force",
+        name = "kj_stargate_colliderDiag",
+        icon = "__kj_stargate__/graphics/entities/stargate/icon.png",
+        icon_size = 128,
+        flags = {"placeable-neutral", "placeable-off-grid", "not-flammable", "building-direction-16-way"},
+        collision_box = {{-1, -0.1}, {1, 0.1}},
+        is_military_target  = false,
+        minable = {mining_time = 1, result = "kj_stargate_placement"},
+    },
+
+
     {
         type = "electric-energy-interface",
         name = "kj_dhd",

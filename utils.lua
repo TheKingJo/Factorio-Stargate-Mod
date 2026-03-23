@@ -1,7 +1,7 @@
 local functions = {}
 local dhdSearchRadius = 15
 local opposite = {
-    dhd = "stargate",
+    dhd = "stargate_transferArea",
     stargate = "dhd",
 }
 
@@ -114,6 +114,12 @@ function functions.removeFromGlobal(name, entity)
 
                 if shortestOppEntObj ~= nil then
                     shortestOppEntObj[opposite[name]] = storObj[opposite[name]]
+                end
+            end
+
+            if storObj.childs then
+                for _, ent in pairs(storObj.childs) do
+                    ent.destroy()
                 end
             end
 

@@ -1,7 +1,14 @@
 if script.active_mods["gvv"] then require("__gvv__.gvv")() end
 util = require("utils")
 
-local sgName = "kj_stargate"
+local sgNames = {
+    placement = "kj_stargate_placement",
+    base = "kj_stargate_base",
+    tpArea = "kj_stargate_transferArea",
+    colliderV = "kj_stargate_colliderVert",
+    colliderH = "kj_stargate_colliderHori",
+    colliderD = "kj_stargate_colliderDiag",
+}
 local dhdName = "kj_dhd"
 local sgOffset = {x = 0, y = 3}
 --at start check for existing char tables
@@ -83,13 +90,63 @@ function OnBuilt(e)
     if not ent.valid then return end
     game.print("Placed "..ent.name)
 
-	if ent.name == sgName then --stargate placed
+	if ent.name == sgNames.placement then --stargate placed
+        local baseEnt = ent.surface.create_entity{
+            name = sgNames.base,
+            position = ent.position,
+        }
+        local tpArea = ent.surface.create_entity{
+            name = sgNames.tpArea,
+            position = util.vector2Add(ent.position, {x = 0, y = -1.75}),
+        }
+        local colliderV1 = ent.surface.create_entity{
+            name = sgNames.colliderV,
+            position = util.vector2Add(ent.position, {x = -3.5, y = -1}),
+        }
+        local colliderV2 = ent.surface.create_entity{
+            name = sgNames.colliderV,
+            position = util.vector2Add(ent.position, {x = 3.5, y = -1}),
+        }
+        local colliderH1 = ent.surface.create_entity{
+            name = sgNames.colliderH,
+            position = util.vector2Add(ent.position, {x = 0, y = -2.275}),
+        }
+        local colliderD1 = ent.surface.create_entity{
+            name = sgNames.colliderD,
+            position = util.vector2Add(ent.position, {x = -2.366, y = 0.225}),
+            direction = defines.direction.southeast,
+        }
+        local colliderD2 = ent.surface.create_entity{
+            name = sgNames.colliderD,
+            position = util.vector2Add(ent.position, {x = 2.366, y = 0.225}),
+            direction = defines.direction.southwest,
+        }
+
+        tpArea.destructible = false
+        baseEnt.destructible = false
+        colliderV1.destructible = false
+        colliderV2.destructible = false
+        colliderH1.destructible = false
+        colliderD1.destructible = false
+        colliderD2.destructible = false
+
         local content = {
+            valid = true,
+            childs = {
+                sprite = baseEnt,
+                colliderV1 = colliderV1,
+                colliderV2 = colliderV2,
+                colliderH1 = colliderH1,
+                colliderD1 = colliderD1,
+                colliderD2 = colliderD2,
+            },
             active = false
         }
-        util.addToGlobal("stargate", ent, content)
+        util.addToGlobal("stargate", tpArea, content)
+        ent.destroy()
 
     elseif ent.name == dhdName then --dhd placed
+        ent.destructible = false
         util.addToGlobal("dhd", ent)
     end
 end
@@ -99,13 +156,11 @@ function OnRemoved(e)
     if not ent.valid then return end
     game.print("Removed "..ent.name)
 
-	if ent.name == sgName then
+	if ent.name == sgNames.tpArea then
         util.removeFromGlobal("stargate", ent)
-        ent.destructible = false
 
     elseif ent.name == dhdName then
         util.removeFromGlobal("dhd", ent)
-        ent.destructible = false
     end
 end
 
@@ -115,14 +170,20 @@ function OnPlayerMoved(e)
     --game.print(e.tick.." - Player "..player.name.." moved")
     if not storage.stargate[player.surface.name] then return end
 
-    for _, gate in pairs(storage.stargate[player.surface.name]) do
-        if util.positionInBoundingBox(player.position, gate.entity.bounding_box) == true then
-            game.print(e.tick.." - Player "..player.name.." entered gate on "..player.surface.name)
+    for i = #storage.stargate[player.surface.name], 1, -1 do
+        local gate = storage.stargate[player.surface.name][i]
 
-            if player.vehicle and player.vehicle.prototype.type == "spider-vehicle" then
-                return
+        if gate.valid == true and gate.entity and gate.entity.valid then
+            if util.positionInBoundingBox(player.position, gate.entity.bounding_box) == true then
+                game.print(e.tick.." - Player "..player.name.." entered gate on "..player.surface.name)
+
+                if player.vehicle and player.vehicle.prototype.type == "spider-vehicle" then
+                    return
+                end
+                tempRandomTP(player, player.vehicle)
             end
-            tempRandomTP(player, player.vehicle)
+        else
+            table.remove(storage.stargate[player.surface.name], i)
         end
     end
 
