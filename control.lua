@@ -6,11 +6,12 @@ local sgNames = {
     base = "kj_stargate_base",
     tpArea = "kj_stargate_transferArea",
     colliderV = "kj_stargate_colliderVert",
-    colliderH = "kj_stargate_colliderHori",
+    colliderH1 = "kj_stargate_colliderHori1",
+    colliderH2 = "kj_stargate_colliderHori2",
     colliderD = "kj_stargate_colliderDiag",
 }
 local dhdName = "kj_dhd"
-local sgOffset = {x = 0, y = 3}
+local sgOffset = {x = 0, y = 1}
 --at start check for existing char tables
 --regen when not existing
 --otherwise generate on surface generation
@@ -91,60 +92,94 @@ function OnBuilt(e)
     game.print("Placed "..ent.name)
 
 	if ent.name == sgNames.placement then --stargate placed
-        local baseEnt = ent.surface.create_entity{
-            name = sgNames.base,
-            position = ent.position,
-        }
-        local tpArea = ent.surface.create_entity{
+        local pos = ent.position
+        local surface = ent.surface
+        local tpArea = surface.create_entity{
             name = sgNames.tpArea,
-            position = util.vector2Add(ent.position, {x = 0, y = -1.75}),
+            position = util.vector2Add(pos, {x = 0, y = -1.8}),
         }
-        local colliderV1 = ent.surface.create_entity{
-            name = sgNames.colliderV,
-            position = util.vector2Add(ent.position, {x = -3.5, y = -1}),
-        }
-        local colliderV2 = ent.surface.create_entity{
-            name = sgNames.colliderV,
-            position = util.vector2Add(ent.position, {x = 3.5, y = -1}),
-        }
-        local colliderH1 = ent.surface.create_entity{
-            name = sgNames.colliderH,
-            position = util.vector2Add(ent.position, {x = 0, y = -2.275}),
-        }
-        local colliderD1 = ent.surface.create_entity{
-            name = sgNames.colliderD,
-            position = util.vector2Add(ent.position, {x = -2.366, y = 0.225}),
-            direction = defines.direction.southeast,
-        }
-        local colliderD2 = ent.surface.create_entity{
-            name = sgNames.colliderD,
-            position = util.vector2Add(ent.position, {x = 2.366, y = 0.225}),
-            direction = defines.direction.southwest,
+        local childs = {
+            baseEnt = surface.create_entity{
+                name = sgNames.base,
+                position = pos,
+            },
+            colliderV1 = surface.create_entity{
+                name = sgNames.colliderV,
+                position = util.vector2Add(pos, {x = -3.5, y = -1}),
+            },
+            colliderV2 = surface.create_entity{
+                name = sgNames.colliderV,
+                position = util.vector2Add(pos, {x = 3.5, y = -1}),
+            },
+            colliderH11 = surface.create_entity{
+                name = sgNames.colliderH1,
+                position = util.vector2Add(pos, {x = 0, y = -2.275}),
+            },
+            colliderH21 = surface.create_entity{
+                name = sgNames.colliderH2,
+                position = util.vector2Add(pos, {x = -2.5, y = -0.5}),
+            },
+            colliderH22 = surface.create_entity{
+                name = sgNames.colliderH2,
+                position = util.vector2Add(pos, {x = 2.5, y = -0.5}),
+            },
+            colliderH31 = surface.create_entity{
+                name = sgNames.colliderH2,
+                position = util.vector2Add(pos, {x = -2.25, y = -1.6}),
+            },
+            colliderH32 = surface.create_entity{
+                name = sgNames.colliderH2,
+                position = util.vector2Add(pos, {x = 2.25, y = -1.6}),
+            },
+            colliderD1 = surface.create_entity{
+                name = sgNames.colliderD,
+                position = util.vector2Add(pos, {x = -2.366, y = 0.225}),
+                direction = defines.direction.southeast,
+            },
+            colliderD2 = surface.create_entity{
+                name = sgNames.colliderD,
+                position = util.vector2Add(pos, {x = 2.366, y = 0.225}),
+                direction = defines.direction.southwest,
+            },
         }
 
-        tpArea.destructible = false
-        baseEnt.destructible = false
-        colliderV1.destructible = false
-        colliderV2.destructible = false
-        colliderH1.destructible = false
-        colliderD1.destructible = false
-        colliderD2.destructible = false
+        for _, child in pairs(childs) do
+            child.destructible = false
+        end
+
+        local posis = {x = {-0.5, -1.5}, y = {0, 1, 2}}
+        local calcPosis = {}
+        for i = 1, -1, -2 do
+            for _, x in pairs(posis.x) do
+                for _, y in pairs(posis.y) do
+                    table.insert(calcPosis, {position = util.vector2Add(pos, {x*i,y}), name = "kj_stargate_slowDownTile"})
+                end
+            end
+        end
+        table.insert(calcPosis, {position = util.vector2Add(pos, {-2.5, 2}), name = "kj_stargate_slowDownTile"})
+        table.insert(calcPosis, {position = util.vector2Add(pos, { 2.5, 2}), name = "kj_stargate_slowDownTile"})
+        table.insert(calcPosis, {position = util.vector2Add(pos, {-2.5, 1}), name = "kj_stargate_slowDownTile"})
+        table.insert(calcPosis, {position = util.vector2Add(pos, { 2.5, 1}), name = "kj_stargate_slowDownTile"})
+        table.insert(calcPosis, {position = util.vector2Add(pos, {-3.5, 2}), name = "kj_stargate_slowDownTile"})
+        table.insert(calcPosis, {position = util.vector2Add(pos, { 3.5, 2}), name = "kj_stargate_slowDownTile"})
+
+        local oldTiles = {}
+        for _, tile in pairs(calcPosis) do
+            local tile = surface.get_tile(tile.position.x, tile.position.y)
+            table.insert(oldTiles, {name = tile.name, position = tile.position})
+        end
+
+        surface.set_tiles(calcPosis)
 
         local content = {
             valid = true,
-            childs = {
-                sprite = baseEnt,
-                colliderV1 = colliderV1,
-                colliderV2 = colliderV2,
-                colliderH1 = colliderH1,
-                colliderD1 = colliderD1,
-                colliderD2 = colliderD2,
-            },
-            active = false
+            childs = childs,
+            active = false,
+            oldTiles = oldTiles,
         }
         util.addToGlobal("stargate", tpArea, content)
-        ent.destroy()
 
+        ent.destroy()
     elseif ent.name == dhdName then --dhd placed
         ent.destructible = false
         local dhd = util.addToGlobal("dhd", ent)
@@ -170,6 +205,11 @@ function OnRemoved(e)
     game.print("Removed "..ent.name)
 
 	if ent.name == sgNames.tpArea then
+        local sg = util.findInGlobal("stargate", ent)
+        if sg.oldTiles then
+            ent.surface.set_tiles(sg.oldTiles)
+        end
+
         util.removeFromGlobal("stargate", ent)
 
     elseif ent.name == dhdName then

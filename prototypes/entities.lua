@@ -31,6 +31,7 @@ data:extend({
         type = "simple-entity",
         name = "kj_stargate_base",
         icon = "__kj_stargate__/graphics/entities/stargate/icon.png",
+        hidden = true,
         icon_size = 128,
         flags = {"placeable-neutral", "placeable-off-grid", "not-flammable"},
         --collision_box = {{-1.5, -0.5}, {1.5, 0.5}},
@@ -72,6 +73,7 @@ data:extend({
     {
         type = "simple-entity",
         name = "kj_stargate_colliderVert",
+        hidden = true,
         icon = "__kj_stargate__/graphics/entities/stargate/icon.png",
         icon_size = 128,
         flags = {"placeable-neutral", "placeable-off-grid", "not-flammable"},
@@ -80,7 +82,8 @@ data:extend({
     },
     {
         type = "simple-entity",
-        name = "kj_stargate_colliderHori",
+        name = "kj_stargate_colliderHori1",
+        hidden = true,
         icon = "__kj_stargate__/graphics/entities/stargate/icon.png",
         icon_size = 128,
         flags = {"placeable-neutral", "placeable-off-grid", "not-flammable"},
@@ -88,8 +91,19 @@ data:extend({
         minable = {mining_time = 1, result = "kj_stargate_placement"},
     },
     {
+        type = "simple-entity",
+        name = "kj_stargate_colliderHori2",
+        hidden = true,
+        icon = "__kj_stargate__/graphics/entities/stargate/icon.png",
+        icon_size = 128,
+        flags = {"placeable-neutral", "placeable-off-grid", "not-flammable"},
+        collision_box = {{-0.75, -0.1}, {0.75, 0.1}},
+        minable = {mining_time = 1, result = "kj_stargate_placement"},
+    },
+    {
         type = "simple-entity-with-force",
         name = "kj_stargate_colliderDiag",
+        hidden = true,
         icon = "__kj_stargate__/graphics/entities/stargate/icon.png",
         icon_size = 128,
         flags = {"placeable-neutral", "placeable-off-grid", "not-flammable", "building-direction-16-way"},
@@ -113,6 +127,25 @@ data:extend({
                 filename = "__kj_stargate__/graphics/entities/stargate/gate_light.png",
             },
         }
+    },
+    {
+        type = "tile",
+        name = "kj_stargate_slowDownTile",
+        hidden = true,
+        walking_speed_modifier = 0.5,
+        vehicle_friction_modifier = 0.5,
+        collision_mask = {layers={ground_tile=true}},
+        map_color={0, 0, 0},
+        layer = 0,
+        variants = {
+            material_background =
+            {
+                picture = "__core__/graphics/empty.png",
+                count = 1,
+                scale = 1
+            },
+            empty_transitions = true
+        },
     },
 
 
