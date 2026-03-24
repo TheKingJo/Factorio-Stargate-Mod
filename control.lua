@@ -11,7 +11,7 @@ local sgNames = {
     colliderD = "kj_stargate_colliderDiag",
 }
 local dhdName = "kj_dhd"
-local sgOffset = {x = 0, y = 3}
+local sgOffset = {x = 0, y = 1}
 --at start check for existing char tables
 --regen when not existing
 --otherwise generate on surface generation
@@ -92,51 +92,53 @@ function OnBuilt(e)
     game.print("Placed "..ent.name)
 
 	if ent.name == sgNames.placement then --stargate placed
-        local tpArea = ent.surface.create_entity{
+        local pos = ent.position
+        local surface = ent.surface
+        local tpArea = surface.create_entity{
             name = sgNames.tpArea,
-            position = util.vector2Add(ent.position, {x = 0, y = -1.8}),
+            position = util.vector2Add(pos, {x = 0, y = -1.8}),
         }
         local childs = {
-            baseEnt = ent.surface.create_entity{
+            baseEnt = surface.create_entity{
                 name = sgNames.base,
-                position = ent.position,
+                position = pos,
             },
-            colliderV1 = ent.surface.create_entity{
+            colliderV1 = surface.create_entity{
                 name = sgNames.colliderV,
-                position = util.vector2Add(ent.position, {x = -3.5, y = -1}),
+                position = util.vector2Add(pos, {x = -3.5, y = -1}),
             },
-            colliderV2 = ent.surface.create_entity{
+            colliderV2 = surface.create_entity{
                 name = sgNames.colliderV,
-                position = util.vector2Add(ent.position, {x = 3.5, y = -1}),
+                position = util.vector2Add(pos, {x = 3.5, y = -1}),
             },
-            colliderH11 = ent.surface.create_entity{
+            colliderH11 = surface.create_entity{
                 name = sgNames.colliderH1,
-                position = util.vector2Add(ent.position, {x = 0, y = -2.275}),
+                position = util.vector2Add(pos, {x = 0, y = -2.275}),
             },
-            colliderH21 = ent.surface.create_entity{
+            colliderH21 = surface.create_entity{
                 name = sgNames.colliderH2,
-                position = util.vector2Add(ent.position, {x = -2.5, y = -0.5}),
+                position = util.vector2Add(pos, {x = -2.5, y = -0.5}),
             },
-            colliderH22 = ent.surface.create_entity{
+            colliderH22 = surface.create_entity{
                 name = sgNames.colliderH2,
-                position = util.vector2Add(ent.position, {x = 2.5, y = -0.5}),
+                position = util.vector2Add(pos, {x = 2.5, y = -0.5}),
             },
-            colliderH31 = ent.surface.create_entity{
+            colliderH31 = surface.create_entity{
                 name = sgNames.colliderH2,
-                position = util.vector2Add(ent.position, {x = -2.25, y = -1.6}),
+                position = util.vector2Add(pos, {x = -2.25, y = -1.6}),
             },
-            colliderH32 = ent.surface.create_entity{
+            colliderH32 = surface.create_entity{
                 name = sgNames.colliderH2,
-                position = util.vector2Add(ent.position, {x = 2.25, y = -1.6}),
+                position = util.vector2Add(pos, {x = 2.25, y = -1.6}),
             },
-            colliderD1 = ent.surface.create_entity{
+            colliderD1 = surface.create_entity{
                 name = sgNames.colliderD,
-                position = util.vector2Add(ent.position, {x = -2.366, y = 0.225}),
+                position = util.vector2Add(pos, {x = -2.366, y = 0.225}),
                 direction = defines.direction.southeast,
             },
-            colliderD2 = ent.surface.create_entity{
+            colliderD2 = surface.create_entity{
                 name = sgNames.colliderD,
-                position = util.vector2Add(ent.position, {x = 2.366, y = 0.225}),
+                position = util.vector2Add(pos, {x = 2.366, y = 0.225}),
                 direction = defines.direction.southwest,
             },
         }
@@ -145,14 +147,7 @@ function OnBuilt(e)
             child.destructible = false
         end
 
-        local content = {
-            valid = true,
-            childs = childs,
-            active = false
-        }
-        util.addToGlobal("stargate", tpArea, content)
-        local pos = ent.position
-        local posis = {x = {-0.5, -1.5}, y = {0, -1, -2}}
+        local posis = {x = {-0.5, -1.5}, y = {0, 1, 2}}
         local calcPosis = {}
         for i = 1, -1, -2 do
             for _, x in pairs(posis.x) do
@@ -161,20 +156,30 @@ function OnBuilt(e)
                 end
             end
         end
-        game.print(serpent.block(calcPosis))
-        ent.surface.set_tiles(calcPosis)
-        --[[ent.surface.set_tiles({
-            {position = util.vector2Add(pos, {0.5,  0}), name = "kj_stargate_slowDownTile"},
-            {position = util.vector2Add(pos, {-0.5, 0}), name = "kj_stargate_slowDownTile"},
-            {position = util.vector2Add(pos, {0.5, -1}), name = "kj_stargate_slowDownTile"},
-            {position = util.vector2Add(pos, {-0.5,-1}), name = "kj_stargate_slowDownTile"},
-            {position = util.vector2Add(pos, {1.5,  0}), name = "kj_stargate_slowDownTile"},
-            {position = util.vector2Add(pos, {-1.5, 0}), name = "kj_stargate_slowDownTile"},
-            {position = util.vector2Add(pos, {1.5, -1}), name = "kj_stargate_slowDownTile"},
-            {position = util.vector2Add(pos, {-1.5,-1}), name = "kj_stargate_slowDownTile"},
-        })]]
-        ent.destroy()
+        table.insert(calcPosis, {position = util.vector2Add(pos, {-2.5, 2}), name = "kj_stargate_slowDownTile"})
+        table.insert(calcPosis, {position = util.vector2Add(pos, { 2.5, 2}), name = "kj_stargate_slowDownTile"})
+        table.insert(calcPosis, {position = util.vector2Add(pos, {-2.5, 1}), name = "kj_stargate_slowDownTile"})
+        table.insert(calcPosis, {position = util.vector2Add(pos, { 2.5, 1}), name = "kj_stargate_slowDownTile"})
+        table.insert(calcPosis, {position = util.vector2Add(pos, {-3.5, 2}), name = "kj_stargate_slowDownTile"})
+        table.insert(calcPosis, {position = util.vector2Add(pos, { 3.5, 2}), name = "kj_stargate_slowDownTile"})
 
+        local oldTiles = {}
+        for _, tile in pairs(calcPosis) do
+            local tile = surface.get_tile(tile.position.x, tile.position.y)
+            table.insert(oldTiles, {name = tile.name, position = tile.position})
+        end
+
+        surface.set_tiles(calcPosis)
+
+        local content = {
+            valid = true,
+            childs = childs,
+            active = false,
+            oldTiles = oldTiles,
+        }
+        util.addToGlobal("stargate", tpArea, content)
+
+        ent.destroy()
     elseif ent.name == dhdName then --dhd placed
         ent.destructible = false
         util.addToGlobal("dhd", ent)
@@ -187,6 +192,11 @@ function OnRemoved(e)
     game.print("Removed "..ent.name)
 
 	if ent.name == sgNames.tpArea then
+        local sg = util.findInGlobal("stargate", ent)
+        if sg.oldTiles then
+            ent.surface.set_tiles(sg.oldTiles)
+        end
+
         util.removeFromGlobal("stargate", ent)
 
     elseif ent.name == dhdName then

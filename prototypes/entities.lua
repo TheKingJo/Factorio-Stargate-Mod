@@ -31,6 +31,7 @@ data:extend({
         type = "simple-entity",
         name = "kj_stargate_base",
         icon = "__kj_stargate__/graphics/entities/stargate/icon.png",
+        hidden = true,
         icon_size = 128,
         flags = {"placeable-neutral", "placeable-off-grid", "not-flammable"},
         --collision_box = {{-1.5, -0.5}, {1.5, 0.5}},
@@ -81,6 +82,7 @@ data:extend({
     {
         type = "simple-entity",
         name = "kj_stargate_colliderVert",
+        hidden = true,
         icon = "__kj_stargate__/graphics/entities/stargate/icon.png",
         icon_size = 128,
         flags = {"placeable-neutral", "placeable-off-grid", "not-flammable"},
@@ -90,6 +92,7 @@ data:extend({
     {
         type = "simple-entity",
         name = "kj_stargate_colliderHori1",
+        hidden = true,
         icon = "__kj_stargate__/graphics/entities/stargate/icon.png",
         icon_size = 128,
         flags = {"placeable-neutral", "placeable-off-grid", "not-flammable"},
@@ -99,6 +102,7 @@ data:extend({
     {
         type = "simple-entity",
         name = "kj_stargate_colliderHori2",
+        hidden = true,
         icon = "__kj_stargate__/graphics/entities/stargate/icon.png",
         icon_size = 128,
         flags = {"placeable-neutral", "placeable-off-grid", "not-flammable"},
@@ -108,6 +112,7 @@ data:extend({
     {
         type = "simple-entity-with-force",
         name = "kj_stargate_colliderDiag",
+        hidden = true,
         icon = "__kj_stargate__/graphics/entities/stargate/icon.png",
         icon_size = 128,
         flags = {"placeable-neutral", "placeable-off-grid", "not-flammable", "building-direction-16-way"},
@@ -119,9 +124,7 @@ data:extend({
     {
         type = "tile",
         name = "kj_stargate_slowDownTile",
-        --icon = "__kj_stargate__/graphics/entities/stargate/icon.png",
-        --icon_size = 128,
-        --flags = {"placeable-neutral", "placeable-off-grid", "not-flammable", "building-direction-16-way"},
+        hidden = true,
         walking_speed_modifier = 0.5,
         vehicle_friction_modifier = 0.5,
         collision_mask = {layers={ground_tile=true}},
