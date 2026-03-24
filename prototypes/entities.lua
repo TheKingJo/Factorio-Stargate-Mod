@@ -1,8 +1,9 @@
+local modname = "__kj_stargate__"
 data:extend({
     {
         type = "simple-entity",
         name = "kj_stargate_placement",
-        icon = "__kj_stargate__/graphics/entities/stargate/icon.png",
+        icon = modname.."/graphics/entities/stargate/icon.png",
         icon_size = 128,
         collision_box = {{-3.9, -2.4}, {3.9, 2.4}},
         selection_box = {{-4,   -2.5}, {4,   2.5}},
@@ -14,7 +15,7 @@ data:extend({
                     height = 704,
                     shift = {1.25, -1.5},
                     scale = 0.5,
-                    filename = "__kj_stargate__/graphics/entities/stargate/gate.png",
+                    filename = modname.."/graphics/entities/stargate/gate.png",
                 },
                 {
                     width = 704,
@@ -22,7 +23,7 @@ data:extend({
                     shift = {1.25, -1.5},
                     scale = 0.5,
                     draw_as_shadow = true,
-                    filename = "__kj_stargate__/graphics/entities/stargate/gate_shadow.png",
+                    filename = modname.."/graphics/entities/stargate/gate_shadow.png",
                 },
             }
         }
@@ -30,7 +31,7 @@ data:extend({
     {
         type = "simple-entity",
         name = "kj_stargate_base",
-        icon = "__kj_stargate__/graphics/entities/stargate/icon.png",
+        icon = modname.."/graphics/entities/stargate/icon.png",
         hidden = true,
         icon_size = 128,
         flags = {"placeable-neutral", "placeable-off-grid", "not-flammable"},
@@ -46,7 +47,7 @@ data:extend({
                     height = 704,
                     shift = {1.25, -1.5},
                     scale = 0.5,
-                    filename = "__kj_stargate__/graphics/entities/stargate/gate.png",
+                    filename = modname.."/graphics/entities/stargate/gate.png",
                 },
                 {
                     width = 704,
@@ -54,7 +55,7 @@ data:extend({
                     shift = {1.25, -1.5},
                     scale = 0.5,
                     draw_as_shadow = true,
-                    filename = "__kj_stargate__/graphics/entities/stargate/gate_shadow.png",
+                    filename = modname.."/graphics/entities/stargate/gate_shadow.png",
                 },
             }
         }
@@ -62,7 +63,7 @@ data:extend({
     {
         type = "simple-entity",
         name = "kj_stargate_transferArea",
-        icon = "__kj_stargate__/graphics/entities/stargate/icon.png",
+        icon = modname.."/graphics/entities/stargate/icon.png",
         icon_size = 128,
         flags = {"placeable-neutral", "placeable-off-grid", "not-flammable"},
         collision_mask = {layers = {}},
@@ -74,7 +75,7 @@ data:extend({
         type = "simple-entity",
         name = "kj_stargate_colliderVert",
         hidden = true,
-        icon = "__kj_stargate__/graphics/entities/stargate/icon.png",
+        icon = modname.."/graphics/entities/stargate/icon.png",
         icon_size = 128,
         flags = {"placeable-neutral", "placeable-off-grid", "not-flammable"},
         collision_box = {{-0.5, -1.5}, {0.5, 2}},
@@ -84,7 +85,7 @@ data:extend({
         type = "simple-entity",
         name = "kj_stargate_colliderHori1",
         hidden = true,
-        icon = "__kj_stargate__/graphics/entities/stargate/icon.png",
+        icon = modname.."/graphics/entities/stargate/icon.png",
         icon_size = 128,
         flags = {"placeable-neutral", "placeable-off-grid", "not-flammable"},
         collision_box = {{-3, -0.225}, {3, 0.225}},
@@ -94,7 +95,7 @@ data:extend({
         type = "simple-entity",
         name = "kj_stargate_colliderHori2",
         hidden = true,
-        icon = "__kj_stargate__/graphics/entities/stargate/icon.png",
+        icon = modname.."/graphics/entities/stargate/icon.png",
         icon_size = 128,
         flags = {"placeable-neutral", "placeable-off-grid", "not-flammable"},
         collision_box = {{-0.75, -0.1}, {0.75, 0.1}},
@@ -104,13 +105,38 @@ data:extend({
         type = "simple-entity-with-force",
         name = "kj_stargate_colliderDiag",
         hidden = true,
-        icon = "__kj_stargate__/graphics/entities/stargate/icon.png",
+        icon = modname.."/graphics/entities/stargate/icon.png",
         icon_size = 128,
         flags = {"placeable-neutral", "placeable-off-grid", "not-flammable", "building-direction-16-way"},
         collision_box = {{-1, -0.1}, {1, 0.1}},
         is_military_target  = false,
         minable = {mining_time = 1, result = "kj_stargate_placement"},
     },
+
+	{
+		type = "sound",
+		name = "kj_stargate_open",
+		filename = modname.."/sounds/gate_open.ogg",
+		volume = 1,
+		category = "environment",
+		audible_distance_modifier = 1,
+	},
+	{
+		type = "sound",
+		name = "kj_stargate_close",
+		filename = modname.."/sounds/gate_close.ogg",
+		volume = 1,
+		category = "environment",
+		audible_distance_modifier = 1,
+	},
+	{
+		type = "sound",
+		name = "kj_stargate_openIdle",
+		filename = modname.."/sounds/gate_puddle.ogg",
+		volume = 1,
+		category = "environment",
+		audible_distance_modifier = 1,
+	},
 
     {
         type = "animation",
@@ -119,12 +145,20 @@ data:extend({
             {
                 width = 704,
                 height = 704,
-                shift = {1.25, -1.5},
+                shift = {1.25, 0.3},
+                scale = 0.5,
+                frame_count = 1,
+                filename = modname.."/graphics/entities/stargate/eventHorizon.png",
+            },
+            {
+                width = 704,
+                height = 704,
+                shift = {1.25, 0.3},
                 scale = 0.5,
                 frame_count = 1,
                 blend_mode = "additive",
                 draw_as_glow = true,
-                filename = "__kj_stargate__/graphics/entities/stargate/gate_light.png",
+                filename = modname.."/graphics/entities/stargate/gate_light.png",
             },
         }
     },
@@ -155,6 +189,7 @@ data:extend({
         collision_box = {{-1, -1}, {1, 1}},
         selection_box = {{-1, -1}, {1, 1}},
         minable = {mining_time = 1, result = "kj_dhd"},
+        gui_mode = "all",
         energy_source = {
             type = "electric",
             usage_priority = "secondary-input",
@@ -179,7 +214,7 @@ data:extend({
                         stripes =
                         {
                             {
-                                filename = "__kj_stargate__/graphics/entities/dhd/dhd.png",
+                                filename = modname.."/graphics/entities/dhd/dhd.png",
                                 width_in_frames = 2,
                                 height_in_frames = 2,
                             },
@@ -199,7 +234,7 @@ data:extend({
                         stripes =
                         {
                             {
-                                filename = "__kj_stargate__/graphics/entities/dhd/dhd_shadow.png",
+                                filename = modname.."/graphics/entities/dhd/dhd_shadow.png",
                                 width_in_frames = 2,
                                 height_in_frames = 2,
                             },
@@ -222,7 +257,7 @@ data:extend({
                         stripes =
                         {
                             {
-                                filename = "__kj_stargate__/graphics/entities/dhd/dhd.png",
+                                filename = modname.."/graphics/entities/dhd/dhd.png",
                                 width_in_frames = 2,
                                 height_in_frames = 2,
                             },
@@ -242,7 +277,7 @@ data:extend({
                         stripes =
                         {
                             {
-                                filename = "__kj_stargate__/graphics/entities/dhd/dhd_shadow.png",
+                                filename = modname.."/graphics/entities/dhd/dhd_shadow.png",
                                 width_in_frames = 2,
                                 height_in_frames = 2,
                             },
@@ -265,7 +300,7 @@ data:extend({
                         stripes =
                         {
                             {
-                                filename = "__kj_stargate__/graphics/entities/dhd/dhd.png",
+                                filename = modname.."/graphics/entities/dhd/dhd.png",
                                 width_in_frames = 2,
                                 height_in_frames = 2,
                             },
@@ -285,7 +320,7 @@ data:extend({
                         stripes =
                         {
                             {
-                                filename = "__kj_stargate__/graphics/entities/dhd/dhd_shadow.png",
+                                filename = modname.."/graphics/entities/dhd/dhd_shadow.png",
                                 width_in_frames = 2,
                                 height_in_frames = 2,
                             },
@@ -308,7 +343,7 @@ data:extend({
                         stripes =
                         {
                             {
-                                filename = "__kj_stargate__/graphics/entities/dhd/dhd.png",
+                                filename = modname.."/graphics/entities/dhd/dhd.png",
                                 width_in_frames = 2,
                                 height_in_frames = 2,
                             },
@@ -328,7 +363,7 @@ data:extend({
                         stripes =
                         {
                             {
-                                filename = "__kj_stargate__/graphics/entities/dhd/dhd_shadow.png",
+                                filename = modname.."/graphics/entities/dhd/dhd_shadow.png",
                                 width_in_frames = 2,
                                 height_in_frames = 2,
                             },
@@ -357,7 +392,7 @@ for i, char in ipairs(chars) do
         {
             type = "virtual-signal",
             name = "kj_sg_glyph_"..char,
-            icon = "__kj_stargate__/graphics/glyphs/"..string.format("%04d", i)..".png",
+            icon = modname.."/graphics/glyphs/"..string.format("%04d", i)..".png",
             icon_size = 128,
             localised_name = {"", {"virtual-signal-name.kj_sg_glyph"}, " ", tostring(i-1)},
             localised_description = {"", {"virtual-signal-description.kj_sg_glyph"}, tostring(i-1)},
@@ -371,7 +406,7 @@ data:extend({
     {
         type = "virtual-signal",
         name = "kj_sg_glyph_poe_1",
-        icon = "__kj_stargate__/graphics/glyphs/0001.png",
+        icon = modname.."/graphics/glyphs/0001.png",
         icon_size = 128,
         localised_name = {"", {"virtual-signal-name.kj_sg_glyph_poe"}, " 1"},
         localised_description = {"", {"virtual-signal-description.kj_sg_glyph_poe"}, " 1"},

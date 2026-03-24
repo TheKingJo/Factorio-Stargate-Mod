@@ -1,5 +1,7 @@
 if script.active_mods["gvv"] then require("__gvv__.gvv")() end
 util = require("utils")
+require("logic.gui")
+mod_gui = require("mod-gui")
 
 local sgNames = {
     placement = "kj_stargate_placement",
@@ -186,6 +188,7 @@ function OnBuilt(e)
 
         if dhd.stargate ~= nil then
             dhd.stargate.active = true
+            util.playSoundOnSurface(ent.surface, dhd.stargate.entity.position, "kj_stargate_open")
             activateGate(dhd.stargate)
         end
     end
@@ -217,7 +220,8 @@ function OnRemoved(e)
 
         if stargate ~= nil then
             stargate.active = false
-            stargate.animation = nil
+            util.playSoundOnSurface(ent.surface, stargate.entity.position, "kj_stargate_close")
+            stargate.animation.destroy()
         end
     end
 end
@@ -272,6 +276,13 @@ function OnTick(e)
     end
 end
 
+function GuiOpened(e)
+    game.print("Gui opened")
+    if e.entity then
+        game.print(e.entity.name.." opened")
+    end
+end
+
 script.on_event(defines.events.on_player_changed_position, OnPlayerMoved)
 
 script.on_event(defines.events.on_built_entity, OnBuilt)
@@ -293,6 +304,8 @@ script.on_event(defines.events.on_surface_created,
         addAddressToGlobal(surface, generateAdress(surface))
     end
 )
+
+script.on_event(defines.events.on_gui_opened, GuiOpened)
 
 script.on_init(generateAdresses)
 

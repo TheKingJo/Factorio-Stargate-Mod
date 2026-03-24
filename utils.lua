@@ -142,4 +142,12 @@ function functions.removeFromGlobal(name, entity)
     end
 end
 
+function functions.playSoundOnSurface(surface, position, sound, volume)
+	surface.play_sound {
+		path = sound,
+		position = position,
+		volume_modifier = volume or 1
+	}
+end
+
 return functions
