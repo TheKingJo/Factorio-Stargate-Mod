@@ -1,6 +1,10 @@
 local functions = {}
 local dhdSearchRadius = 15
 local opposite = {
+    dhd = "stargate",
+    stargate = "dhd",
+}
+local oppositeEntity = {
     dhd = "stargate_transferArea",
     stargate = "dhd",
 }
@@ -36,11 +40,12 @@ function functions.positionInBoundingBox(pos, area)
 end
 
 ---@param name string name of storage table
+---@param entName string name of the entity
 ---@param entity LuaEntity the created entity
 ---@param excludeEntity? LuaEntity entity to ignore in search
 ---@return LuaEntity can be nil when nothing found
-function functions.findEntity(name, entity, excludeEntity)
-    local entities = game.surfaces[entity.surface_index].find_entities_filtered{position = entity.position, radius = dhdSearchRadius, name = "kj_"..name}
+function functions.findEntity(name, entName, entity, excludeEntity)
+    local entities = game.surfaces[entity.surface_index].find_entities_filtered{position = entity.position, radius = dhdSearchRadius, name = "kj_"..entName}
     local distance = 100000
     local shortestEntity
     for _, ent in ipairs(entities) do
@@ -80,7 +85,7 @@ function functions.addToGlobal(name, entity, addContent)
     if not storage[name] then return end
     if not storage[name][sName] then return end
 
-    local shortestOppEnt = functions.findEntity(opposite[name], entity)
+    local shortestOppEnt = functions.findEntity(opposite[name], oppositeEntity[name], entity)
     local shortestOppEntObj = functions.findInGlobal(opposite[name], shortestOppEnt)
 
     local content = {
@@ -88,7 +93,9 @@ function functions.addToGlobal(name, entity, addContent)
         pos = entity.position,
         [opposite[name]] = shortestOppEntObj,
     }
-    for k, v in pairs(addContent) do content[k] = v end
+    if addContent then
+        for k, v in pairs(addContent) do content[k] = v end
+    end
 	table.insert(storage[name][sName], content)
 
     if shortestOppEnt ~= nil and shortestOppEntObj ~= nil and shortestOppEntObj[name] == nil then
@@ -96,6 +103,8 @@ function functions.addToGlobal(name, entity, addContent)
     else
         game.print("Couldn't find "..opposite[name].." nearby!")
     end
+
+    return storage[name][sName][#storage[name][sName]]
 end
 
 ---@param name string name of storage table
@@ -107,14 +116,18 @@ function functions.removeFromGlobal(name, entity)
 
     for i, storObj in ipairs(storage[name][sName]) do
         if storObj.entity == entity then
+            local returnValue
+
             if storObj[opposite[name]] ~= nil then --object to be removed has mapped opposite entity - find new or nil it
-                local shortestOppEnt = functions.findEntity(name, storObj[opposite[name]].entity, entity)
+                local shortestOppEnt = functions.findEntity(name, oppositeEntity[name], storObj[opposite[name]].entity, entity)
                 local shortestOppEntObj = functions.findInGlobal(name, shortestOppEnt)
                 storObj[opposite[name]][name] = shortestOppEntObj
 
                 if shortestOppEntObj ~= nil then
                     shortestOppEntObj[opposite[name]] = storObj[opposite[name]]
                 end
+
+                returnValue = storObj[opposite[name]]
             end
 
             if storObj.childs then
@@ -124,7 +137,7 @@ function functions.removeFromGlobal(name, entity)
             end
 
             table.remove(storage[name][sName], i)
-            return
+            return returnValue
         end
     end
 end

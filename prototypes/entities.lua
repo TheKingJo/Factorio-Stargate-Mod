@@ -55,15 +55,6 @@ data:extend({
                     draw_as_shadow = true,
                     filename = "__kj_stargate__/graphics/entities/stargate/gate_shadow.png",
                 },
-                --[[{
-                    width = 704,
-                    height = 704,
-                    shift = {1.25, -1.5},
-                    scale = 0.5,
-                    blend_mode = "additive",
-                    draw_as_glow = true,
-                    filename = "__kj_stargate__/graphics/entities/stargate/gate_light.png",
-                },]]
             }
         }
     },
@@ -105,6 +96,23 @@ data:extend({
         collision_box = {{-1, -0.1}, {1, 0.1}},
         is_military_target  = false,
         minable = {mining_time = 1, result = "kj_stargate_placement"},
+    },
+
+    {
+        type = "animation",
+        name = "kj_stargate_eventHorizon",
+        layers = {
+            {
+                width = 704,
+                height = 704,
+                shift = {1.25, -1.5},
+                scale = 0.5,
+                frame_count = 1,
+                blend_mode = "additive",
+                draw_as_glow = true,
+                filename = "__kj_stargate__/graphics/entities/stargate/gate_light.png",
+            },
+        }
     },
 
 

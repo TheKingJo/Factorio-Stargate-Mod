@@ -147,8 +147,21 @@ function OnBuilt(e)
 
     elseif ent.name == dhdName then --dhd placed
         ent.destructible = false
-        util.addToGlobal("dhd", ent)
+        local dhd = util.addToGlobal("dhd", ent)
+
+        if dhd.stargate ~= nil then
+            dhd.stargate.active = true
+            activateGate(dhd.stargate)
+        end
     end
+end
+
+function activateGate(gate)
+    gate.animation = rendering.draw_animation{
+        animation = "kj_stargate_eventHorizon",
+        target = gate.entity.position,
+        surface = gate.entity.surface,
+    }
 end
 
 function OnRemoved(e)
@@ -160,7 +173,12 @@ function OnRemoved(e)
         util.removeFromGlobal("stargate", ent)
 
     elseif ent.name == dhdName then
-        util.removeFromGlobal("dhd", ent)
+        local stargate = util.removeFromGlobal("dhd", ent)
+
+        if stargate ~= nil then
+            stargate.active = false
+            stargate.animation = nil
+        end
     end
 end
 
@@ -174,13 +192,15 @@ function OnPlayerMoved(e)
         local gate = storage.stargate[player.surface.name][i]
 
         if gate.valid == true and gate.entity and gate.entity.valid then
-            if util.positionInBoundingBox(player.position, gate.entity.bounding_box) == true then
-                game.print(e.tick.." - Player "..player.name.." entered gate on "..player.surface.name)
+            if gate.active == true then
+                if util.positionInBoundingBox(player.position, gate.entity.bounding_box) == true then
+                    game.print(e.tick.." - Player "..player.name.." entered gate on "..player.surface.name)
 
-                if player.vehicle and player.vehicle.prototype.type == "spider-vehicle" then
-                    return
+                    if player.vehicle and player.vehicle.prototype.type == "spider-vehicle" then
+                        return
+                    end
+                    tempRandomTP(player, player.vehicle)
                 end
-                tempRandomTP(player, player.vehicle)
             end
         else
             table.remove(storage.stargate[player.surface.name], i)
