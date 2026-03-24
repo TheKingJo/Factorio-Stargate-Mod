@@ -19,7 +19,7 @@ function functions.hash_fnv1a(str)
 end
 
 function functions.vector2Add(vec1, vec2)
-    return {x = (vec1.x + vec2.x), y = (vec1.y + vec2.y)}
+    return {x = ((vec1.x or vec1[1]) + (vec2.x or vec2[1])), y = ((vec1.y or vec1[2]) + (vec2.y or vec2[2]))}
 end
 
 function functions.positionInBoundingBox(pos, area)

@@ -6,7 +6,8 @@ local sgNames = {
     base = "kj_stargate_base",
     tpArea = "kj_stargate_transferArea",
     colliderV = "kj_stargate_colliderVert",
-    colliderH = "kj_stargate_colliderHori",
+    colliderH1 = "kj_stargate_colliderHori1",
+    colliderH2 = "kj_stargate_colliderHori2",
     colliderD = "kj_stargate_colliderDiag",
 }
 local dhdName = "kj_dhd"
@@ -91,58 +92,87 @@ function OnBuilt(e)
     game.print("Placed "..ent.name)
 
 	if ent.name == sgNames.placement then --stargate placed
-        local baseEnt = ent.surface.create_entity{
-            name = sgNames.base,
-            position = ent.position,
-        }
         local tpArea = ent.surface.create_entity{
             name = sgNames.tpArea,
-            position = util.vector2Add(ent.position, {x = 0, y = -1.75}),
+            position = util.vector2Add(ent.position, {x = 0, y = -1.8}),
         }
-        local colliderV1 = ent.surface.create_entity{
-            name = sgNames.colliderV,
-            position = util.vector2Add(ent.position, {x = -3.5, y = -1}),
-        }
-        local colliderV2 = ent.surface.create_entity{
-            name = sgNames.colliderV,
-            position = util.vector2Add(ent.position, {x = 3.5, y = -1}),
-        }
-        local colliderH1 = ent.surface.create_entity{
-            name = sgNames.colliderH,
-            position = util.vector2Add(ent.position, {x = 0, y = -2.275}),
-        }
-        local colliderD1 = ent.surface.create_entity{
-            name = sgNames.colliderD,
-            position = util.vector2Add(ent.position, {x = -2.366, y = 0.225}),
-            direction = defines.direction.southeast,
-        }
-        local colliderD2 = ent.surface.create_entity{
-            name = sgNames.colliderD,
-            position = util.vector2Add(ent.position, {x = 2.366, y = 0.225}),
-            direction = defines.direction.southwest,
+        local childs = {
+            baseEnt = ent.surface.create_entity{
+                name = sgNames.base,
+                position = ent.position,
+            },
+            colliderV1 = ent.surface.create_entity{
+                name = sgNames.colliderV,
+                position = util.vector2Add(ent.position, {x = -3.5, y = -1}),
+            },
+            colliderV2 = ent.surface.create_entity{
+                name = sgNames.colliderV,
+                position = util.vector2Add(ent.position, {x = 3.5, y = -1}),
+            },
+            colliderH11 = ent.surface.create_entity{
+                name = sgNames.colliderH1,
+                position = util.vector2Add(ent.position, {x = 0, y = -2.275}),
+            },
+            colliderH21 = ent.surface.create_entity{
+                name = sgNames.colliderH2,
+                position = util.vector2Add(ent.position, {x = -2.5, y = -0.5}),
+            },
+            colliderH22 = ent.surface.create_entity{
+                name = sgNames.colliderH2,
+                position = util.vector2Add(ent.position, {x = 2.5, y = -0.5}),
+            },
+            colliderH31 = ent.surface.create_entity{
+                name = sgNames.colliderH2,
+                position = util.vector2Add(ent.position, {x = -2.25, y = -1.6}),
+            },
+            colliderH32 = ent.surface.create_entity{
+                name = sgNames.colliderH2,
+                position = util.vector2Add(ent.position, {x = 2.25, y = -1.6}),
+            },
+            colliderD1 = ent.surface.create_entity{
+                name = sgNames.colliderD,
+                position = util.vector2Add(ent.position, {x = -2.366, y = 0.225}),
+                direction = defines.direction.southeast,
+            },
+            colliderD2 = ent.surface.create_entity{
+                name = sgNames.colliderD,
+                position = util.vector2Add(ent.position, {x = 2.366, y = 0.225}),
+                direction = defines.direction.southwest,
+            },
         }
 
-        tpArea.destructible = false
-        baseEnt.destructible = false
-        colliderV1.destructible = false
-        colliderV2.destructible = false
-        colliderH1.destructible = false
-        colliderD1.destructible = false
-        colliderD2.destructible = false
+        for _, child in pairs(childs) do
+            child.destructible = false
+        end
 
         local content = {
             valid = true,
-            childs = {
-                sprite = baseEnt,
-                colliderV1 = colliderV1,
-                colliderV2 = colliderV2,
-                colliderH1 = colliderH1,
-                colliderD1 = colliderD1,
-                colliderD2 = colliderD2,
-            },
+            childs = childs,
             active = false
         }
         util.addToGlobal("stargate", tpArea, content)
+        local pos = ent.position
+        local posis = {x = {-0.5, -1.5}, y = {0, -1, -2}}
+        local calcPosis = {}
+        for i = 1, -1, -2 do
+            for _, x in pairs(posis.x) do
+                for _, y in pairs(posis.y) do
+                    table.insert(calcPosis, {position = util.vector2Add(pos, {x*i,y}), name = "kj_stargate_slowDownTile"})
+                end
+            end
+        end
+        game.print(serpent.block(calcPosis))
+        ent.surface.set_tiles(calcPosis)
+        --[[ent.surface.set_tiles({
+            {position = util.vector2Add(pos, {0.5,  0}), name = "kj_stargate_slowDownTile"},
+            {position = util.vector2Add(pos, {-0.5, 0}), name = "kj_stargate_slowDownTile"},
+            {position = util.vector2Add(pos, {0.5, -1}), name = "kj_stargate_slowDownTile"},
+            {position = util.vector2Add(pos, {-0.5,-1}), name = "kj_stargate_slowDownTile"},
+            {position = util.vector2Add(pos, {1.5,  0}), name = "kj_stargate_slowDownTile"},
+            {position = util.vector2Add(pos, {-1.5, 0}), name = "kj_stargate_slowDownTile"},
+            {position = util.vector2Add(pos, {1.5, -1}), name = "kj_stargate_slowDownTile"},
+            {position = util.vector2Add(pos, {-1.5,-1}), name = "kj_stargate_slowDownTile"},
+        })]]
         ent.destroy()
 
     elseif ent.name == dhdName then --dhd placed
