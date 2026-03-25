@@ -82,8 +82,8 @@ end
 ---@param addContent? table additional content to add to the storage entry
 function functions.addToGlobal(name, entity, addContent)
     local sName = entity.surface.name
-    if not storage[name] then return end
-    if not storage[name][sName] then return end
+    if not storage[name] then storage[name] = {} end
+    if not storage[name][sName] then storage[name][sName] = {} end
 
     local shortestOppEnt = functions.findEntity(opposite[name], oppositeEntity[name], entity)
     local shortestOppEntObj = functions.findInGlobal(opposite[name], shortestOppEnt)

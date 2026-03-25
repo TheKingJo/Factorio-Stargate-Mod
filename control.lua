@@ -1,7 +1,8 @@
 if script.active_mods["gvv"] then require("__gvv__.gvv")() end
 util = require("utils")
-require("logic.gui")
+sg_guis = require("logic.gui")
 mod_gui = require("mod-gui")
+glib = require("__glib__/glib")
 
 local sgNames = {
     placement = "kj_stargate_placement",
@@ -178,6 +179,7 @@ function OnBuilt(e)
             childs = childs,
             active = false,
             oldTiles = oldTiles,
+            destination = nil,
         }
         util.addToGlobal("stargate", tpArea, content)
 
@@ -186,7 +188,7 @@ function OnBuilt(e)
         ent.destructible = false
         local dhd = util.addToGlobal("dhd", ent)
 
-        if dhd.stargate ~= nil then
+        if dhd and dhd.stargate ~= nil then
             dhd.stargate.active = true
             util.playSoundOnSurface(ent.surface, dhd.stargate.entity.position, "kj_stargate_open")
             activateGate(dhd.stargate)
@@ -221,7 +223,7 @@ function OnRemoved(e)
         if stargate ~= nil then
             stargate.active = false
             util.playSoundOnSurface(ent.surface, stargate.entity.position, "kj_stargate_close")
-            stargate.animation.destroy()
+            if stargate.animation then stargate.animation.destroy() end
         end
     end
 end
@@ -278,8 +280,44 @@ end
 
 function GuiOpened(e)
     game.print("Gui opened")
-    if e.entity then
-        game.print(e.entity.name.." opened")
+    local player = game.players[e.player_index]
+
+    if e.entity and e.entity.name == "kj_dhd" then
+        game.print("DHD opened")
+        local dhd = util.findInGlobal("dhd", e.entity)
+        if dhd == nil or dhd.stargate == nil then
+            player.opened = nil
+            return
+        end
+
+        dhd = player.gui.screen.dhd
+        local refs
+        if not dhd then
+            dhd, refs = glib.add(player.gui.screen, sg_guis.default_frame("dhd", {"dhd"}))
+        else
+            dhd.visible = true
+        end
+
+        if refs.stargates then
+            AssembleGatesInDHDGUI(refs.stargates)
+        end
+
+        dhd.force_auto_center()
+        dhd.bring_to_front()
+        player.opened = dhd
+    end
+end
+
+function AssembleGatesInDHDGUI(root)
+    if storage.stargate == nil then return end
+    for name, surface in pairs(storage.stargate) do
+        for _, gate in pairs(surface) do
+            glib.add(root, {
+                args = {type = "choose-elem-button", elem_type = "space-location", ["space-location"] = name},
+                elem_mods = {locked = true},
+                --_click = handlers.click,
+            })
+        end
     end
 end
 
