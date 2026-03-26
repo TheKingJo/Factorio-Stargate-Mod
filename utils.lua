@@ -61,20 +61,44 @@ function functions.findEntity(name, entName, entity, excludeEntity)
     return shortestEntity
 end
 
----@return table [if it exists in global]
+function functions.findIDInGlobal(name, surface, id)
+    if not surface and not id then return nil, nil end
+    if not storage[name] then storage[name] = {} end
+    if not storage[name][surface] then storage[name][surface] = {} end
+
+    if id then
+        if storage[name][surface][id] then
+            return storage[name][surface][id]
+        end
+    end
+
+    return nil
+end
+
+---@return table, number [if it exists in global]
 function functions.findInGlobal(name, entity)
     if entity == nil then return nil end
     local sName = entity.surface.name
     if not storage[name] then storage[name] = {} end
     if not storage[name][sName] then storage[name][sName] = {} end
 
-    for _, object in pairs(storage[name][sName]) do
+    for id, object in pairs(storage[name][sName]) do
         if object.entity == entity then
-            return object
+            return object, id
         end
     end
 
-    return nil
+    return nil, nil
+end
+
+function functions.splitNameId(input)
+    local name, id, id2 = string.match(input, "^(.*)%-(%d+)%-([^%-]+)$")
+
+    if name and id and id2 then
+        return name, tonumber(id), tonumber(id2)
+    else
+        return nil, nil, nil
+    end
 end
 
 ---@param name string name of storage table
@@ -82,13 +106,24 @@ end
 ---@param addContent? table additional content to add to the storage entry
 function functions.addToGlobal(name, entity, addContent)
     local sName = entity.surface.name
+    local id = storage[name.."id"]
     if not storage[name] then storage[name] = {} end
     if not storage[name][sName] then storage[name][sName] = {} end
+    if not id then
+        storage[name.."id"] = 0
+        id = 0
+    else
+        id = id + 1
+    end
+    if entity.unit_number then
+        id = entity.unit_number
+    end
 
     local shortestOppEnt = functions.findEntity(opposite[name], oppositeEntity[name], entity)
     local shortestOppEntObj = functions.findInGlobal(opposite[name], shortestOppEnt)
 
     local content = {
+        id = id,
         entity = entity,
         pos = entity.position,
         [opposite[name]] = shortestOppEntObj,
@@ -96,15 +131,19 @@ function functions.addToGlobal(name, entity, addContent)
     if addContent then
         for k, v in pairs(addContent) do content[k] = v end
     end
-	table.insert(storage[name][sName], content)
+
+    if name == "stargate" then
+        setmetatable(content, {__index = stargate})
+    end
+	storage[name][sName][id] = content
 
     if shortestOppEnt ~= nil and shortestOppEntObj ~= nil and shortestOppEntObj[name] == nil then
-        shortestOppEntObj[name] = storage[name][sName][#storage[name][sName]]
+        shortestOppEntObj[name] = storage[name][sName][id]
     else
         game.print("Couldn't find "..opposite[name].." nearby!")
     end
 
-    return storage[name][sName][#storage[name][sName]]
+    return storage[name][sName][id]
 end
 
 ---@param name string name of storage table
@@ -114,7 +153,7 @@ function functions.removeFromGlobal(name, entity)
     if not storage[name] then return end
     if not storage[name][sName] then return end
 
-    for i, storObj in ipairs(storage[name][sName]) do
+    for id, storObj in pairs(storage[name][sName]) do
         if storObj.entity == entity then
             local returnValue
 
@@ -136,7 +175,7 @@ function functions.removeFromGlobal(name, entity)
                 end
             end
 
-            table.remove(storage[name][sName], i)
+            storage[name][sName][id] = nil
             return returnValue
         end
     end
@@ -150,4 +189,60 @@ function functions.playSoundOnSurface(surface, position, sound, volume)
 	}
 end
 
+function functions.register_handlers(handlers, namespace)
+    glib.register_handlers(handlers, function(event, handler)
+        handler(event.element, storage.refs[event.player_index], event)
+    end, namespace)
+end
+
+function functions.setMetatablesInGlobal(name, mt)
+	if storage[name] then
+		for k, v in pairs(storage[name]) do
+			setmetatable(v, mt)
+		end
+	end
+end
+
+functions.mtMgr =
+{
+    assignments = {},
+
+    assign = function(strType, metatable)
+        functions.mtMgr.assignments[strType] = metatable
+    end,
+
+    set = function(obj, strType)
+        obj.__mtMgr_type = strType
+        return setmetatable(obj, functions.mtMgr.assignments[strType])
+    end,
+
+    crawl = function(t, f, lookup)
+        if not lookup then
+            lookup = {}
+        end
+
+        lookup[t] = true
+
+        if not t.__self then
+            f(t)
+
+            for k,v in pairs(t) do
+                if type(v) == "table" and not lookup[v] then
+                    functions.mtMgr.crawl(v, f, lookup)
+                end
+            end
+        end
+    end,
+
+    OnLoad = function(t)
+        t = t or storage
+
+        functions.mtMgr.crawl(storage, function(t)
+            local mt = functions.mtMgr.assignments[t.__mtMgr_type]
+            if mt then
+                setmetatable(t, mt)
+            end
+        end)
+    end,
+}
 return functions

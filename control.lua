@@ -19,6 +19,38 @@ local sgOffset = {x = 0, y = 1}
 --regen when not existing
 --otherwise generate on surface generation
 
+
+stargate = {
+	Connect = function(thisGate, otherGate)
+        activateGate(thisGate)
+        activateGate(otherGate)
+        game.print("Gates connected: "..thisGate.id.."|"..otherGate.id)
+	end,
+}
+
+function activateGate(gate)
+    gate.active = true
+    gate.destination = gate
+    util.playSoundOnSurface(gate.entity.surface, gate.entity.position, "kj_stargate_open")
+    gate.animation = rendering.draw_animation{
+        animation = "kj_stargate_eventHorizon",
+        target = gate.entity.position,
+        surface = gate.entity.surface,
+    }
+end
+
+function OnLoad(e)
+	if storage.stargate then
+		for _, surface in pairs(storage.stargate) do
+            for _, gate in pairs(surface) do
+                setmetatable(gate, {__index = stargate})
+            end
+		end
+	end
+
+	util.mtMgr.OnLoad()
+end
+
 function addAddressToGlobal(surface, address)
     if surface.platform ~= nil then return end
     if not storage.addresses then storage.addresses = {} end
@@ -168,7 +200,7 @@ function OnBuilt(e)
 
         local oldTiles = {}
         for _, tile in pairs(calcPosis) do
-            local tile = surface.get_tile(tile.position.x, tile.position.y)
+            tile = surface.get_tile(tile.position.x, tile.position.y)
             table.insert(oldTiles, {name = tile.name, position = tile.position})
         end
 
@@ -187,21 +219,7 @@ function OnBuilt(e)
     elseif ent.name == dhdName then --dhd placed
         ent.destructible = false
         local dhd = util.addToGlobal("dhd", ent)
-
-        if dhd and dhd.stargate ~= nil then
-            dhd.stargate.active = true
-            util.playSoundOnSurface(ent.surface, dhd.stargate.entity.position, "kj_stargate_open")
-            activateGate(dhd.stargate)
-        end
     end
-end
-
-function activateGate(gate)
-    gate.animation = rendering.draw_animation{
-        animation = "kj_stargate_eventHorizon",
-        target = gate.entity.position,
-        surface = gate.entity.surface,
-    }
 end
 
 function OnRemoved(e)
@@ -284,39 +302,35 @@ function GuiOpened(e)
 
     if e.entity and e.entity.name == "kj_dhd" then
         game.print("DHD opened")
-        local dhd = util.findInGlobal("dhd", e.entity)
+        local dhd, id = util.findInGlobal("dhd", e.entity)
         if dhd == nil or dhd.stargate == nil then
             player.opened = nil
             return
         end
 
-        dhd = player.gui.screen.dhd
+        gui = player.gui.screen.dhd
         local refs
-        if not dhd then
-            dhd, refs = glib.add(player.gui.screen, sg_guis.default_frame("dhd", {"dhd"}))
+        if not gui then
+            gui, refs = glib.add(player.gui.screen, sg_guis.dhd_frame("dhd", {"dhd"}))
         else
-            dhd.visible = true
+            gui.visible = true
         end
 
         if refs.stargates then
-            AssembleGatesInDHDGUI(refs.stargates)
+            AssembleGatesInDHDGUI(refs.stargates, id)
         end
 
-        dhd.force_auto_center()
-        dhd.bring_to_front()
-        player.opened = dhd
+        gui.force_auto_center()
+        gui.bring_to_front()
+        player.opened = gui
     end
 end
 
-function AssembleGatesInDHDGUI(root)
+function AssembleGatesInDHDGUI(root, currentGate)
     if storage.stargate == nil then return end
-    for name, surface in pairs(storage.stargate) do
-        for _, gate in pairs(surface) do
-            glib.add(root, {
-                args = {type = "choose-elem-button", elem_type = "space-location", ["space-location"] = name},
-                elem_mods = {locked = true},
-                --_click = handlers.click,
-            })
+    for sName, surface in pairs(storage.stargate) do
+        for id, _ in pairs(surface) do
+            glib.add(root, sg_guis.dhd_element(id, sName, currentGate))
         end
     end
 end
@@ -326,7 +340,7 @@ script.on_event(defines.events.on_player_changed_position, OnPlayerMoved)
 script.on_event(defines.events.on_built_entity, OnBuilt)
 script.on_event(defines.events.on_robot_built_entity, OnBuilt)
 
---script.on_load(OnLoad)
+script.on_load(OnLoad)
 --script.on_configuration_changed(OnConfigChanged)
 --script.on_event(defines.events.on_tick, OnTick)
 

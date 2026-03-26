@@ -1,11 +1,12 @@
 local glib = require("__glib__/glib")
 local guis = {}
 local handlers = {}
+util = require("utils")
 
 ---@param name string
 ---@param caption LocalisedString
 ---@param events? {frame: GuiEventHandler?, button: GuiEventHandler?}
-function guis.default_frame(name, caption, events)
+function guis.dhd_frame(name, caption, events)
     return {
         args = {type = "frame", name = name, direction = "vertical"},
         _closed = events and events.frame or handlers.default_close,
@@ -43,6 +44,14 @@ function guis.default_frame(name, caption, events)
     }
 end
 
+function guis.dhd_element(id, place, currentGate)
+    return {
+        args = {type = "choose-elem-button", name = place.."-"..id.."-"..currentGate, elem_type = "space-location", ["space-location"] = place},
+        elem_mods = {locked = true},
+        _click = handlers.click,
+    }
+end
+
 function handlers.default_close(event)
     event.element.destroy()
 end
@@ -51,6 +60,22 @@ function handlers.default_close_button(event)
     event.element.parent.parent.destroy()
 end
 
+function handlers.click(event)
+    if event.button == defines.mouse_button_type.left then
+        local surface, idSG, idDHD = util.splitNameId(event.element.name)
+        local stargate1 = util.findIDInGlobal("stargate", surface, idSG)
+        local dhd2 = util.findIDInGlobal("dhd", surface, idDHD)
+        if stargate1 and dhd2 and dhd2.stargate then
+            if stargate1.dhd.id ~= idDHD then
+                stargate1:Connect(dhd2.stargate)
+            else
+                game.print("Cannot connect to itself!")
+            end
+        end
+    end
+end
+
+--util.register_handlers(handlers)
 glib.register_handlers(handlers)
 
 return guis
