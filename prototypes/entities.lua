@@ -131,6 +131,14 @@ data:extend({
 	},
 	{
 		type = "sound",
+		name = "kj_stargate_fail",
+		filename = modname.."/sounds/gate_fail.ogg",
+		volume = 1,
+		category = "environment",
+		audible_distance_modifier = 1,
+	},
+	{
+		type = "sound",
 		name = "kj_stargate_openIdle",
 		filename = modname.."/sounds/gate_puddle.ogg",
 		volume = 1,

@@ -22,15 +22,40 @@ local sgOffset = {x = 0, y = 1}
 
 stargate = {
 	Connect = function(thisGate, otherGate)
-        activateGate(thisGate)
-        activateGate(otherGate)
-        game.print("Gates connected: "..thisGate.id.."|"..otherGate.id)
+        if otherGate.destination ~= nil then --other gate has connection
+            util.playSoundOnSurface(thisGate.entity.surface, thisGate.entity.position, "kj_stargate_fail")
+        else
+            if thisGate.destination ~= nil then
+                thisGate:Disconnect()
+            end
+            activateGate(thisGate)
+            activateGate(otherGate)
+            thisGate.destination = otherGate
+            otherGate.destination = thisGate
+            game.print("Gates connected: "..thisGate.id.."|"..otherGate.id)
+        end
 	end,
+
+    Disconnect = function(self)
+        local dest = self.destination
+        if dest then
+            self.active = false
+            self.animation.destroy()
+            self.destination = nil
+            util.playSoundOnSurface(self.entity.surface, self.entity.position, "kj_stargate_close")
+
+            dest.active = false
+            dest.animation.destroy()
+            dest.destination = nil
+            util.playSoundOnSurface(dest.entity.surface, dest.entity.position, "kj_stargate_close")
+
+            game.print("Gates disconnected: "..self.id.."|"..dest.id)
+        end
+    end,
 }
 
 function activateGate(gate)
     gate.active = true
-    gate.destination = gate
     util.playSoundOnSurface(gate.entity.surface, gate.entity.position, "kj_stargate_open")
     gate.animation = rendering.draw_animation{
         animation = "kj_stargate_eventHorizon",
@@ -103,15 +128,19 @@ function tempRandomTP(player, vehicle)
     end
     local rGate = gates[math.random(#gates)]
 
-    local pos = util.vector2Add(storage.stargate[rSurface][rGate].entity.position, sgOffset)
+    GateTransit(storage.stargate[rSurface][rGate], player, vehicle)
+end
+
+function GateTransit(gate, player, vehicle)
+    local pos = util.vector2Add(gate.entity.position, sgOffset)
     player.teleport(
         pos,
-        game.surfaces[rSurface]
+        gate.entity.surface
     )
     if vehicle ~= nil then
         vehicle.teleport(
             pos,
-            game.surfaces[rSurface]
+            gate.entity.surface
         )
         --flip car in certain value ranges
         vehicle.orientation = (vehicle.orientation < 0.25 or vehicle.orientation > 0.75) and 0.5 or 0
@@ -249,26 +278,28 @@ end
 function OnPlayerMoved(e)
     if not storage.stargate then return end
     local player = game.players[e.player_index]
-    --game.print(e.tick.." - Player "..player.name.." moved")
     if not storage.stargate[player.surface.name] then return end
 
-    for i = #storage.stargate[player.surface.name], 1, -1 do
-        local gate = storage.stargate[player.surface.name][i]
+    if player.vehicle and player.vehicle.prototype.type == "spider-vehicle" then return end
 
+    local deleteGate = {}
+    for gID, gate in pairs(storage.stargate[player.surface.name]) do
         if gate.valid == true and gate.entity and gate.entity.valid then
-            if gate.active == true then
+            if gate.active == true and gate.destination then
                 if util.positionInBoundingBox(player.position, gate.entity.bounding_box) == true then
                     game.print(e.tick.." - Player "..player.name.." entered gate on "..player.surface.name)
 
-                    if player.vehicle and player.vehicle.prototype.type == "spider-vehicle" then
-                        return
-                    end
-                    tempRandomTP(player, player.vehicle)
+                    GateTransit(gate.destination, player, player.vehicle)
+                    --tempRandomTP(player, player.vehicle)
                 end
             end
         else
-            table.remove(storage.stargate[player.surface.name], i)
+            table.insert(deleteGate, gID)
         end
+    end
+
+    for _, k in ipairs(deleteGate) do
+        storage.stargate[player.surface.name][k] = nil
     end
 
     --[[
@@ -302,7 +333,7 @@ function GuiOpened(e)
 
     if e.entity and e.entity.name == "kj_dhd" then
         game.print("DHD opened")
-        local dhd, id = util.findInGlobal("dhd", e.entity)
+        local dhd, dhdID = util.findInGlobal("dhd", e.entity)
         if dhd == nil or dhd.stargate == nil then
             player.opened = nil
             return
@@ -317,7 +348,7 @@ function GuiOpened(e)
         end
 
         if refs.stargates then
-            AssembleGatesInDHDGUI(refs.stargates, id)
+            AssembleGatesInDHDGUI(refs.stargates, e.entity.surface.name, dhdID)
         end
 
         gui.force_auto_center()
@@ -326,11 +357,14 @@ function GuiOpened(e)
     end
 end
 
-function AssembleGatesInDHDGUI(root, currentGate)
+function AssembleGatesInDHDGUI(root, dhdSurface, dhdID)
     if storage.stargate == nil then return end
-    for sName, surface in pairs(storage.stargate) do
-        for id, _ in pairs(surface) do
-            glib.add(root, sg_guis.dhd_element(id, sName, currentGate))
+    glib.add(root, sg_guis.dhd_element("solar-system-edge", 0, dhdSurface, dhdID))
+    for sName, gates in pairs(storage.stargate) do
+        game.print("Gate order:")
+        for sgID, _ in pairs(gates) do
+            game.print(sgID)
+            glib.add(root, sg_guis.dhd_element(sName, sgID, dhdSurface, dhdID))
         end
     end
 end

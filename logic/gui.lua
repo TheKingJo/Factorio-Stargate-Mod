@@ -44,9 +44,10 @@ function guis.dhd_frame(name, caption, events)
     }
 end
 
-function guis.dhd_element(id, place, currentGate)
+function guis.dhd_element(sgSurface, sgID, dhdSurface, dhdID)--(name1.id1).(name2.id2)
+    local name = "("..sgSurface.."."..sgID..").("..dhdSurface.."."..dhdID..")"
     return {
-        args = {type = "choose-elem-button", name = place.."-"..id.."-"..currentGate, elem_type = "space-location", ["space-location"] = place},
+        args = {type = "choose-elem-button", name =  name, elem_type = "space-location", ["space-location"] = sgSurface},
         elem_mods = {locked = true},
         _click = handlers.click,
     }
@@ -62,14 +63,18 @@ end
 
 function handlers.click(event)
     if event.button == defines.mouse_button_type.left then
-        local surface, idSG, idDHD = util.splitNameId(event.element.name)
-        local stargate1 = util.findIDInGlobal("stargate", surface, idSG)
-        local dhd2 = util.findIDInGlobal("dhd", surface, idDHD)
-        if stargate1 and dhd2 and dhd2.stargate then
-            if stargate1.dhd.id ~= idDHD then
-                stargate1:Connect(dhd2.stargate)
+        local sgSurface, dhdSurface, sgId, dhdId = util.splitNameId(event.element.name)
+        local stargate = util.findIDInGlobal("stargate", sgSurface, sgId)
+        local dhd = util.findIDInGlobal("dhd", dhdSurface, dhdId)
+        if dhd and dhd.stargate then
+            if stargate then
+                if stargate.dhd.id ~= dhdId then
+                    dhd.stargate:Connect(stargate)
+                else
+                    game.print("Cannot connect to itself!")
+                end
             else
-                game.print("Cannot connect to itself!")
+                dhd.stargate:Disconnect()
             end
         end
     end

@@ -64,7 +64,7 @@ end
 function functions.findIDInGlobal(name, surface, id)
     if not surface and not id then return nil, nil end
     if not storage[name] then storage[name] = {} end
-    if not storage[name][surface] then storage[name][surface] = {} end
+    if not storage[name][surface] then return nil, nil end
 
     if id then
         if storage[name][surface][id] then
@@ -77,10 +77,10 @@ end
 
 ---@return table, number [if it exists in global]
 function functions.findInGlobal(name, entity)
-    if entity == nil then return nil end
+    if entity == nil then return nil, nil end
     local sName = entity.surface.name
     if not storage[name] then storage[name] = {} end
-    if not storage[name][sName] then storage[name][sName] = {} end
+    if not storage[name][sName] then return nil, nil end
 
     for id, object in pairs(storage[name][sName]) do
         if object.entity == entity then
@@ -92,12 +92,13 @@ function functions.findInGlobal(name, entity)
 end
 
 function functions.splitNameId(input)
-    local name, id, id2 = string.match(input, "^(.*)%-(%d+)%-([^%-]+)$")
-
-    if name and id and id2 then
-        return name, tonumber(id), tonumber(id2)
+    local surface1, id1, surface2, id2 = string.match(
+            input, "^%(([^%.]+)%.(-?%d+)%)%.%(([^%.]+)%.(-?%d+)%)$"
+        )
+    if surface1 and surface2 and id1 and id2 then
+        return surface1, surface2, tonumber(id1), tonumber(id2)
     else
-        return nil, nil, nil
+        return nil, nil, nil, nil
     end
 end
 
@@ -106,18 +107,10 @@ end
 ---@param addContent? table additional content to add to the storage entry
 function functions.addToGlobal(name, entity, addContent)
     local sName = entity.surface.name
-    local id = storage[name.."id"]
+    local id = entity.unit_number or ((storage[name.."id"] or 0) + 1)
+    storage[name.."id"] = id
     if not storage[name] then storage[name] = {} end
     if not storage[name][sName] then storage[name][sName] = {} end
-    if not id then
-        storage[name.."id"] = 0
-        id = 0
-    else
-        id = id + 1
-    end
-    if entity.unit_number then
-        id = entity.unit_number
-    end
 
     local shortestOppEnt = functions.findEntity(opposite[name], oppositeEntity[name], entity)
     local shortestOppEntObj = functions.findInGlobal(opposite[name], shortestOppEnt)
@@ -226,7 +219,7 @@ functions.mtMgr =
         if not t.__self then
             f(t)
 
-            for k,v in pairs(t) do
+            for _, v in pairs(t) do
                 if type(v) == "table" and not lookup[v] then
                     functions.mtMgr.crawl(v, f, lookup)
                 end
