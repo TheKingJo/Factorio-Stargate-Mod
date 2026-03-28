@@ -112,6 +112,25 @@ data:extend({
         is_military_target  = false,
         minable = {mining_time = 1, result = "kj_stargate_placement"},
     },
+    {
+        type = "simple-entity-with-force",
+        name = "kj_stargate_ambientSound",
+        hidden = true,
+        icon = modname.."/graphics/entities/stargate/icon.png",
+        icon_size = 128,
+        flags = {"placeable-neutral", "placeable-off-grid", "not-flammable"},
+		collision_mask = {layers = {}},
+        is_military_target  = false,
+        ambient_sounds = {
+            radius = 15,
+            min_entity_count = 1,
+            sound = {
+		        filename = modname.."/sounds/gate_puddle.ogg",
+                volume = 1,
+            }
+        },
+        minable = {mining_time = 1, result = "kj_stargate_placement"},
+    },
 
 	{
 		type = "sound",
@@ -133,6 +152,14 @@ data:extend({
 		type = "sound",
 		name = "kj_stargate_fail",
 		filename = modname.."/sounds/gate_fail.ogg",
+		volume = 1,
+		category = "environment",
+		audible_distance_modifier = 1,
+	},
+	{
+		type = "sound",
+		name = "kj_stargate_enter",
+		filename = modname.."/sounds/gate_enter.ogg",
 		volume = 1,
 		category = "environment",
 		audible_distance_modifier = 1,

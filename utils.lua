@@ -26,6 +26,70 @@ function functions.vector2Add(vec1, vec2)
     return {x = ((vec1.x or vec1[1]) + (vec2.x or vec2[1])), y = ((vec1.y or vec1[2]) + (vec2.y or vec2[2]))}
 end
 
+function functions.getRotatedBox(area, rotation)
+    local angle = rotation * 2 * math.pi
+    local minX = math.min(area.left_top.x, area.right_bottom.x)
+    local maxX = math.max(area.left_top.x, area.right_bottom.x)
+    local minY = math.min(area.left_top.y, area.right_bottom.y)
+    local maxY = math.max(area.left_top.y, area.right_bottom.y)
+
+    --Center
+    local cx = (minX + maxX) / 2
+    local cy = (minY + maxY) / 2
+    --Corners in unrotated box
+    local corners = {
+        {x = minX, y = minY},
+        {x = maxX, y = minY},
+        {x = maxX, y = maxY},
+        {x = minX, y = maxY},
+    }
+
+    local cosA = math.cos(angle)
+    local sinA = math.sin(angle)
+    local rotated = {}
+
+    for i, p in ipairs(corners) do
+        local dx = p.x - cx
+        local dy = p.y - cy
+
+        --Rotation clockwise
+        local rx = dx * cosA + dy * sinA
+        local ry = -dx * sinA + dy * cosA
+
+        rotated[i] = {
+            x = cx + rx,
+            y = cy + ry
+        }
+    end
+
+    return rotated
+end
+
+function functions.pointInAABB(p, area)
+    --local minX = math.min(area.left_top.x, area.right_bottom.x)
+    --local maxX = math.max(area.left_top.x, area.right_bottom.x)
+    --local minY = math.min(area.left_top.y, area.right_bottom.y)
+    --local maxY = math.max(area.left_top.y, area.right_bottom.y)
+    local minX = area.left_top.x
+    local maxX = area.right_bottom.x
+    local minY = area.left_top.y
+    local maxY = area.right_bottom.y
+
+    return p.x > minX and p.x < maxX and
+           p.y > minY and p.y < maxY
+end
+
+function functions.rotatedBoxInsideBoundingBox(area1, orientation, area2)
+    local rotatedBox = functions.getRotatedBox(area1, orientation)
+
+    for _, p in ipairs(rotatedBox) do
+        if functions.pointInAABB(p, area2) then
+            return true
+        end
+    end
+    return false
+end
+
 function functions.positionInBoundingBox(pos, area)
     --pos = {x = 0, y = 0}
     --area = {{x = -1, y = -1}, {x = 1, y = 1}}
@@ -63,7 +127,7 @@ end
 
 function functions.findIDInGlobal(name, surface, id)
     if not surface and not id then return nil, nil end
-    if not storage[name] then storage[name] = {} end
+    storage[name] = storage[name] or {}
     if not storage[name][surface] then return nil, nil end
 
     if id then
@@ -79,7 +143,7 @@ end
 function functions.findInGlobal(name, entity)
     if entity == nil then return nil, nil end
     local sName = entity.surface.name
-    if not storage[name] then storage[name] = {} end
+    storage[name] = storage[name] or {}
     if not storage[name][sName] then return nil, nil end
 
     for id, object in pairs(storage[name][sName]) do
@@ -109,8 +173,8 @@ function functions.addToGlobal(name, entity, addContent)
     local sName = entity.surface.name
     local id = entity.unit_number or ((storage[name.."id"] or 0) + 1)
     storage[name.."id"] = id
-    if not storage[name] then storage[name] = {} end
-    if not storage[name][sName] then storage[name][sName] = {} end
+    storage[name] = storage[name] or {}
+    storage[name][sName] = storage[name][sName] or {}
 
     local shortestOppEnt = functions.findEntity(opposite[name], oppositeEntity[name], entity)
     local shortestOppEntObj = functions.findInGlobal(opposite[name], shortestOppEnt)

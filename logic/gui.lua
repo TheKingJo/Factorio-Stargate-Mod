@@ -68,7 +68,7 @@ function handlers.click(event)
         local dhd = util.findIDInGlobal("dhd", dhdSurface, dhdId)
         if dhd and dhd.stargate then
             if stargate then
-                if stargate.dhd.id ~= dhdId then
+                if stargate.dhd == nil or (stargate.dhd ~= nil and stargate.dhd.id ~= dhdId) then
                     dhd.stargate:Connect(stargate)
                 else
                     game.print("Cannot connect to itself!")

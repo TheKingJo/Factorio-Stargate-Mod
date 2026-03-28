@@ -7,6 +7,7 @@ glib = require("__glib__/glib")
 local sgNames = {
     placement = "kj_stargate_placement",
     base = "kj_stargate_base",
+    sound = "kj_stargate_ambientSound",
     tpArea = "kj_stargate_transferArea",
     colliderV = "kj_stargate_colliderVert",
     colliderH1 = "kj_stargate_colliderHori1",
@@ -14,7 +15,7 @@ local sgNames = {
     colliderD = "kj_stargate_colliderDiag",
 }
 local dhdName = "kj_dhd"
-local sgOffset = {x = 0, y = 1}
+local sgOffset = {x = 0, y = 1.3}
 --at start check for existing char tables
 --regen when not existing
 --otherwise generate on surface generation
@@ -32,6 +33,12 @@ stargate = {
             activateGate(otherGate)
             thisGate.destination = otherGate
             otherGate.destination = thisGate
+
+            storage.activeGates = storage.activeGates or {}
+            table.insert(storage.activeGates, {tick = game.tick + 20*60, stargate = thisGate})
+
+            thisGate.entity.minable = false
+            otherGate.entity.minable = false
             game.print("Gates connected: "..thisGate.id.."|"..otherGate.id)
         end
 	end,
@@ -39,29 +46,31 @@ stargate = {
     Disconnect = function(self)
         local dest = self.destination
         if dest then
-            self.active = false
-            self.animation.destroy()
-            self.destination = nil
-            util.playSoundOnSurface(self.entity.surface, self.entity.position, "kj_stargate_close")
+            deactivateGate(self)
+            deactivateGate(dest)
 
-            dest.active = false
-            dest.animation.destroy()
-            dest.destination = nil
-            util.playSoundOnSurface(dest.entity.surface, dest.entity.position, "kj_stargate_close")
-
+            self.entity.minable = true
+            dest.entity.minable = true
             game.print("Gates disconnected: "..self.id.."|"..dest.id)
         end
     end,
 }
 
+function deactivateGate(gate)
+    gate.active = false
+    gate.animation.destroy()
+    gate.destination = nil
+    util.playSoundOnSurface(gate.entity.surface, gate.entity.position, "kj_stargate_close")
+end
+
 function activateGate(gate)
     gate.active = true
-    util.playSoundOnSurface(gate.entity.surface, gate.entity.position, "kj_stargate_open")
     gate.animation = rendering.draw_animation{
         animation = "kj_stargate_eventHorizon",
         target = gate.entity.position,
         surface = gate.entity.surface,
     }
+    util.playSoundOnSurface(gate.entity.surface, gate.entity.position, "kj_stargate_open")
 end
 
 function OnLoad(e)
@@ -78,8 +87,8 @@ end
 
 function addAddressToGlobal(surface, address)
     if surface.platform ~= nil then return end
-    if not storage.addresses then storage.addresses = {} end
-    if not storage.addresses[surface.name] then storage.addresses[surface.name] = address end
+    storage.addresses = storage.addresses or {}
+    storage.addresses[surface.name] = storage.addresses[surface.name] or address
 end
 
 function generateAdress(surface)
@@ -115,39 +124,37 @@ function generateAdresses(e)
     end
 end
 
-function tempRandomTP(player, vehicle)
-    local surfaces = {}
-    for k in pairs(storage.stargate) do
-        table.insert(surfaces, k)
-    end
-    local rSurface = surfaces[math.random(#surfaces)]
-
-    local gates = {}
-    for k in pairs(storage.stargate[rSurface]) do
-        table.insert(gates, k)
-    end
-    local rGate = gates[math.random(#gates)]
-
-    GateTransit(storage.stargate[rSurface][rGate], player, vehicle)
-end
-
 function GateTransit(gate, player, vehicle)
     local pos = util.vector2Add(gate.entity.position, sgOffset)
+    util.playSoundOnSurface(player.surface, player.position, "kj_stargate_enter")
     player.teleport(
         pos,
         gate.entity.surface
     )
     if vehicle ~= nil then
+        local speed = vehicle.speed
         vehicle.teleport(
             pos,
             gate.entity.surface
         )
         --flip car in certain value ranges
         vehicle.orientation = (vehicle.orientation < 0.25 or vehicle.orientation > 0.75) and 0.5 or 0
-    end
+        vehicle.speed = speed
+        vehicle.set_driver(player)
 
-    if storage.players == nil then storage.players = {} end
-    table.insert(storage.players, {tick = game.tick + 15, player = player})
+        local modus = (vehicle.orientation == 0) and defines.riding.acceleration.reversing or defines.riding.acceleration.accelerating
+		player.riding_state = {acceleration = modus, direction = defines.riding.direction.straight}
+
+        storage.vehicles = storage.vehicles or {}
+        table.insert(storage.vehicles, {tick = game.tick + 5, vehicle = vehicle})
+
+        storage.ignoredVehicles = storage.ignoredVehicles or {}
+        storage.ignoredVehicles[vehicle.unit_number] = game.tick + 10
+    else
+        storage.players = storage.players or {}
+        table.insert(storage.players, {tick = game.tick + 15, player = player})
+    end
+    util.playSoundOnSurface(gate.entity.surface, gate.entity.position, "kj_stargate_enter")
 end
 
 function OnBuilt(e)
@@ -165,6 +172,10 @@ function OnBuilt(e)
         local childs = {
             baseEnt = surface.create_entity{
                 name = sgNames.base,
+                position = pos,
+            },
+            soundEnt = surface.create_entity{
+                name = sgNames.sound,
                 position = pos,
             },
             colliderV1 = surface.create_entity{
@@ -206,7 +217,7 @@ function OnBuilt(e)
                 direction = defines.direction.southwest,
             },
         }
-
+        --childs.soundEnt.active = true
         for _, child in pairs(childs) do
             child.destructible = false
         end
@@ -254,7 +265,6 @@ end
 function OnRemoved(e)
 	local ent = e.entity
     if not ent.valid then return end
-    game.print("Removed "..ent.name)
 
 	if ent.name == sgNames.tpArea then
         local sg = util.findInGlobal("stargate", ent)
@@ -278,19 +288,31 @@ end
 function OnPlayerMoved(e)
     if not storage.stargate then return end
     local player = game.players[e.player_index]
+    local vehicle = player.vehicle
     if not storage.stargate[player.surface.name] then return end
 
-    if player.vehicle and player.vehicle.prototype.type == "spider-vehicle" then return end
+    if vehicle and vehicle.prototype.type == "spider-vehicle" then return end
 
     local deleteGate = {}
     for gID, gate in pairs(storage.stargate[player.surface.name]) do
         if gate.valid == true and gate.entity and gate.entity.valid then
             if gate.active == true and gate.destination then
-                if util.positionInBoundingBox(player.position, gate.entity.bounding_box) == true then
-                    game.print(e.tick.." - Player "..player.name.." entered gate on "..player.surface.name)
+                if not vehicle then --player not in vehicle
+                    if util.positionInBoundingBox(player.position, gate.entity.bounding_box) == true then
+                        --game.print(e.tick.." - Player "..player.name.." entered gate on "..player.surface.name)
 
-                    GateTransit(gate.destination, player, player.vehicle)
-                    --tempRandomTP(player, player.vehicle)
+                        GateTransit(gate.destination, player, vehicle)
+                    end
+                else --player in vehicle
+                    local iV = storage.ignoredVehicles and storage.ignoredVehicles[vehicle.unit_number]
+                    if not iV or (iV and iV < game.tick) then
+                        if util.rotatedBoxInsideBoundingBox(vehicle.bounding_box, vehicle.orientation, gate.entity.bounding_box) == true then
+                            --game.print(e.tick.." - Player "..player.name.." entered gate on "..player.surface.name)
+
+                            GateTransit(gate.destination, player, vehicle)
+                            iV = nil
+                        end
+                    end
                 end
             end
         else
@@ -312,9 +334,12 @@ function OnPlayerMoved(e)
 end
 
 function OnTick(e)
-    if storage.players ~= nil then
-        for i = #storage.players, 1, -1 do
-            local player = storage.players[i]
+    local players = storage.players
+    local vehicles = storage.vehicles
+
+    if players ~= nil then
+        for i = #players, 1, -1 do
+            local player = players[i]
             if game.tick < player.tick then
                 player.player.walking_state = {
                     walking = true,
@@ -325,10 +350,88 @@ function OnTick(e)
             end
         end
     end
+    if vehicles ~= nil then
+        for i = #vehicles, 1, -1 do
+            local vehicle = vehicles[i]
+            if vehicle.vehicle.valid then
+                if game.tick > vehicle.tick then
+                    local driver = vehicle.vehicle.get_driver()
+                    if driver then
+                        driver.riding_state = {acceleration = defines.riding.acceleration.nothing, direction = defines.riding.direction.straight}
+                    end
+                    table.remove(storage.vehicles, i)
+                end
+            else
+                table.remove(storage.vehicles, i)
+            end
+        end
+    end
+end
+
+function OnNthTickPlayer(e)
+    if not storage.stargate then return end
+    local deleteGate = {}
+    for sgSurface, gates in pairs(storage.stargate) do
+        for gID, gate in pairs(gates) do
+            if gate.valid == true and gate.entity and gate.entity.valid then
+                if gate.active == true and gate.destination then
+                    for _, player in pairs(game.players) do
+                        local vehicle = player.vehicle
+                        if player.surface.name == sgSurface and not (vehicle and vehicle.prototype.type == "spider-vehicle") then
+                            if not vehicle then --player not in vehicle
+                                if util.positionInBoundingBox(player.position, gate.entity.bounding_box) == true then
+                                    --game.print(e.tick.." - Player "..player.name.." entered gate on "..player.surface.name)
+
+                                    GateTransit(gate.destination, player, vehicle)
+                                end
+                            else --player in vehicle
+                                local iV = storage.ignoredVehicles and storage.ignoredVehicles[vehicle.unit_number]
+                                if not iV or (iV and iV < game.tick) then
+                                    if util.rotatedBoxInsideBoundingBox(vehicle.bounding_box, vehicle.orientation, gate.entity.bounding_box) == true then
+                                        --game.print(e.tick.." - Player "..player.name.." entered gate on "..player.surface.name)
+
+                                        GateTransit(gate.destination, player, vehicle)
+                                        iV = nil
+                                    end
+                                end
+                            end
+                        end
+                    end
+                end
+            else
+                deleteGate.sgSurface = gID
+            end
+        end
+    end
+
+    for v, k in ipairs(deleteGate) do
+        storage.stargate[v][k] = nil
+    end
+
+    --[[
+    on player moved:
+        check all gates
+            check if players are inside border
+                teleport if yes
+                also teleport vehicle
+    ]]
+end
+
+function OnNthTickGates(e)
+    local gates = storage.activeGates
+    if gates ~= nil then
+        for i = #gates, 1, -1 do
+            local gate = gates[i]
+            if game.tick > gate.tick then
+                gate.stargate:Disconnect()
+                table.remove(storage.activeGates, i)
+            end
+        end
+    end
 end
 
 function GuiOpened(e)
-    game.print("Gui opened")
+    --game.print("Gui opened")
     local player = game.players[e.player_index]
 
     if e.entity and e.entity.name == "kj_dhd" then
@@ -369,20 +472,21 @@ function AssembleGatesInDHDGUI(root, dhdSurface, dhdID)
     end
 end
 
-script.on_event(defines.events.on_player_changed_position, OnPlayerMoved)
+--script.on_event(defines.events.on_player_changed_position, OnPlayerMoved)
 
 script.on_event(defines.events.on_built_entity, OnBuilt)
 script.on_event(defines.events.on_robot_built_entity, OnBuilt)
 
 script.on_load(OnLoad)
 --script.on_configuration_changed(OnConfigChanged)
---script.on_event(defines.events.on_tick, OnTick)
 
 script.on_event(defines.events.on_player_mined_entity, OnRemoved)
 script.on_event(defines.events.on_robot_mined_entity, OnRemoved)
 script.on_event(defines.events.on_entity_died, OnRemoved)
 
 script.on_event(defines.events.on_tick, OnTick)
+script.on_nth_tick(60, OnNthTickGates)
+script.on_nth_tick(2, OnNthTickPlayer)
 
 script.on_event(defines.events.on_surface_created,
     function(event)
