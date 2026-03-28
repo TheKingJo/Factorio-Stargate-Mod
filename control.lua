@@ -65,11 +65,18 @@ end
 
 function activateGate(gate)
     gate.active = true
-    gate.animation = rendering.draw_animation{
+    --[[gate.animation = rendering.draw_animation{
         animation = "kj_stargate_eventHorizon",
-        target = gate.entity.position,
+        target = util.vector2Add(gate.entity.position, {x = 0, y = -10.2}),--gate.childs.baseEnt,
         surface = gate.entity.surface,
+        render_layer = "object",
+        y_scale = 5,
+    }]]
+    gate.animation = gate.entity.surface.create_entity{
+        name = "kj_stargate_eventHorizon_ent",
+        position = util.vector2Add(gate.entity.position, {x = 0, y = -0.19}),
     }
+    gate.animation.destructible = false
     util.playSoundOnSurface(gate.entity.surface, gate.entity.position, "kj_stargate_open")
 end
 
@@ -172,7 +179,7 @@ function OnBuilt(e)
         local childs = {
             baseEnt = surface.create_entity{
                 name = sgNames.base,
-                position = pos,
+                position = util.vector2Add(pos, {x = 0, y = -2}),
             },
             soundEnt = surface.create_entity{
                 name = sgNames.sound,
@@ -376,10 +383,10 @@ function OnNthTickPlayer(e)
             if gate.valid == true and gate.entity and gate.entity.valid then
                 if gate.active == true and gate.destination then
                     for _, player in pairs(game.players) do
-                        local vehicle = player.vehicle
+                        local vehicle = player.physical_vehicle
                         if player.surface.name == sgSurface and not (vehicle and vehicle.prototype.type == "spider-vehicle") then
-                            if not vehicle then --player not in vehicle
-                                if util.positionInBoundingBox(player.position, gate.entity.bounding_box) == true then
+                            if vehicle == nil then --player not in vehicle
+                                if util.positionInBoundingBox(player.physical_position, gate.entity.bounding_box) == true then
                                     --game.print(e.tick.." - Player "..player.name.." entered gate on "..player.surface.name)
 
                                     GateTransit(gate.destination, player, vehicle)

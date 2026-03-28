@@ -37,7 +37,7 @@ data:extend({
         flags = {"placeable-neutral", "placeable-off-grid", "not-flammable"},
         --collision_box = {{-1.5, -0.5}, {1.5, 0.5}},
         --selection_box = {{-1.5, -0.5}, {1.5, 0.5}},
-        render_layer = "object-under",
+        --render_layer = "object-under",
 		collision_mask = {layers = {}},
         minable = {mining_time = 1, result = "kj_stargate_placement"},
         picture = {
@@ -45,14 +45,14 @@ data:extend({
                 {
                     width = 704,
                     height = 704,
-                    shift = {1.25, -1.5},
+                    shift = {1.25, 0.5},
                     scale = 0.5,
                     filename = modname.."/graphics/entities/stargate/gate.png",
                 },
                 {
                     width = 704,
                     height = 704,
-                    shift = {1.25, -1.5},
+                    shift = {1.25, 0.5},
                     scale = 0.5,
                     draw_as_shadow = true,
                     filename = modname.."/graphics/entities/stargate/gate_shadow.png",
@@ -174,13 +174,54 @@ data:extend({
 	},
 
     {
+        type = "electric-energy-interface",
+        name = "kj_stargate_eventHorizon_ent",
+        collision_box = {{-1, -1}, {1, 1}},
+		collision_mask = {layers = {}},
+        icon = modname.."/graphics/entities/stargate/icon.png",
+        icon_size = 128,
+        flags = {"placeable-neutral", "placeable-off-grid", "not-flammable"},
+        gui_mode = "none",
+        energy_source = {
+            render_no_power_icon = false,
+            type = "electric",
+            usage_priority = "secondary-input",
+            buffer_capacity = "0J",
+            drain = "0W",
+            input_flow_limit = "0W",
+            output_flow_limit = "0W",
+        },
+        animations = {
+            layers = {
+                {
+                    width = 704,
+                    height = 704,
+                    shift = {1.25, 0.49},
+                    scale = 0.5,
+                    frame_count = 1,
+                    filename = modname.."/graphics/entities/stargate/eventHorizon.png",
+                },
+                {
+                    width = 704,
+                    height = 704,
+                    shift = {1.25, 0.49},
+                    scale = 0.5,
+                    frame_count = 1,
+                    blend_mode = "additive",
+                    draw_as_glow = true,
+                    filename = modname.."/graphics/entities/stargate/gate_light.png",
+                },
+            },
+        },
+    },
+    --[[{
         type = "animation",
         name = "kj_stargate_eventHorizon",
         layers = {
             {
                 width = 704,
                 height = 704,
-                shift = {1.25, 0.3},
+                shift = {1.25, 0.5},
                 scale = 0.5,
                 frame_count = 1,
                 filename = modname.."/graphics/entities/stargate/eventHorizon.png",
@@ -188,7 +229,7 @@ data:extend({
             {
                 width = 704,
                 height = 704,
-                shift = {1.25, 0.3},
+                shift = {1.25, 0.5},
                 scale = 0.5,
                 frame_count = 1,
                 blend_mode = "additive",
@@ -196,7 +237,7 @@ data:extend({
                 filename = modname.."/graphics/entities/stargate/gate_light.png",
             },
         }
-    },
+    },]]
     {
         type = "tile",
         name = "kj_stargate_slowDownTile",
