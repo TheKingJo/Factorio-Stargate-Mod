@@ -195,6 +195,23 @@ data:extend({
             },
         },
     },
+    {
+        type = "animation",
+        name = "kj_stargate_chevrons",
+        layers = {
+            {
+                width = 704,
+                height = 704,
+                shift = {1.25, 0.5},
+                scale = 0.5,
+                frame_count = 8,
+                line_length = 8,
+                blend_mode = "additive",
+                draw_as_glow = true,
+                filename = modname.."/graphics/entities/stargate/chevron_light.png",
+            },
+        }
+    },
     --[[{
         type = "animation",
         name = "kj_stargate_eventHorizon",
@@ -434,7 +451,7 @@ data:extend({
 
 
 --char table
-local chars = {"z"}
+local chars = {}
 for i = string.byte("A"), string.byte("S") do
     table.insert(chars, string.char(i))
 end
@@ -442,21 +459,23 @@ for i = string.byte("a"), string.byte("s") do
     table.insert(chars, string.char(i))
 end
 for i, char in ipairs(chars) do
-    if i == 1 then
-        goto continue
-    end
     data:extend({
         {
             type = "virtual-signal",
             name = "kj_sg_glyph_"..char,
-            icon = modname.."/graphics/glyphs/"..string.format("%04d", i)..".png",
+            icon = modname.."/graphics/glyphs/"..string.format("%04d", i+1)..".png",
             icon_size = 128,
             localised_name = {"", {"virtual-signal-name.kj_sg_glyph"}, " ", tostring(i-1)},
             localised_description = {"", {"virtual-signal-description.kj_sg_glyph"}, tostring(i-1)},
             order = tostring(string.format("%03d", i-1)),
         },
+        {
+            type = "sprite",
+            name = "kj_sg_glyph_"..char,
+            filename = modname.."/graphics/glyphs/"..string.format("%04d", i+1)..".png",
+            size = 128,
+        },
     })
-    ::continue::
 end
 
 data:extend({
@@ -468,5 +487,17 @@ data:extend({
         localised_name = {"", {"virtual-signal-name.kj_sg_glyph_poe"}, " 1"},
         localised_description = {"", {"virtual-signal-description.kj_sg_glyph_poe"}, " 1"},
         order = "poe-1",
+    },
+    {
+        type = "sprite",
+        name = "kj_sg_glyph_poe_1",
+        filename = modname.."/graphics/glyphs/0001.png",
+        size = 128,
+    },
+    {
+        type = "sprite",
+        name = "kj_sg_glyph_connect",
+        filename = modname.."/graphics/glyphs/connect.png",
+        size = 128,
     },
 })

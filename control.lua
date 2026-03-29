@@ -16,6 +16,14 @@ local sgNames = {
 }
 local dhdName = "kj_dhd"
 local sgOffset = {x = 0, y = 1.3}
+
+local chevronChars = {}
+for i = string.byte("A"), string.byte("S") do
+    table.insert(chevronChars, string.char(i))
+end
+for i = string.byte("a"), string.byte("s") do
+    table.insert(chevronChars, string.char(i))
+end
 --at start check for existing char tables
 --regen when not existing
 --otherwise generate on surface generation
@@ -56,8 +64,42 @@ stargate = {
     end,
 }
 
+dhd = {
+    GetAddress = function(self)
+        local address = ""
+
+        for _, char in ipairs(self.address) do
+            address = address..char
+        end
+
+        return address
+    end,
+	Connect = function(self)
+        --if string exists, then connect, otherwise empty table and make fail sound
+        local selfAddress = self:GetAddress()
+        local result = false
+        for surface, address in pairs(storage.addresses) do
+            if selfAddress == address then
+                result = true
+            end
+        end
+
+        if result == true then
+            game.print("omg we found a connection!")
+        else
+            self.address = {}
+            util.playSoundOnSurface(self.stargate.entity.surface, self.stargate.entity.position, "kj_stargate_fail")
+            game.print("no gate with that address. emptying ram")
+        end
+	end,
+
+    Disconnect = function(self)
+    end,
+}
+
 function deactivateGate(gate)
     gate.active = false
+    gate.chevrons.animation_offset = 0
     gate.animation.destroy()
     gate.destination = nil
     util.playSoundOnSurface(gate.entity.surface, gate.entity.position, "kj_stargate_close")
@@ -72,6 +114,7 @@ function activateGate(gate)
         render_layer = "object",
         y_scale = 5,
     }]]
+    gate.chevrons.animation_offset = 7
     gate.animation = gate.entity.surface.create_entity{
         name = "kj_stargate_eventHorizon_ent",
         position = util.vector2Add(gate.entity.position, {x = 0, y = -0.19}),
@@ -85,6 +128,13 @@ function OnLoad(e)
 		for _, surface in pairs(storage.stargate) do
             for _, gate in pairs(surface) do
                 setmetatable(gate, {__index = stargate})
+            end
+		end
+	end
+	if storage.dhd then
+		for _, surface in pairs(storage.dhd) do
+            for _, device in pairs(surface) do
+                setmetatable(device, {__index = dhd})
             end
 		end
 	end
@@ -105,19 +155,10 @@ function generateAdress(surface)
     local generator = game.create_random_generator(hash)
     game.print(surface.name.. " - Game Seed: "..mapSeed.." - Custom Seed: "..hash)
 
-    --char table
-    local chars = {}
-    for i = string.byte("A"), string.byte("S") do
-        table.insert(chars, string.char(i))
-    end
-    for i = string.byte("a"), string.byte("s") do
-        table.insert(chars, string.char(i))
-    end
-
     local result = {}
     for i = 1, 6 do
-        local index = generator(1, #chars)
-        result[i] = chars[index]
+        local index = generator(1, #chevronChars)
+        result[i] = chevronChars[index]
     end
     local resultString = table.concat(result)
 
@@ -175,6 +216,13 @@ function OnBuilt(e)
         local tpArea = surface.create_entity{
             name = sgNames.tpArea,
             position = util.vector2Add(pos, {x = 0, y = -1.8}),
+        }
+        local chevrons = rendering.draw_animation{
+            animation = "kj_stargate_chevrons",
+            target = util.vector2Add(pos, {x = 0, y = -2}),
+            surface = surface,
+            render_layer = "object",
+            animation_speed = 0,
         }
         local childs = {
             baseEnt = surface.create_entity{
@@ -259,13 +307,17 @@ function OnBuilt(e)
             active = false,
             oldTiles = oldTiles,
             destination = nil,
+            chevrons = chevrons,
         }
         util.addToGlobal("stargate", tpArea, content)
 
         ent.destroy()
     elseif ent.name == dhdName then --dhd placed
         ent.destructible = false
-        local dhd = util.addToGlobal("dhd", ent)
+        local content = {
+            address = {}
+        }
+        util.addToGlobal("dhd", ent, content)
     end
 end
 
@@ -452,19 +504,28 @@ function GuiOpened(e)
         gui = player.gui.screen.dhd
         local refs
         if not gui then
-            gui, refs = glib.add(player.gui.screen, sg_guis.dhd_frame("dhd", {"dhd"}))
+            gui, refs = glib.add(player.gui.screen, sg_guis.dhd_frame_new("dhd", {"dhd"}))
         else
             gui.visible = true
         end
 
         if refs.stargates then
-            AssembleGatesInDHDGUI(refs.stargates, e.entity.surface.name, dhdID)
+            --AssembleGatesInDHDGUI(refs.stargates, e.entity.surface.name, dhdID)
+            AssembleLettersInDHDGUI(refs.stargates, e.entity.surface.name, dhdID)
         end
 
         gui.force_auto_center()
         gui.bring_to_front()
         player.opened = gui
     end
+end
+
+function AssembleLettersInDHDGUI(root, dhdSurface, dhdID)
+    glib.add(root, sg_guis.dhd_letter("poe_1", dhdSurface, dhdID))
+    for _, char in ipairs(chevronChars) do
+        glib.add(root, sg_guis.dhd_letter(char, dhdSurface, dhdID))
+    end
+    glib.add(root, sg_guis.dhd_letter("connect", dhdSurface, dhdID))
 end
 
 function AssembleGatesInDHDGUI(root, dhdSurface, dhdID)

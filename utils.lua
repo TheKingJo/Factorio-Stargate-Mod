@@ -166,6 +166,15 @@ function functions.splitNameId(input)
     end
 end
 
+function functions.splitNameId2(input)
+    local dhdSurface, dhdID, char = string.match(input, "^([^%.]+)%.(%d+)%.([^%.]+)$")
+    if dhdSurface and dhdID and char then
+        return dhdSurface, tonumber(dhdID), char
+    else
+        return nil, nil, nil
+    end
+end
+
 ---@param name string name of storage table
 ---@param entity LuaEntity the entity of the entry to be added
 ---@param addContent? table additional content to add to the storage entry
@@ -191,6 +200,8 @@ function functions.addToGlobal(name, entity, addContent)
 
     if name == "stargate" then
         setmetatable(content, {__index = stargate})
+    else
+        setmetatable(content, {__index = dhd})
     end
 	storage[name][sName][id] = content
 
