@@ -132,47 +132,6 @@ data:extend({
         minable = {mining_time = 1, result = "kj_stargate_placement"},
     },
 
-	{
-		type = "sound",
-		name = "kj_stargate_open",
-		filename = modname.."/sounds/gate_open.ogg",
-		volume = 1,
-		category = "environment",
-		audible_distance_modifier = 1,
-	},
-	{
-		type = "sound",
-		name = "kj_stargate_close",
-		filename = modname.."/sounds/gate_close.ogg",
-		volume = 1,
-		category = "environment",
-		audible_distance_modifier = 1,
-	},
-	{
-		type = "sound",
-		name = "kj_stargate_fail",
-		filename = modname.."/sounds/gate_fail.ogg",
-		volume = 1,
-		category = "environment",
-		audible_distance_modifier = 1,
-	},
-	{
-		type = "sound",
-		name = "kj_stargate_enter",
-		filename = modname.."/sounds/gate_enter.ogg",
-		volume = 1,
-		category = "environment",
-		audible_distance_modifier = 1,
-	},
-	{
-		type = "sound",
-		name = "kj_stargate_openIdle",
-		filename = modname.."/sounds/gate_puddle.ogg",
-		volume = 1,
-		category = "environment",
-		audible_distance_modifier = 1,
-	},
-
     {
         type = "electric-energy-interface",
         name = "kj_stargate_eventHorizon_ent",
@@ -191,25 +150,47 @@ data:extend({
             input_flow_limit = "0W",
             output_flow_limit = "0W",
         },
-        animations = {
+        continuous_animation = true,
+        animation = {
             layers = {
+                --[[{
+                    width = 704,
+                    height = 704,
+                    shift = {1.25, 0.49},
+                    scale = 0.5,
+                    frame_count = 64,
+                    line_length = 8,
+                    filename = modname.."/graphics/entities/stargate/eventHorizon.png",
+                },]]
                 {
                     width = 704,
                     height = 704,
                     shift = {1.25, 0.49},
                     scale = 0.5,
-                    frame_count = 1,
-                    filename = modname.."/graphics/entities/stargate/eventHorizon.png",
+                    frame_count = 64,
+                    stripes = {
+                        {
+                            filename = modname.."/graphics/entities/stargate/eventHorizon.png",
+                            height_in_frames = 8,
+                            width_in_frames = 8,
+                        },
+                    },
                 },
                 {
                     width = 704,
                     height = 704,
                     shift = {1.25, 0.49},
                     scale = 0.5,
-                    frame_count = 1,
+                    frame_count = 64,
                     blend_mode = "additive",
                     draw_as_glow = true,
-                    filename = modname.."/graphics/entities/stargate/gate_light.png",
+                    stripes = {
+                        {
+                            filename = modname.."/graphics/entities/stargate/eventHorizon_light.png",
+                            height_in_frames = 8,
+                            width_in_frames = 8,
+                        },
+                    },
                 },
             },
         },
