@@ -16,13 +16,18 @@ local sgNames = {
 }
 local dhdName = "kj_dhd"
 local sgOffset = {x = 0, y = 1.3}
+local poo = {
+    nauvis = 1,
+    gleba = 5,
+    aquilo = 2,
+    vulcanus = 4,
+    fulgora = 3,
+}
 
 local chevronChars = {}
-for i = string.byte("A"), string.byte("S") do
-    table.insert(chevronChars, string.char(i))
-end
-for i = string.byte("a"), string.byte("s") do
-    table.insert(chevronChars, string.char(i))
+for i = 0, (string.byte("S") - string.byte("A")) do
+    table.insert(chevronChars, string.char(string.byte("A") + i))
+    table.insert(chevronChars, string.char(string.byte("a") + i))
 end
 --at start check for existing char tables
 --regen when not existing
@@ -66,36 +71,49 @@ stargate = {
 
 dhd = {
     GetAddress = function(self)
-        local address = ""
+        --local address = ""
 
-        for _, char in ipairs(self.address) do
-            address = address..char
-        end
-
-        return address
+        --for _, char in ipairs(self.address) do
+        --    address = address..char
+        --end
+        
+        --return address
+        return table.concat(self.address)
     end,
 	Connect = function(self)
         --if string exists, then connect, otherwise empty table and make fail sound
         local selfAddress = self:GetAddress()
         local result = false
-        for surface, address in pairs(storage.addresses) do
-            if selfAddress == address then
+        local surface
+        for s, address in pairs(storage.addresses) do
+            if selfAddress == address.."poo_"..poo[s] then
+                surface = s
                 result = true
             end
         end
 
         if result == true then
             game.print("omg we found a connection!")
+            self.stargate:Connect(findRandomGateOnSurface(surface))
         else
-            self.address = {}
             util.playSoundOnSurface(self.stargate.entity.surface, self.stargate.entity.position, "kj_stargate_fail")
             game.print("no gate with that address. emptying ram")
+            self.stargate.chevrons.animation_offset = 0
         end
+        self.address = {}
 	end,
 
     Disconnect = function(self)
     end,
 }
+
+function findRandomGateOnSurface(surface)
+    local gates = {}
+    for _, gate in pairs(storage.stargate[surface]) do
+        table.insert(gates, gate)
+    end
+    return gates[math.random(1, #gates)]
+end
 
 function deactivateGate(gate)
     gate.active = false
@@ -156,9 +174,17 @@ function generateAdress(surface)
     game.print(surface.name.. " - Game Seed: "..mapSeed.." - Custom Seed: "..hash)
 
     local result = {}
+    local used = {}
+
     for i = 1, 6 do
-        local index = generator(1, #chevronChars)
-        result[i] = chevronChars[index]
+        local char
+        repeat
+            local index = generator(1, #chevronChars)
+            char = chevronChars[index]
+        until not used[char]
+
+        result[i] = char
+        used[char] = true
     end
     local resultString = table.concat(result)
 
@@ -521,7 +547,7 @@ function GuiOpened(e)
 end
 
 function AssembleLettersInDHDGUI(root, dhdSurface, dhdID)
-    glib.add(root, sg_guis.dhd_letter("poe_1", dhdSurface, dhdID))
+    glib.add(root, sg_guis.dhd_letter("poo_"..poo[dhdSurface], dhdSurface, dhdID))
     for _, char in ipairs(chevronChars) do
         glib.add(root, sg_guis.dhd_letter(char, dhdSurface, dhdID))
     end

@@ -129,19 +129,29 @@ end
 
 function handlers.letter_click(event)
     if event.button == defines.mouse_button_type.left then
-        game.print("clicked")
-        event.element.toggled = not event.element.toggled
-        local dhdSurface, dhdID, char = util.splitNameId2(event.element.name)
-
+        local element = event.element
+        local dhdSurface, dhdID, char = util.splitNameId2(element.name)
         local dhd = util.findIDInGlobal("dhd", dhdSurface, dhdID)
 
         if dhd then
-            if char == "connect" then
-                game.print("Trying to establish connection")
-                dhd:Connect()
-                return
+            local gate = dhd.stargate
+            if #dhd.address < 7 then
+                if char ~= "connect" then
+                    if element.toggled == false then
+                        element.toggled = not element.toggled
+                        table.insert(dhd.address, char)
+                        util.playSoundOnSurface(gate.entity.surface, gate.entity.position, util.randomSound("kj_stargate_dhd", 7))
+                        gate.chevrons.animation_offset = gate.chevrons.animation_offset + 1
+                    end
+                end
             else
-                table.insert(dhd.address, char)
+                if char == "connect" then
+                    game.print("Trying to establish connection")
+                    util.playSoundOnSurface(gate.entity.surface, gate.entity.position, "kj_stargate_dhdc")
+                    dhd:Connect()
+                    element.parent.parent.parent.parent.parent.parent.destroy()
+                    return
+                end
             end
         else
             game.print("dhd not found")

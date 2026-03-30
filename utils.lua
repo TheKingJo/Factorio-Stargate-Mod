@@ -270,6 +270,9 @@ function functions.setMetatablesInGlobal(name, mt)
 		end
 	end
 end
+function functions.randomSound(name, number)
+    return name..math.random(1,number)
+end
 
 functions.mtMgr =
 {
