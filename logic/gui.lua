@@ -95,7 +95,6 @@ function guis.dhd_letter(letter, dhdSurface, dhdID) --nauvis.69.E
     local name = dhdSurface.."."..dhdID.."."..letter
     return {
         args = {type = "sprite-button", name = name, sprite = "kj_sg_glyph_"..letter},
-        --elem_mods = {locked = true},
         _click = handlers.letter_click,
     }
 end
@@ -139,6 +138,7 @@ function handlers.letter_click(event)
                 if char ~= "connect" then
                     if element.toggled == false then
                         element.toggled = not element.toggled
+                        dhd.glyphs[(#dhd.address or 0) + 1].animation_offset = charLookup[char]
                         table.insert(dhd.address, char)
                         util.playSoundOnSurface(gate.entity.surface, gate.entity.position, util.randomSound("kj_stargate_dhd", 7))
                         gate.chevrons.animation_offset = gate.chevrons.animation_offset + 1
@@ -146,9 +146,13 @@ function handlers.letter_click(event)
                 end
             else
                 if char == "connect" then
-                    game.print("Trying to establish connection")
-                    util.playSoundOnSurface(gate.entity.surface, gate.entity.position, "kj_stargate_dhdc")
-                    dhd:Connect()
+                    if gate.active ~= true then
+                        game.print("Trying to establish connection")
+                        util.playSoundOnSurface(gate.entity.surface, gate.entity.position, "kj_stargate_dhdc")
+                        dhd:Connect(dhdSurface)
+                    else
+                        dhd:Disconnect()
+                    end
                     element.parent.parent.parent.parent.parent.parent.destroy()
                     return
                 end

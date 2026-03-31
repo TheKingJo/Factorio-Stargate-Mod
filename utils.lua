@@ -249,6 +249,18 @@ function functions.removeFromGlobal(name, entity)
     end
 end
 
+function functions.lettersFromAddress(name, suffix)
+    local address = {}
+    for i = 1, #name do
+        address[i] = name:sub(i, i)
+    end
+    if suffix then
+        address[#address+1] = suffix
+    end
+
+    return address
+end
+
 function functions.playSoundOnSurface(surface, position, sound, volume)
 	surface.play_sound {
 		path = sound,

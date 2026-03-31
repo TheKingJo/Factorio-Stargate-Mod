@@ -131,7 +131,6 @@ data:extend({
         },
         minable = {mining_time = 1, result = "kj_stargate_placement"},
     },
-
     {
         type = "electric-energy-interface",
         name = "kj_stargate_eventHorizon_ent",
@@ -236,27 +235,8 @@ data:extend({
             },
         }
     },]]
-    {
-        type = "tile",
-        name = "kj_stargate_slowDownTile",
-        hidden = true,
-        walking_speed_modifier = 0.5,
-        vehicle_friction_modifier = 0.5,
-        collision_mask = {layers={ground_tile=true}},
-        map_color={0, 0, 0},
-        layer = 0,
-        variants = {
-            material_background =
-            {
-                picture = "__core__/graphics/empty.png",
-                count = 1,
-                scale = 1
-            },
-            empty_transitions = true
-        },
-    },
-
-
+})
+data:extend({
     {
         type = "electric-energy-interface",
         name = "kj_dhd",
@@ -439,15 +419,163 @@ data:extend({
                 }
             },
         }
-    }
+    },
+    {
+        type = "sprite",
+        name = "kj_stargate_dhd_button_8",--north
+        layers = {
+            {
+                size = 288,
+                shift = {0, 0.5},
+                scale = 0.5,
+                blend_mode = "additive",
+                draw_as_glow = true,
+                filename = modname.."/graphics/entities/dhd/dhd_button_light.png",
+            },
+        }
+    },
+    {
+        type = "sprite",
+        name = "kj_stargate_dhd_button_12",--east
+        layers = {
+            {
+                size = 288,
+                shift = {0, 0.5},
+                scale = 0.5,
+                x = 288,
+                blend_mode = "additive",
+                draw_as_glow = true,
+                filename = modname.."/graphics/entities/dhd/dhd_button_light.png",
+            },
+        }
+    },
+    {
+        type = "sprite",
+        name = "kj_stargate_dhd_button_0",--south
+        layers = {
+            {
+                size = 288,
+                shift = {0, 0.5},
+                scale = 0.5,
+                y = 288,
+                blend_mode = "additive",
+                draw_as_glow = true,
+                filename = modname.."/graphics/entities/dhd/dhd_button_light.png",
+            },
+        }
+    },
+    {
+        type = "sprite",
+        name = "kj_stargate_dhd_button_4",--west
+        layers = {
+            {
+                size = 288,
+                shift = {0, 0.5},
+                scale = 0.5,
+                x = 288,
+                y = 288,
+                blend_mode = "additive",
+                draw_as_glow = true,
+                filename = modname.."/graphics/entities/dhd/dhd_button_light.png",
+            },
+        }
+    },
+
+    {
+        type = "animation",
+        name = "kj_stargate_dhd_8",--north
+        layers = {
+            {
+                size = 288,
+                shift = {0, 0.5},
+                scale = 0.5,
+                frame_count = 40,
+                line_length = 8,
+                blend_mode = "additive",
+                draw_as_glow = true,
+                filename = modname.."/graphics/entities/dhd/dhd_light_0.png",
+            },
+        }
+    },
+    {
+        type = "animation",
+        name = "kj_stargate_dhd_12",--east
+        layers = {
+            {
+                size = 288,
+                shift = {0, 0.5},
+                scale = 0.5,
+                frame_count = 40,
+                line_length = 8,
+                blend_mode = "additive",
+                draw_as_glow = true,
+                filename = modname.."/graphics/entities/dhd/dhd_light_1.png",
+            },
+        }
+    },
+    {
+        type = "animation",
+        name = "kj_stargate_dhd_0",--south
+        layers = {
+            {
+                size = 288,
+                shift = {0, 0.5},
+                scale = 0.5,
+                frame_count = 40,
+                line_length = 8,
+                blend_mode = "additive",
+                draw_as_glow = true,
+                filename = modname.."/graphics/entities/dhd/dhd_light_2.png",
+            },
+        }
+    },
+    {
+        type = "animation",
+        name = "kj_stargate_dhd_4",--west
+        layers = {
+            {
+                size = 288,
+                shift = {0, 0.5},
+                scale = 0.5,
+                frame_count = 40,
+                line_length = 8,
+                blend_mode = "additive",
+                draw_as_glow = true,
+                filename = modname.."/graphics/entities/dhd/dhd_light_3.png",
+            },
+        }
+    },
+
+
+    {
+        type = "tile",
+        name = "kj_stargate_slowDownTile",
+        hidden = true,
+        walking_speed_modifier = 0.5,
+        vehicle_friction_modifier = 0.5,
+        collision_mask = {layers={ground_tile=true}},
+        map_color={0, 0, 0},
+        layer = 0,
+        variants = {
+            material_background =
+            {
+                picture = "__core__/graphics/empty.png",
+                count = 1,
+                scale = 1
+            },
+            empty_transitions = true
+        },
+    },
 })
 
 
 --char table
 local chars = {}
-for i = 0, (string.byte("S") - string.byte("A")) do
-    table.insert(chars, string.char(string.byte("A") + i))
-    table.insert(chars, string.char(string.byte("a") + i))
+for i = string.byte("A"), string.byte("S") do
+    table.insert(chars, string.char(i))
+end
+for i = string.byte("a"), string.byte("s") do
+    table.insert(chars, string.char(i))
 end
 for i, char in ipairs(chars) do
     data:extend({
