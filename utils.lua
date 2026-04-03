@@ -13,6 +13,15 @@ function functions.getDistance(pos1, pos2)
 	return math.sqrt((pos2.x - pos1.x)^2 + (pos2.y - pos1.y)^2)
 end
 
+function functions.deleteFromITable(t, value)
+    for i, v in ipairs(t) do
+        if v == value then
+            table.remove(t, i)
+            return i
+        end
+    end
+end
+
 function functions.hash_fnv1a(str)
     local hash = 2166136261
     for i = 1, #str do
@@ -208,7 +217,7 @@ function functions.addToGlobal(name, entity, addContent)
     if shortestOppEnt ~= nil and shortestOppEntObj ~= nil and shortestOppEntObj[name] == nil then
         shortestOppEntObj[name] = storage[name][sName][id]
     else
-        game.print("Couldn't find "..opposite[name].." nearby!")
+        --game.print("Couldn't find "..opposite[name].." nearby!")
     end
 
     return storage[name][sName][id]

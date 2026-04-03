@@ -91,10 +91,11 @@ function guis.dhd_element(sgSurface, sgID, dhdSurface, dhdID)--(name1.id1).(name
     }
 end
 
-function guis.dhd_letter(letter, dhdSurface, dhdID) --nauvis.69.E
+function guis.dhd_letter(letter, dhdSurface, dhdID, toggled) --nauvis.69.E
     local name = dhdSurface.."."..dhdID.."."..letter
     return {
         args = {type = "sprite-button", name = name, sprite = "kj_sg_glyph_"..letter},
+        elem_mods = {toggled = toggled or false},
         _click = handlers.letter_click,
     }
 end
@@ -134,11 +135,12 @@ function handlers.letter_click(event)
 
         if dhd then
             local gate = dhd.stargate
-            if #dhd.address < 7 then
+            --[[if #dhd.address < 7 then
                 if char ~= "connect" then
                     if element.toggled == false then
                         element.toggled = not element.toggled
                         dhd.glyphs[(#dhd.address or 0) + 1].animation_offset = charLookup[char]
+                        dhd.addressLetters[char] = true
                         table.insert(dhd.address, char)
                         util.playSoundOnSurface(gate.entity.surface, gate.entity.position, util.randomSound("kj_stargate_dhd", 7))
                         gate.chevrons.animation_offset = gate.chevrons.animation_offset + 1
@@ -156,6 +158,42 @@ function handlers.letter_click(event)
                     element.parent.parent.parent.parent.parent.parent.destroy()
                     return
                 end
+            end]]
+            if char ~= "connect" then
+                if element.toggled == false then --unclicked button
+                    if #dhd.address < 7 then
+                        element.toggled = not element.toggled
+                        util.playSoundOnSurface(gate.entity.surface, gate.entity.position, util.randomSound("kj_stargate_dhd", 7))
+                        dhd.glyphs[(#dhd.address or 0) + 1].animation_offset = charLookup[char]
+                        dhd.addressLetters[char] = true
+                        table.insert(dhd.address, char)
+                        gate.chevrons.animation_offset = gate.chevrons.animation_offset + 1
+                    end
+                else --clicked button
+                    element.toggled = not element.toggled
+                    util.playSoundOnSurface(gate.entity.surface, gate.entity.position, util.randomSound("kj_stargate_dhd", 7))
+                    dhd.addressLetters[char] = nil
+                    local index = util.deleteFromITable(dhd.address, char)
+                    dhd.glyphs[index].destroy()
+                    table.remove(dhd.glyphs, index)
+                    table.insert(dhd.glyphs, rendering.draw_animation{
+                        animation = "kj_stargate_dhd_"..dhd.entity.direction,
+                        animation_speed = 0,
+                        target = dhd.entity.position,
+                        surface = dhd.entity.surface,
+                        render_layer = "object",
+                    })
+                    gate.chevrons.animation_offset = math.max(gate.chevrons.animation_offset - 1, 0)
+                end
+            else
+                if gate.active == false then
+                    game.print("Trying to establish connection")
+                    util.playSoundOnSurface(gate.entity.surface, gate.entity.position, "kj_stargate_dhdc")
+                    dhd:Connect(dhdSurface)
+                else
+                    dhd:Disconnect()
+                end
+                element.parent.parent.parent.parent.parent.parent.destroy() --close menu
             end
         else
             game.print("dhd not found")

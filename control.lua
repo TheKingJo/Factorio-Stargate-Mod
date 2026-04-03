@@ -140,6 +140,7 @@ dhd = {
             self:ResetGlyphs()
             self.stargate.chevrons.animation_offset = 0
             self.address = {}
+            self.addressLetters = {}
         end
 	end,
 
@@ -155,6 +156,7 @@ function deactivateGate(gate)
         if gate.dhd.address then
             gate.dhd:ResetGlyphs()
             gate.dhd.address = {}
+            gate.dhd.addressLetters = {}
         end
     end
     gate.entity.minable = true
@@ -290,7 +292,7 @@ end
 function OnBuilt(e)
 	local ent = e.entity
     if not ent.valid then return end
-    game.print("Placed "..ent.name)
+    --game.print("Placed "..ent.name)
 
 	if ent.name == sgNames.placement then --stargate placed
         local pos = ent.position
@@ -411,6 +413,7 @@ function OnBuilt(e)
 
         local content = {
             address = {},
+            addressLetters = {},
             glyphs = glyphAnimation
         }
         local dhd = util.addToGlobal("dhd", ent, content)
@@ -609,7 +612,7 @@ function GuiOpened(e)
 
         if refs.stargates then
             --AssembleGatesInDHDGUI(refs.stargates, e.entity.surface.name, dhdID)
-            AssembleLettersInDHDGUI(refs.stargates, e.entity.surface.name, dhdID)
+            AssembleLettersInDHDGUI(refs.stargates, e.entity.surface.name, dhd)
         end
 
         gui.force_auto_center()
@@ -618,12 +621,12 @@ function GuiOpened(e)
     end
 end
 
-function AssembleLettersInDHDGUI(root, dhdSurface, dhdID)
-    glib.add(root, sg_guis.dhd_letter("poo_"..poo[dhdSurface], dhdSurface, dhdID))
+function AssembleLettersInDHDGUI(root, dhdSurface, dhd)
+    glib.add(root, sg_guis.dhd_letter("poo_"..poo[dhdSurface], dhdSurface, dhd.id, dhd.addressLetters["poo_"..poo[dhdSurface]]))
     for _, char in ipairs(chevronChars) do
-        glib.add(root, sg_guis.dhd_letter(char, dhdSurface, dhdID))
+        glib.add(root, sg_guis.dhd_letter(char, dhdSurface, dhd.id, dhd.addressLetters[char]))
     end
-    glib.add(root, sg_guis.dhd_letter("connect", dhdSurface, dhdID))
+    glib.add(root, sg_guis.dhd_letter("connect", dhdSurface, dhd.id, dhd.stargate.active))
 end
 
 function AssembleGatesInDHDGUI(root, dhdSurface, dhdID)
