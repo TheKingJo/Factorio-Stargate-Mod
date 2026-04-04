@@ -119,6 +119,7 @@ data:extend({
         icon = modname.."/graphics/entities/stargate/icon.png",
         icon_size = 128,
         flags = {"placeable-neutral", "placeable-off-grid", "not-flammable"},
+        minable = {mining_time = 1, result = "kj_stargate_placement"},
 		collision_mask = {layers = {}},
         is_military_target  = false,
         ambient_sounds = {
@@ -129,7 +130,6 @@ data:extend({
                 volume = 1,
             }
         },
-        minable = {mining_time = 1, result = "kj_stargate_placement"},
     },
     {
         type = "electric-energy-interface",
@@ -236,6 +236,100 @@ data:extend({
         }
     },]]
 })
+
+data:extend({
+    {
+        type = "projectile",
+        name = "kj_stargate_woosh",
+        flags = {"not-on-map"},
+        hidden = true,
+        acceleration = 0.005,
+        action =
+        {
+            {
+                type = "direct",
+                action_delivery =
+                {
+                    type = "instant",
+                    target_effects =
+                    {
+                        {
+                            type = "create-smoke",
+                            show_in_tooltip = true,
+                            entity_name = "kj_woosh_cloud",
+                            initial_height = 0
+                        },
+                    }
+                }
+            }
+        },
+    },
+    {
+        type = "smoke-with-trigger",
+        name = "kj_woosh_cloud",
+        flags = {"not-on-map"},
+        hidden = true,
+        affected_by_wind = false,
+        cyclic = true,
+        duration = 60 * 2,
+        fade_away_duration = 0,
+        spread_duration = 0,
+        action_cooldown = 1,
+        action =
+        {
+            type = "direct",
+            action_delivery =
+            {
+                type = "instant",
+                target_effects =
+                {
+                    type = "nested-result",
+                    action =
+                    {
+                        type = "area",
+                        radius = 2.5,
+                        action_delivery =
+                        {
+                            type = "instant",
+                            target_effects =
+                            {
+                                {
+                                    type = "damage",
+                                    damage = { amount = 999999, type = "electric"}
+                                },
+                                {
+                                    type = "damage",
+                                    damage = { amount = 999999, type = "impact"}
+                                },
+                                {
+                                    type = "damage",
+                                    damage = { amount = 999999, type = "fire"}
+                                },
+                                {
+                                    type = "damage",
+                                    damage = { amount = 999999, type = "physical"}
+                                },
+                                {
+                                    type = "damage",
+                                    damage = { amount = 999999, type = "poison"}
+                                },
+                                {
+                                    type = "damage",
+                                    damage = { amount = 999999, type = "acid"}
+                                },
+                                {
+                                    type = "damage",
+                                    damage = { amount = 999999, type = "laser"}
+                                },
+                            }
+                        }
+                    }
+                }
+            }
+        },
+    },
+})
+
 data:extend({
     {
         type = "electric-energy-interface",

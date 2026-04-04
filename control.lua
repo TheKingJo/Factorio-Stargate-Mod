@@ -188,6 +188,15 @@ function activateGate(gate)
     gate.animation.destructible = false
     gate.entity.minable = false
     util.playSoundOnSurface(gate.entity.surface, gate.entity.position, "kj_stargate_open")
+
+    local effectPos = util.vector2Add(gate.entity.position, {x = 0, y = 2.5})
+    gate.entity.surface.create_entity {
+        name = "kj_stargate_woosh",
+        position = effectPos,
+        force = "enemy",
+        target = effectPos,
+        speed = 1,
+    }
 end
 
 function findRandomGateOnSurface(surface)
