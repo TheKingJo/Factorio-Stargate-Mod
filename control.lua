@@ -458,54 +458,6 @@ function OnRemoved(e)
     end
 end
 
-function OnPlayerMoved(e)
-    if not storage.stargate then return end
-    local player = game.players[e.player_index]
-    local vehicle = player.vehicle
-    if not storage.stargate[player.surface.name] then return end
-
-    if vehicle and vehicle.prototype.type == "spider-vehicle" then return end
-
-    local deleteGate = {}
-    for gID, gate in pairs(storage.stargate[player.surface.name]) do
-        if gate.valid == true and gate.entity and gate.entity.valid then
-            if gate.active == true and gate.destination then
-                if not vehicle then --player not in vehicle
-                    if util.positionInBoundingBox(player.position, gate.entity.bounding_box) == true then
-                        --game.print(e.tick.." - Player "..player.name.." entered gate on "..player.surface.name)
-
-                        GateTransit(gate.destination, player, vehicle)
-                    end
-                else --player in vehicle
-                    local iV = storage.ignoredVehicles and storage.ignoredVehicles[vehicle.unit_number]
-                    if not iV or (iV and iV < game.tick) then
-                        if util.rotatedBoxInsideBoundingBox(vehicle.bounding_box, vehicle.orientation, gate.entity.bounding_box) == true then
-                            --game.print(e.tick.." - Player "..player.name.." entered gate on "..player.surface.name)
-
-                            GateTransit(gate.destination, player, vehicle)
-                            iV = nil
-                        end
-                    end
-                end
-            end
-        else
-            table.insert(deleteGate, gID)
-        end
-    end
-
-    for _, k in ipairs(deleteGate) do
-        storage.stargate[player.surface.name][k] = nil
-    end
-
-    --[[
-    on player moved:
-        check all gates
-            check if players are inside border
-                teleport if yes
-                also teleport vehicle
-    ]]
-end
-
 function OnTick(e)
     local players = storage.players
     local vehicles = storage.vehicles
@@ -600,11 +552,9 @@ function OnNthTickGates(e)
 end
 
 function GuiOpened(e)
-    --game.print("Gui opened")
     local player = game.players[e.player_index]
 
     if e.entity and e.entity.name == "kj_dhd" then
-        game.print("DHD opened")
         local dhd, dhdID = util.findInGlobal("dhd", e.entity)
         if dhd == nil or dhd.stargate == nil then
             player.opened = nil
@@ -620,7 +570,6 @@ function GuiOpened(e)
         end
 
         if refs.stargates then
-            --AssembleGatesInDHDGUI(refs.stargates, e.entity.surface.name, dhdID)
             AssembleLettersInDHDGUI(refs.stargates, e.entity.surface.name, dhd)
         end
 
@@ -638,17 +587,6 @@ function AssembleLettersInDHDGUI(root, dhdSurface, dhd)
     glib.add(root, sg_guis.dhd_letter("connect", dhdSurface, dhd.id, dhd.stargate.active))
 end
 
-function AssembleGatesInDHDGUI(root, dhdSurface, dhdID)
-    if storage.stargate == nil then return end
-    glib.add(root, sg_guis.dhd_element("solar-system-edge", 0, dhdSurface, dhdID))
-    for sName, gates in pairs(storage.stargate) do
-        game.print("Gate order:")
-        for sgID, _ in pairs(gates) do
-            game.print(sgID)
-            glib.add(root, sg_guis.dhd_element(sName, sgID, dhdSurface, dhdID))
-        end
-    end
-end
 
 script.on_event(defines.events.on_built_entity, OnBuilt)
 script.on_event(defines.events.on_robot_built_entity, OnBuilt)
