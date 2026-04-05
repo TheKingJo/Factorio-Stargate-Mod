@@ -8,6 +8,8 @@
   "description": "",
   "factorio_version":"2.0",
   "dependencies": [
-	"base",
-  "glib >= 0.1.8"]
+    "base",
+    "glib >= 0.1.8",
+    "space-age >= 2.0.0"
+  ]
 }

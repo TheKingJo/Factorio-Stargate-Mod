@@ -131,6 +131,8 @@ dhd = {
             end
         end
 
+        if storage.stargate[surface] == nil then result = false end
+
         if result == true then
             game.print("omg we found a connection!")
             self.stargate:Connect(findRandomGateOnSurface(surface))
@@ -587,6 +589,32 @@ function AssembleLettersInDHDGUI(root, dhdSurface, dhd)
     glib.add(root, sg_guis.dhd_letter("connect", dhdSurface, dhd.id, dhd.stargate.active))
 end
 
+function Chunk(e)
+    --local area = e.area
+    local position = e.position
+    local surface = e.surface
+    if surface.platform ~= nil then return end
+    --storage.originGates = storage.originGates or {}
+    --storage.originGates[surface] = storage.originGates[surface] or {}
+
+    if position.x == 0 and position.y == 0 then
+        local pos = surface.find_non_colliding_position("kj_stargate_auto_gen", {16,16}, 100, 1, false)
+        surface.create_entity{
+            name = "kj_stargate_auto_gen",
+            position = pos,
+            force = "neutral",
+        }
+    end
+
+    --[[
+    if position.x < 1 and position.x > -1 and
+       position.y < 1 and position.y > -1 then
+        game.print("Chunk generated on "..surface.name..": "..position.x.."|"..position.y..
+        " with "..area.left_top.x.."|"..area.left_top.y..
+        " to "..area.right_bottom.x.."|"..area.right_bottom.y
+        )
+    end]]
+end
 
 script.on_event(defines.events.on_built_entity, OnBuilt)
 script.on_event(defines.events.on_robot_built_entity, OnBuilt)
@@ -610,6 +638,7 @@ script.on_event(defines.events.on_surface_created,
 )
 
 script.on_event(defines.events.on_gui_opened, GuiOpened)
+script.on_event(defines.events.on_chunk_generated, Chunk)
 
 script.on_init(generateAdresses)
 
