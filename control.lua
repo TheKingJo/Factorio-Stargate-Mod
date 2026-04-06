@@ -603,6 +603,7 @@ function Chunk(e)
             name = "kj_stargate_auto_gen",
             position = pos,
             force = "neutral",
+            direction = math.random(4)*4
         }
     end
 

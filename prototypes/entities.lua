@@ -1,12 +1,13 @@
 local modname = "__kj_stargate__"
 data:extend({
     {
-        type = "simple-entity",
+        type = "electric-energy-interface",
         name = "kj_stargate_auto_gen",
         icon = modname.."/graphics/entities/stargate/icon.png",
         icon_size = 128,
         collision_box = {{-2, -2}, {2, 2}},
         selection_box = {{-2, -2}, {2, 2}},
+		collision_mask = {layers = {}},
         minable = {
             mining_time = 20,
             results = {
@@ -14,25 +15,175 @@ data:extend({
                 {type = "item", name = "kj_dhd", amount = 1},
             }
         },
-        picture = {
-            layers = {
-                {
-                    width = 704,
-                    height = 704,
-                    shift = {1.25, -1.5},
-                    scale = 0.5,
-                    filename = modname.."/graphics/entities/stargate/gate.png",
-                },
-                {
-                    width = 704,
-                    height = 704,
-                    shift = {1.25, -1.5},
-                    scale = 0.5,
-                    draw_as_shadow = true,
-                    filename = modname.."/graphics/entities/stargate/gate_shadow.png",
-                },
-            }
-        }
+        render_layer = "lower-object",
+        gui_mode = "none",
+        energy_source = {
+            render_no_power_icon = false,
+            type = "electric",
+            usage_priority = "secondary-input",
+            buffer_capacity = "0J",
+            drain = "0W",
+            input_flow_limit = "0W",
+            output_flow_limit = "0W",
+        },
+        animations = {
+            north = {
+                layers = {
+                    {
+                        size = 460,
+                        frame_count = 1,
+                        shift = {0, 0.5},
+                        scale = 0.5,
+                        animation_speed = 1,
+                        max_advance = 1,
+                        stripes =
+                        {
+                            {
+                                filename = modname.."/graphics/entities/stargate/remnant.png",
+                                width_in_frames = 2,
+                                height_in_frames = 2,
+                            },
+                        }
+                    },
+                    {
+                        size = 460,
+                        frame_count = 1,
+                        shift = {0, 0.5},
+                        scale = 0.5,
+                        animation_speed = 1,
+                        max_advance = 1,
+                        draw_as_shadow = true,
+                        stripes =
+                        {
+                            {
+                                filename = modname.."/graphics/entities/stargate/remnant.png",
+                                width_in_frames = 2,
+                                height_in_frames = 2,
+                            },
+                        }
+                    },
+                }
+            },
+            east = {
+                layers = {
+                    {
+                        size = 460,
+                        x = 460,
+                        frame_count = 1,
+                        shift = {0, 0.5},
+                        scale = 0.5,
+                        animation_speed = 1,
+                        max_advance = 1,
+                        stripes =
+                        {
+                            {
+                                filename = modname.."/graphics/entities/stargate/remnant.png",
+                                width_in_frames = 2,
+                                height_in_frames = 2,
+                            },
+                        }
+                    },
+                    {
+                        size = 460,
+                        x = 460,
+                        frame_count = 1,
+                        shift = {0, 0.5},
+                        scale = 0.5,
+                        animation_speed = 1,
+                        max_advance = 1,
+                        draw_as_shadow = true,
+                        stripes =
+                        {
+                            {
+                                filename = modname.."/graphics/entities/stargate/remnant_shadow.png",
+                                width_in_frames = 2,
+                                height_in_frames = 2,
+                            },
+                        }
+                    },
+                }
+            },
+            south = {
+                layers = {
+                    {
+                        size = 460,
+                        y = 460,
+                        frame_count = 1,
+                        shift = {0, 0.5},
+                        scale = 0.5,
+                        animation_speed = 1,
+                        max_advance = 1,
+                        stripes =
+                        {
+                            {
+                                filename = modname.."/graphics/entities/stargate/remnant.png",
+                                width_in_frames = 2,
+                                height_in_frames = 2,
+                            },
+                        }
+                    },
+                    {
+                        size = 460,
+                        y = 460,
+                        frame_count = 1,
+                        shift = {0, 0.5},
+                        scale = 0.5,
+                        animation_speed = 1,
+                        max_advance = 1,
+                        draw_as_shadow = true,
+                        stripes =
+                        {
+                            {
+                                filename = modname.."/graphics/entities/stargate/remnant_shadow.png",
+                                width_in_frames = 2,
+                                height_in_frames = 2,
+                            },
+                        }
+                    },
+                }
+            },
+            west = {
+                layers = {
+                    {
+                        size = 460,
+                        x = 460,
+                        y = 460,
+                        frame_count = 1,
+                        shift = {0, 0.5},
+                        scale = 0.5,
+                        animation_speed = 1,
+                        max_advance = 1,
+                        stripes =
+                        {
+                            {
+                                filename = modname.."/graphics/entities/stargate/remnant.png",
+                                width_in_frames = 2,
+                                height_in_frames = 2,
+                            },
+                        }
+                    },
+                    {
+                        size = 460,
+                        x = 460,
+                        y = 460,
+                        frame_count = 1,
+                        shift = {0, 0.5},
+                        scale = 0.5,
+                        animation_speed = 1,
+                        max_advance = 1,
+                        draw_as_shadow = true,
+                        stripes =
+                        {
+                            {
+                                filename = modname.."/graphics/entities/stargate/remnant_shadow.png",
+                                width_in_frames = 2,
+                                height_in_frames = 2,
+                            },
+                        }
+                    },
+                }
+            },
+        },
     },
     {
         type = "simple-entity",
