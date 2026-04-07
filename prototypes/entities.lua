@@ -8,6 +8,7 @@ data:extend({
         collision_box = {{-3, -3}, {3, 3}},
         selection_box = {{-3, -3}, {3, 3}},
 		collision_mask = {layers = {water_tile = true, out_of_map = true}},
+        selection_priority = 25,
         minable = {
             mining_time = 15,
             results = {
@@ -134,6 +135,7 @@ data:extend({
         collision_box = {{-1.5, -0.3}, {1.5, 0.3}},
         selection_box = {{-4, -0.8}, {4, 3}},
         minable = {mining_time = 1, result = "kj_stargate_placement"},
+        selection_priority = 25,
     },
     {
         type = "simple-entity",

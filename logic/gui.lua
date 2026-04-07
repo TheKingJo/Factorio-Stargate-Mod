@@ -85,7 +85,7 @@ function handlers.letter_click(event)
                     util.playSoundOnSurface(gate.entity.surface, gate.entity.position, util.randomSound("kj_stargate_dhd", 7))
                     dhd.addressLetters[char] = nil
                     local index = util.deleteFromITable(dhd.address, char)
-                    dhd.glyphs[index].destroy()
+                    dhd.glyphs[index].destroy()--prüfen ob existiert, und wenn nicht GUI schließen
                     table.remove(dhd.glyphs, index)
                     table.insert(dhd.glyphs, rendering.draw_animation{
                         animation = "kj_stargate_dhd_"..dhd.entity.direction,

@@ -48,6 +48,7 @@ end
 
 stargate = {
 	Connect = function(thisGate, otherGate)
+        if otherGate == nil then return end
         if otherGate.destination ~= nil then --other gate has connection
             thisGate.dhd:ResetGlyphs()
             util.playSoundOnSurface(thisGate.entity.surface, thisGate.entity.position, "kj_stargate_fail")
@@ -216,8 +217,12 @@ function findRandomGateOnSurface(surface)
     for _, gate in pairs(storage.stargate[surface]) do
         table.insert(gates, gate)
     end
-    local numb = math.random(#gates)
-    return gates[numb]
+
+    if #gates ~= nil then
+        return gates[math.random(#gates)]
+    else
+        return nil
+    end
 end
 
 function OnLoad(e)
