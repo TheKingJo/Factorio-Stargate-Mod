@@ -1,31 +1,68 @@
 local modname = "__kj_stargate__"
 data:extend({
     {
-        type = "electric-energy-interface",
+        type = "simple-entity",
         name = "kj_stargate_auto_gen",
         icon = modname.."/graphics/entities/stargate/icon.png",
         icon_size = 128,
-        collision_box = {{-2, -2}, {2, 2}},
-        selection_box = {{-2, -2}, {2, 2}},
-		collision_mask = {layers = {}},
+        collision_box = {{-3, -3}, {3, 3}},
+        selection_box = {{-3, -3}, {3, 3}},
+		collision_mask = {layers = {water_tile = true, out_of_map = true}},
         minable = {
-            mining_time = 20,
+            mining_time = 15,
             results = {
                 {type = "item", name = "kj_stargate_placement", amount = 1},
                 {type = "item", name = "kj_dhd", amount = 1},
             }
         },
-        render_layer = "lower-object",
-        gui_mode = "none",
-        energy_source = {
-            render_no_power_icon = false,
-            type = "electric",
-            usage_priority = "secondary-input",
-            buffer_capacity = "0J",
-            drain = "0W",
-            input_flow_limit = "0W",
-            output_flow_limit = "0W",
+        render_layer = "decorative",
+        pictures = {
+            {
+                layers = {
+                    {
+                        filename = modname.."/graphics/entities/stargate/remnant_combined.png",
+                        size = 467,
+                        --shift = {0, 0.5},
+                        scale = 0.5,
+                    },
+                }
+            },
+            {
+                layers = {
+                    {
+                        filename = modname.."/graphics/entities/stargate/remnant_combined.png",
+                        size = 467,
+                        x = 467,
+                        --shift = {0, 0.5},
+                        scale = 0.5,
+                    },
+                }
+            },
+            {
+                layers = {
+                    {
+                        filename = modname.."/graphics/entities/stargate/remnant_combined.png",
+                        size = 467,
+                        y = 467,
+                        --shift = {0, 0.5},
+                        scale = 0.5,
+                    },
+                }
+            },
+            {
+                layers = {
+                    {
+                        filename = modname.."/graphics/entities/stargate/remnant_combined.png",
+                        size = 467,
+                        x = 467,
+                        y = 467,
+                        --shift = {0, 0.5},
+                        scale = 0.5,
+                    },
+                }
+            },
         },
+        --[[
         animations = {
             north = {
                 layers = {
@@ -56,7 +93,7 @@ data:extend({
                         stripes =
                         {
                             {
-                                filename = modname.."/graphics/entities/stargate/remnant.png",
+                                filename = modname.."/graphics/entities/stargate/remnant_shadow.png",
                                 width_in_frames = 2,
                                 height_in_frames = 2,
                             },
@@ -183,7 +220,7 @@ data:extend({
                     },
                 }
             },
-        },
+        },]]
     },
     {
         type = "simple-entity",
