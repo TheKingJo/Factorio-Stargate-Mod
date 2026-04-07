@@ -70,7 +70,16 @@ function handlers.letter_click(event)
 
         if dhd then
             local gate = dhd.stargate
-            if char ~= "connect" then
+            if char == "connect" then
+                if gate.active == false then
+                    game.print("Trying to establish connection")
+                    util.playSoundOnSurface(gate.entity.surface, gate.entity.position, "kj_stargate_dhdc")
+                    dhd:Connect(dhdSurface)
+                else
+                    dhd:Disconnect()
+                end
+                element.parent.parent.parent.parent.parent.parent.destroy() --close menu
+            elseif gate.active == false then
                 if element.toggled == false then --unclicked letter button
                     if #dhd.address < 7 then
                         element.toggled = not element.toggled
@@ -96,15 +105,6 @@ function handlers.letter_click(event)
                     })
                     gate.chevrons.animation_offset = math.max(gate.chevrons.animation_offset - 1, 0)
                 end
-            else
-                if gate.active == false then
-                    game.print("Trying to establish connection")
-                    util.playSoundOnSurface(gate.entity.surface, gate.entity.position, "kj_stargate_dhdc")
-                    dhd:Connect(dhdSurface)
-                else
-                    dhd:Disconnect()
-                end
-                element.parent.parent.parent.parent.parent.parent.destroy() --close menu
             end
             dhd:TrackIdling()
         else

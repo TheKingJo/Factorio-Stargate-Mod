@@ -247,10 +247,10 @@ end
 function OnInit(e)
     for _, surface in pairs(game.surfaces) do
         addAddressToGlobal(surface, generateAdress(surface))
-        Chunk({
+        --[[Chunk({
             position = {x = 0, y = 0},
             surface = surface
-        })
+        })]]
     end
 end
 
@@ -316,7 +316,15 @@ function GateTransit(gate, player, vehicle)
         storage.players = storage.players or {}
         table.insert(storage.players, {tick = game.tick + 15, player = player})
     end
-    util.playSoundOnSurface(gate.entity.surface, gate.entity.position, "kj_stargate_enter")
+
+    storage.delayedSounds = storage.delayedSounds or {}
+    table.insert(storage.delayedSounds, {
+        tick = game.tick + 5,
+        surface = gate.entity.surface,
+        position = gate.entity.position,
+        sound = "kj_stargate_enter"
+    })
+    --util.playSoundOnSurface(gate.entity.surface, gate.entity.position, "kj_stargate_enter")
 end
 
 function OnBuilt(e)
@@ -383,6 +391,7 @@ function OnBuilt(e)
             },
         }
 
+        tpArea.destructible = false
         for _, child in pairs(childs) do
             child.destructible = false
         end
@@ -478,6 +487,7 @@ end
 function OnTick(e)
     local players = storage.players
     local vehicles = storage.vehicles
+    local sounds = storage.delayedSounds
 
     if players ~= nil then
         for i = #players, 1, -1 do
@@ -505,6 +515,15 @@ function OnTick(e)
                 end
             else
                 table.remove(storage.vehicles, i)
+            end
+        end
+    end
+    if sounds ~= nil then
+        for i = #sounds, 1, -1 do
+            local sound = sounds[i]
+            if game.tick > sound.tick then
+                util.playSoundOnSurface(sound.surface, sound.position, sound.sound)
+                table.remove(storage.delayedSounds, i)
             end
         end
     end
@@ -572,7 +591,7 @@ function OnNthTickGates(e)
     if dhds ~= nil then
         for id, dhd in pairs(dhds) do
             if game.tick > dhd.tick then
-                dhd.dhd:Connect(dhd.dhd.entity.surface.name)
+                dhd.dhd:Disconnect()
                 table.insert(deleteDhd, id)
             end
         end
@@ -624,6 +643,13 @@ function Chunk(e)
     if surface.platform ~= nil then return end
 
     if position.x == 0 and position.y == 0 then
+        storage.autoGenGates = storage.autoGenGates or {}
+        if not storage.autoGenGates[surface.name] then
+            storage.autoGenGates[surface.name] = true
+        else
+            return
+        end
+
         local pos
         local i = 0
         repeat

@@ -9,6 +9,7 @@ data:extend({
         selection_box = {{-3, -3}, {3, 3}},
 		collision_mask = {layers = {water_tile = true, out_of_map = true}},
         selection_priority = 25,
+        map_color = {r = 0.55, g = 0.55, b = 0.55, a = 1},
         minable = {
             mining_time = 15,
             results = {
@@ -68,6 +69,7 @@ data:extend({
         collision_box = {{-3.9, -2.4}, {3.9, 2.4}},
         selection_box = {{-4,   -2.5}, {4,   2.5}},
         minable = {mining_time = 1, result = "kj_stargate_placement"},
+        map_color = {r = 0.55, g = 0.55, b = 0.55, a = 1},
         picture = {
             layers = {
                 {
@@ -101,6 +103,7 @@ data:extend({
         hidden = true,
         icon_size = 128,
         flags = {"placeable-neutral", "placeable-off-grid", "not-flammable"},
+        map_color = {r = 0.55, g = 0.55, b = 0.55, a = 1},
         --collision_box = {{-1.5, -0.5}, {1.5, 0.5}},
         --selection_box = {{-1.5, -0.5}, {1.5, 0.5}},
         --render_layer = "object-under",
@@ -131,6 +134,7 @@ data:extend({
         icon = modname.."/graphics/entities/stargate/icon.png",
         icon_size = 128,
         flags = {"placeable-neutral", "placeable-off-grid", "not-flammable"},
+        map_color = {1, 1, 1, 1},
         collision_mask = {layers = {}},
         collision_box = {{-1.5, -0.3}, {1.5, 0.3}},
         selection_box = {{-4, -0.8}, {4, 3}},
@@ -144,6 +148,7 @@ data:extend({
         icon = modname.."/graphics/entities/stargate/icon.png",
         icon_size = 128,
         flags = {"placeable-neutral", "placeable-off-grid", "not-flammable"},
+        map_color = {r = 0.55, g = 0.55, b = 0.55, a = 1},
         collision_box = {{-0.5, -1.5}, {0.5, 2}},
     },
     {
@@ -153,6 +158,7 @@ data:extend({
         icon = modname.."/graphics/entities/stargate/icon.png",
         icon_size = 128,
         flags = {"placeable-neutral", "placeable-off-grid", "not-flammable"},
+        map_color = {r = 0.55, g = 0.55, b = 0.55, a = 1},
         collision_box = {{-3, -0.225}, {3, 0.225}},
     },
     {
@@ -162,6 +168,7 @@ data:extend({
         icon = modname.."/graphics/entities/stargate/icon.png",
         icon_size = 128,
         flags = {"placeable-neutral", "placeable-off-grid", "not-flammable"},
+        map_color = {r = 0.55, g = 0.55, b = 0.55, a = 1},
         collision_box = {{-0.75, -0.1}, {0.75, 0.1}},
     },
     {
@@ -171,6 +178,7 @@ data:extend({
         icon = modname.."/graphics/entities/stargate/icon.png",
         icon_size = 128,
         flags = {"placeable-neutral", "placeable-off-grid", "not-flammable", "building-direction-16-way"},
+        map_color = {r = 0.55, g = 0.55, b = 0.55, a = 1},
         collision_box = {{-1, -0.1}, {1, 0.1}},
         is_military_target  = false,
     },
@@ -181,6 +189,7 @@ data:extend({
         icon = modname.."/graphics/entities/stargate/icon.png",
         icon_size = 128,
         flags = {"placeable-neutral", "placeable-off-grid", "not-flammable"},
+        map_color = {r = 0.55, g = 0.55, b = 0.55, a = 1},
 		collision_mask = {layers = {}},
         is_military_target  = false,
         ambient_sounds = {
@@ -202,6 +211,7 @@ data:extend({
         icon = modname.."/graphics/entities/stargate/icon.png",
         icon_size = 128,
         flags = {"placeable-neutral", "placeable-off-grid", "not-flammable"},
+        map_color = {r = 0.55, g = 0.55, b = 0.55, a = 1},
         gui_mode = "none",
         energy_source = {
             render_no_power_icon = false,
@@ -400,6 +410,7 @@ data:extend({
         collision_box = {{-1, -1}, {1, 1}},
         selection_box = {{-1, -1}, {1, 1}},
         minable = {mining_time = 1, result = "kj_dhd"},
+        map_color = {r = 0.55, g = 0.55, b = 0.55, a = 1},
         gui_mode = "all",
         energy_source = {
             type = "electric",
@@ -717,7 +728,7 @@ data:extend({
         walking_speed_modifier = 0.5,
         vehicle_friction_modifier = 0.5,
         collision_mask = {layers={ground_tile=true}},
-        map_color={0, 0, 0},
+        map_color = {r = 0.55, g = 0.55, b = 0.55, a = 1},
         layer = 0,
         variants = {
             material_background =
