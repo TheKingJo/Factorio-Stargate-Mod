@@ -71,7 +71,7 @@ function handlers.letter_click(event)
         if dhd then
             local gate = dhd.stargate
             if char ~= "connect" then
-                if element.toggled == false then --unclicked button
+                if element.toggled == false then --unclicked letter button
                     if #dhd.address < 7 then
                         element.toggled = not element.toggled
                         util.playSoundOnSurface(gate.entity.surface, gate.entity.position, util.randomSound("kj_stargate_dhd", 7))
@@ -80,7 +80,7 @@ function handlers.letter_click(event)
                         table.insert(dhd.address, char)
                         gate.chevrons.animation_offset = gate.chevrons.animation_offset + 1
                     end
-                else --clicked button
+                else --clicked letter button
                     element.toggled = not element.toggled
                     util.playSoundOnSurface(gate.entity.surface, gate.entity.position, util.randomSound("kj_stargate_dhd", 7))
                     dhd.addressLetters[char] = nil
@@ -106,6 +106,7 @@ function handlers.letter_click(event)
                 end
                 element.parent.parent.parent.parent.parent.parent.destroy() --close menu
             end
+            dhd:TrackIdling()
         else
             game.print("dhd not found")
         end

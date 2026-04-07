@@ -149,6 +149,11 @@ dhd = {
     Disconnect = function(self)
         self.stargate:Disconnect()
     end,
+
+    TrackIdling = function(self)
+        storage.unidledDhds = storage.unidledDhds or {}
+        storage.unidledDhds[self.id] = {tick = game.tick + 20*60, dhd = self}
+    end,
 }
 
 function deactivateGate(gate)
@@ -161,6 +166,7 @@ function deactivateGate(gate)
             gate.dhd.addressLetters = {}
         end
     end
+    gate.childs.soundEnt.destroy()
     gate.entity.minable = true
     gate.active = false
     gate.chevrons.animation_offset = 0
@@ -182,6 +188,10 @@ function activateGate(gate)
         render_layer = "object",
         y_scale = 5,
     }]]
+    gate.childs.soundEnt = gate.entity.surface.create_entity{
+        name = sgNames.sound,
+        position = gate.entity.position,
+    }
     gate.chevrons.animation_offset = 7
     gate.animation = gate.entity.surface.create_entity{
         name = "kj_stargate_eventHorizon_ent",
@@ -229,6 +239,16 @@ function OnLoad(e)
 	util.mtMgr.OnLoad()
 end
 
+function OnInit(e)
+    for _, surface in pairs(game.surfaces) do
+        addAddressToGlobal(surface, generateAdress(surface))
+        Chunk({
+            position = {x = 0, y = 0},
+            surface = surface
+        })
+    end
+end
+
 function addAddressToGlobal(surface, address)
     if surface.platform ~= nil then return end
     storage.addresses = storage.addresses or {}
@@ -259,12 +279,6 @@ function generateAdress(surface)
 
     game.print("Adress: "..resultString)
     return resultString
-end
-
-function generateAdresses(e)
-    for _, surface in pairs(game.surfaces) do
-        addAddressToGlobal(surface, generateAdress(surface))
-    end
 end
 
 function GateTransit(gate, player, vehicle)
@@ -324,10 +338,6 @@ function OnBuilt(e)
                 name = sgNames.base,
                 position = util.vector2Add(pos, {x = 0, y = -2}),
             },
-            soundEnt = surface.create_entity{
-                name = sgNames.sound,
-                position = pos,
-            },
             colliderV1 = surface.create_entity{
                 name = sgNames.colliderV,
                 position = util.vector2Add(pos, {x = -3.5, y = -1}),
@@ -367,7 +377,7 @@ function OnBuilt(e)
                 direction = defines.direction.southwest,
             },
         }
-        --childs.soundEnt.active = true
+
         for _, child in pairs(childs) do
             child.destructible = false
         end
@@ -538,7 +548,10 @@ end
 
 function OnNthTickGates(e)
     local gates = storage.activeGates
+    local dhds = storage.unidledDhds
     local deleteGate = {}
+    local deleteDhd = {}
+
     if gates ~= nil then
         for id, gate in pairs(gates) do
             if game.tick > gate.tick then
@@ -547,9 +560,20 @@ function OnNthTickGates(e)
             end
         end
     end
-
     for _, k in ipairs(deleteGate) do
         storage.activeGates[k] = nil
+    end
+
+    if dhds ~= nil then
+        for id, dhd in pairs(dhds) do
+            if game.tick > dhd.tick then
+                dhd.dhd:Connect(dhd.dhd.entity.surface.name)
+                table.insert(deleteDhd, id)
+            end
+        end
+    end
+    for _, k in ipairs(deleteDhd) do
+        storage.unidledDhds[k] = nil
     end
 end
 
@@ -604,7 +628,7 @@ function Chunk(e)
         until pos ~= nil or i == 20
 
         if pos == nil then
-            pos = surface.find_non_colliding_position("kj_stargate_auto_gen", {0,0}, 100, 1, false)
+            pos = surface.find_non_colliding_position("kj_stargate_auto_gen", {0,0}, 1000, 1, false)
         end
 
         if pos ~= nil then
@@ -646,7 +670,7 @@ script.on_event(defines.events.on_surface_created,
 script.on_event(defines.events.on_gui_opened, GuiOpened)
 script.on_event(defines.events.on_chunk_generated, Chunk)
 
-script.on_init(generateAdresses)
+script.on_init(OnInit)
 
 --turn surface name into number and combine with map seed
 

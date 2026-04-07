@@ -104,7 +104,6 @@ data:extend({
         --selection_box = {{-1.5, -0.5}, {1.5, 0.5}},
         --render_layer = "object-under",
 		collision_mask = {layers = {}},
-        minable = {mining_time = 1, result = "kj_stargate_placement"},
         picture = {
             layers = {
                 {
@@ -133,7 +132,7 @@ data:extend({
         flags = {"placeable-neutral", "placeable-off-grid", "not-flammable"},
         collision_mask = {layers = {}},
         collision_box = {{-1.5, -0.3}, {1.5, 0.3}},
-        selection_box = {{-1.5, -0.3}, {1.5, 0.3}},
+        selection_box = {{-4, -0.8}, {4, 3}},
         minable = {mining_time = 1, result = "kj_stargate_placement"},
     },
     {
@@ -144,7 +143,6 @@ data:extend({
         icon_size = 128,
         flags = {"placeable-neutral", "placeable-off-grid", "not-flammable"},
         collision_box = {{-0.5, -1.5}, {0.5, 2}},
-        minable = {mining_time = 1, result = "kj_stargate_placement"},
     },
     {
         type = "simple-entity",
@@ -154,7 +152,6 @@ data:extend({
         icon_size = 128,
         flags = {"placeable-neutral", "placeable-off-grid", "not-flammable"},
         collision_box = {{-3, -0.225}, {3, 0.225}},
-        minable = {mining_time = 1, result = "kj_stargate_placement"},
     },
     {
         type = "simple-entity",
@@ -164,7 +161,6 @@ data:extend({
         icon_size = 128,
         flags = {"placeable-neutral", "placeable-off-grid", "not-flammable"},
         collision_box = {{-0.75, -0.1}, {0.75, 0.1}},
-        minable = {mining_time = 1, result = "kj_stargate_placement"},
     },
     {
         type = "simple-entity-with-force",
@@ -175,7 +171,6 @@ data:extend({
         flags = {"placeable-neutral", "placeable-off-grid", "not-flammable", "building-direction-16-way"},
         collision_box = {{-1, -0.1}, {1, 0.1}},
         is_military_target  = false,
-        minable = {mining_time = 1, result = "kj_stargate_placement"},
     },
     {
         type = "simple-entity-with-force",
@@ -184,12 +179,13 @@ data:extend({
         icon = modname.."/graphics/entities/stargate/icon.png",
         icon_size = 128,
         flags = {"placeable-neutral", "placeable-off-grid", "not-flammable"},
-        minable = {mining_time = 1, result = "kj_stargate_placement"},
 		collision_mask = {layers = {}},
         is_military_target  = false,
         ambient_sounds = {
             radius = 15,
+            max_entity_count = 5,
             min_entity_count = 1,
+            entity_to_sound_ratio = 1,
             sound = {
 		        filename = modname.."/sounds/gate_puddle.ogg",
                 volume = 1,
