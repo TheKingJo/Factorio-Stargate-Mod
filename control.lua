@@ -590,30 +590,36 @@ function AssembleLettersInDHDGUI(root, dhdSurface, dhd)
 end
 
 function Chunk(e)
-    --local area = e.area
     local position = e.position
     local surface = e.surface
     if surface.platform ~= nil then return end
-    --storage.originGates = storage.originGates or {}
-    --storage.originGates[surface] = storage.originGates[surface] or {}
 
     if position.x == 0 and position.y == 0 then
-        local pos = surface.find_non_colliding_position("kj_stargate_auto_gen", {16,16}, 100, 1, false)
-        surface.create_entity{
-            name = "kj_stargate_auto_gen",
-            position = pos,
-            force = "neutral",
-        }
-    end
+        local pos
+        local i = 0
+        repeat
+            i = i + 1
+            pos = {math.random(-100,100), math.random(-100,100)}
+            pos = surface.find_non_colliding_position("kj_stargate_auto_gen", pos, 5, 1, false)
+        until pos ~= nil or i == 20
 
-    --[[
-    if position.x < 1 and position.x > -1 and
-       position.y < 1 and position.y > -1 then
-        game.print("Chunk generated on "..surface.name..": "..position.x.."|"..position.y..
-        " with "..area.left_top.x.."|"..area.left_top.y..
-        " to "..area.right_bottom.x.."|"..area.right_bottom.y
-        )
-    end]]
+        if pos == nil then
+            pos = surface.find_non_colliding_position("kj_stargate_auto_gen", {0,0}, 100, 1, false)
+        end
+
+        if pos ~= nil then
+            local ent = surface.create_entity{
+                name = "kj_stargate_auto_gen",
+                position = pos,
+                force = "neutral",
+                direction = math.random(0,3)*4
+            }
+            ent.graphics_variation = math.random(1,4)
+            game.print("Placed stargate at [gps="..pos.x..","..pos.y..","..surface.name.."]. Needed "..i.." attempts.")
+        else
+            game.print("Couldn't place stargate on "..surface.name.."! Starting area too crowded.")
+        end
+    end
 end
 
 script.on_event(defines.events.on_built_entity, OnBuilt)

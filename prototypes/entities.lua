@@ -5,34 +5,59 @@ data:extend({
         name = "kj_stargate_auto_gen",
         icon = modname.."/graphics/entities/stargate/icon.png",
         icon_size = 128,
-        collision_box = {{-2, -2}, {2, 2}},
-        selection_box = {{-2, -2}, {2, 2}},
+        collision_box = {{-3, -3}, {3, 3}},
+        selection_box = {{-3, -3}, {3, 3}},
+		collision_mask = {layers = {water_tile = true, out_of_map = true}},
         minable = {
-            mining_time = 20,
+            mining_time = 15,
             results = {
                 {type = "item", name = "kj_stargate_placement", amount = 1},
                 {type = "item", name = "kj_dhd", amount = 1},
             }
         },
-        picture = {
-            layers = {
-                {
-                    width = 704,
-                    height = 704,
-                    shift = {1.25, -1.5},
-                    scale = 0.5,
-                    filename = modname.."/graphics/entities/stargate/gate.png",
-                },
-                {
-                    width = 704,
-                    height = 704,
-                    shift = {1.25, -1.5},
-                    scale = 0.5,
-                    draw_as_shadow = true,
-                    filename = modname.."/graphics/entities/stargate/gate_shadow.png",
-                },
-            }
-        }
+        render_layer = "decorative",
+        pictures = {
+            {
+                layers = {
+                    {
+                        filename = modname.."/graphics/entities/stargate/remnant_combined.png",
+                        size = 467,
+                        scale = 0.5,
+                    },
+                }
+            },
+            {
+                layers = {
+                    {
+                        filename = modname.."/graphics/entities/stargate/remnant_combined.png",
+                        size = 467,
+                        x = 467,
+                        scale = 0.5,
+                    },
+                }
+            },
+            {
+                layers = {
+                    {
+                        filename = modname.."/graphics/entities/stargate/remnant_combined.png",
+                        size = 467,
+                        y = 467,
+                        scale = 0.5,
+                    },
+                }
+            },
+            {
+                layers = {
+                    {
+                        filename = modname.."/graphics/entities/stargate/remnant_combined.png",
+                        size = 467,
+                        x = 467,
+                        y = 467,
+                        scale = 0.5,
+                    },
+                }
+            },
+        },
     },
     {
         type = "simple-entity",
