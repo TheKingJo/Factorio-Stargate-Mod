@@ -36,7 +36,7 @@ function guis.dhd_frame_new(name, caption, events)
                         args = {type = "scroll-pane", style = "deep_slots_scroll_pane"},
                         style_mods = {minimal_width = 400, minimal_height = 200},
                         children = {{
-                            args = {type = "table", name = "stargates", column_count = 10},
+                            args = {type = "table", name = "glyphs", column_count = 10},
                         }},
                     }},
                 }},
@@ -78,9 +78,10 @@ function handlers.letter_click(event)
                 else
                     dhd:Disconnect()
                 end
-                element.parent.parent.parent.parent.parent.parent.destroy() --close menu
+                --dhd:CloseGUIs()
+                --element.parent.parent.parent.parent.parent.parent.destroy() --close menu
             elseif gate.active == false then
-                if element.toggled == false then --unclicked letter button
+                if element.toggled == false then --clicked letter button
                     if #dhd.address < 7 then
                         element.toggled = not element.toggled
                         util.playSoundOnSurface(gate.entity.surface, gate.entity.position, util.randomSound("kj_stargate_dhd", 7))
@@ -89,12 +90,17 @@ function handlers.letter_click(event)
                         table.insert(dhd.address, char)
                         gate.chevrons.animation_offset = gate.chevrons.animation_offset + 1
                     end
-                else --clicked letter button
+                else --unclicked letter button
+                    local index = util.deleteFromITable(dhd.address, char)
+                    if dhd.glyphs[index] == nil then
+                        dhd:CloseGUIs()
+                        --element.parent.parent.parent.parent.parent.parent.destroy() --close menu
+                        return
+                    end
+                    dhd.glyphs[index].destroy()--prüfen ob existiert, und wenn nicht GUI schließen
                     element.toggled = not element.toggled
                     util.playSoundOnSurface(gate.entity.surface, gate.entity.position, util.randomSound("kj_stargate_dhd", 7))
                     dhd.addressLetters[char] = nil
-                    local index = util.deleteFromITable(dhd.address, char)
-                    dhd.glyphs[index].destroy()--prüfen ob existiert, und wenn nicht GUI schließen
                     table.remove(dhd.glyphs, index)
                     table.insert(dhd.glyphs, rendering.draw_animation{
                         animation = "kj_stargate_dhd_"..dhd.entity.direction,
@@ -105,8 +111,8 @@ function handlers.letter_click(event)
                     })
                     gate.chevrons.animation_offset = math.max(gate.chevrons.animation_offset - 1, 0)
                 end
+                dhd:TrackIdling()
             end
-            dhd:TrackIdling()
         else
             game.print("dhd not found")
         end

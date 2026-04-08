@@ -126,7 +126,7 @@ dhd = {
         local result = false
         local surface
         for s, address in pairs(storage.addresses) do
-            if selfAddress == address.."poo_"..poo[dhdSurface] then
+            if selfAddress == address.."poo_"..(poo[dhdSurface] or "") then
                 surface = s
                 result = true
             end
@@ -141,6 +141,7 @@ dhd = {
             util.playSoundOnSurface(self.stargate.entity.surface, self.stargate.entity.position, "kj_stargate_fail")
             game.print("no gate with that address. emptying ram")
             self:ResetGlyphs()
+            self:CloseGUIs()
             self.stargate.chevrons.animation_offset = 0
             self.address = {}
             self.addressLetters = {}
@@ -155,12 +156,27 @@ dhd = {
         storage.unidledDhds = storage.unidledDhds or {}
         storage.unidledDhds[self.id] = {tick = game.tick + 20*60, dhd = self}
     end,
+
+    OpenedGUI = function(self, glyphTableUI)
+        self.openedUIs = self.openedUIs or {}
+        table.insert(self.openedUIs, glyphTableUI)
+    end,
+
+    CloseGUIs = function(self)
+        if self.openedUIs == nil then return end
+        for _, GUI in ipairs(self.openedUIs) do
+            if GUI.valid then
+                GUI.parent.parent.parent.parent.parent.destroy()
+            end
+        end
+    end,
 }
 
 function deactivateGate(gate)
     if gate.dhd then
         gate.dhd.entity.minable = true
         gate.dhd:SetButtonLight(false)
+        gate.dhd:CloseGUIs()
         if gate.dhd.address then
             gate.dhd:ResetGlyphs()
             gate.dhd.address = {}
@@ -180,6 +196,7 @@ function activateGate(gate)
     if gate.dhd then
         gate.dhd.entity.minable = false
         gate.dhd:SetButtonLight(true)
+        gate.dhd:CloseGUIs()
     end
     gate.active = true
     --[[gate.animation = rendering.draw_animation{
@@ -473,6 +490,10 @@ function OnRemoved(e)
         util.removeFromGlobal("stargate", ent)
 
     elseif ent.name == dhdName then
+        local dhd, _ = util.findInGlobal("dhd", ent)
+        if dhd then
+            dhd:Connect("deineMom")
+        end
         local stargate = util.removeFromGlobal("dhd", ent)
 
         if stargate ~= nil and stargate.active == true then --cutting connection ?
@@ -591,7 +612,7 @@ function OnNthTickGates(e)
     if dhds ~= nil then
         for id, dhd in pairs(dhds) do
             if game.tick > dhd.tick then
-                dhd.dhd:Disconnect()
+                dhd.dhd:Connect("deineMom")
                 table.insert(deleteDhd, id)
             end
         end
@@ -619,8 +640,8 @@ function GuiOpened(e)
             gui.visible = true
         end
 
-        if refs.stargates then
-            AssembleLettersInDHDGUI(refs.stargates, e.entity.surface.name, dhd)
+        if refs.glyphs then
+            AssembleLettersInDHDGUI(refs.glyphs, e.entity.surface.name, dhd)
         end
 
         gui.force_auto_center()
@@ -630,6 +651,7 @@ function GuiOpened(e)
 end
 
 function AssembleLettersInDHDGUI(root, dhdSurface, dhd)
+    dhd:OpenedGUI(root)
     glib.add(root, sg_guis.dhd_letter("poo_"..poo[dhdSurface], dhdSurface, dhd.id, dhd.addressLetters["poo_"..poo[dhdSurface]]))
     for _, char in ipairs(chevronChars) do
         glib.add(root, sg_guis.dhd_letter(char, dhdSurface, dhd.id, dhd.addressLetters[char]))
