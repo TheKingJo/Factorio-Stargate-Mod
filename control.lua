@@ -1,8 +1,10 @@
 if script.active_mods["gvv"] then require("__gvv__.gvv")() end
 util = require("utils")
+require("util")
 sg_guis = require("logic.gui")
 mod_gui = require("mod-gui")
 glib = require("__glib__/glib")
+
 
 local sgNames = {
     placement = "kj_stargate_placement",
@@ -46,6 +48,61 @@ end
 --otherwise generate on surface generation
 
 
+function initStorage()
+    local names = {
+        dhd = true,
+        stargate = true,
+        tasks = true,
+        addresses = true,
+        ignoredVehicles = true,
+        autoGenGates = true,
+    }
+    local tasks = {
+        activeGates = true,
+        busyDhds = true,
+        eventHorizons = true,
+        vehicles = true,
+        players = true,
+        delayedSounds = true,
+    }
+    for name, _ in pairs(names) do
+        storage[name] = storage[name] or {}
+    end
+    for task, _ in pairs(tasks) do
+        storage.tasks[task] = storage.tasks[task] or {}
+    end
+end
+
+function OnLoad(e)
+	if storage.stargate then
+		for _, surface in pairs(storage.stargate) do
+            for _, gate in pairs(surface) do
+                setmetatable(gate, {__index = stargate})
+            end
+		end
+	end
+	if storage.dhd then
+		for _, surface in pairs(storage.dhd) do
+            for _, device in pairs(surface) do
+                setmetatable(device, {__index = dhd})
+            end
+		end
+	end
+
+	util.mtMgr.OnLoad()
+end
+
+function OnInit(e)
+    initStorage()
+    for _, surface in pairs(game.surfaces) do
+        addAddressToGlobal(surface, generateAdress(surface))
+        --[[Chunk({
+            position = {x = 0, y = 0},
+            surface = surface
+        })]]
+    end
+end
+
 stargate = {
 	Connect = function(thisGate, otherGate)
         if otherGate == nil then return end
@@ -66,10 +123,9 @@ stargate = {
                 otherGate.dhd:SetGlyphs()
             end
 
-            storage.activeGates = storage.activeGates or {}
-            storage.activeGates[thisGate.id] = {tick = game.tick + 20*60, stargate = thisGate}
+            storage.tasks.activeGates[thisGate.id] = {tick = game.tick + 20*60, stargate = thisGate}
 
-            game.print("Gates connected: "..thisGate.id.."|"..otherGate.id)
+            --game.print("Gates connected: "..thisGate.id.."|"..otherGate.id)
         end
 	end,
 
@@ -79,8 +135,8 @@ stargate = {
             deactivateGate(self)
             deactivateGate(dest)
 
-            storage.activeGates[self.id] = nil
-            game.print("Gates disconnected: "..self.id.."|"..dest.id)
+            storage.tasks.activeGates[self.id] = nil
+            --game.print("Gates disconnected: "..self.id.."|"..dest.id)
         end
     end,
 }
@@ -100,7 +156,11 @@ dhd = {
     end,
 
     FetchAddress = function(self, otherGate)
-        self.address = util.lettersFromAddress(storage.addresses[otherGate.entity.surface.name], "poo_"..poo[otherGate.entity.surface.name])
+        --self.address = util.lettersFromAddress(storage.addresses[otherGate.entity.surface.name], "poo_"..poo[otherGate.entity.surface.name])
+        self.address = table.deepcopy(otherGate.dhd.address)
+        self.address[7] = "poo_"..poo[self.entity.surface.name]
+        self.addressLetters = table.deepcopy(otherGate.dhd.addressLetters)
+        self.addressLetters["poo_"..poo[self.entity.surface.name]] = true
     end,
 
     SetGlyphs = function(self)
@@ -132,14 +192,15 @@ dhd = {
             end
         end
 
+        if dhdSurface == surface then result = false end
         if storage.stargate[surface] == nil then result = false end
 
         if result == true then
-            game.print("omg we found a connection!")
+            --game.print("omg we found a connection!")
             self.stargate:Connect(findRandomGateOnSurface(surface))
         else
             util.playSoundOnSurface(self.stargate.entity.surface, self.stargate.entity.position, "kj_stargate_fail")
-            game.print("no gate with that address. emptying ram")
+            --game.print("no gate with that address. emptying ram")
             self:ResetGlyphs()
             self:CloseGUIs()
             self.stargate.chevrons.animation_offset = 0
@@ -153,8 +214,7 @@ dhd = {
     end,
 
     TrackIdling = function(self)
-        storage.unidledDhds = storage.unidledDhds or {}
-        storage.unidledDhds[self.id] = {tick = game.tick + 20*60, dhd = self}
+        storage.tasks.busyDhds[self.id] = {tick = game.tick + 20*60, dhd = self}
     end,
 
     OpenedGUI = function(self, glyphTableUI)
@@ -190,6 +250,14 @@ function deactivateGate(gate)
     gate.chevrons.animation_offset = 0
     gate.animation.destroy()
     gate.destination = nil
+    gate.entity.surface.create_entity {
+        name = "kj_stargate_eventHorizon_short",
+        position = util.vector2Add(gate.entity.position, {x = 0, y = 0.8}),
+    }
+    gate.entity.surface.create_entity {
+        name = "kj_stargate_eventHorizon_woosh_backward",
+        position = util.vector2Add(gate.entity.position, {x = 0, y = 0.8}),
+    }
     util.playSoundOnSurface(gate.entity.surface, gate.entity.position, "kj_stargate_close")
 end
 
@@ -198,8 +266,8 @@ function activateGate(gate)
         gate.dhd.entity.minable = false
         gate.dhd:SetButtonLight(true)
         gate.dhd:CloseGUIs()
-        if storage.unidledDhds and storage.unidledDhds[gate.dhd.id] then
-            storage.unidledDhds[gate.dhd.id] = nil
+        if storage.tasks.busyDhds and storage.tasks.busyDhds[gate.dhd.id] then
+            storage.tasks.busyDhds[gate.dhd.id] = nil
         end
     end
     gate.active = true
@@ -217,8 +285,7 @@ function activateGate(gate)
     gate.entity.minable = false
     gate.chevrons.animation_offset = 7
 
-    storage.eventHorizons = storage.eventHorizons or {}
-    storage.eventHorizons[gate.id] = {tick = game.tick + 1.5*60-5, gate = gate}
+    storage.tasks.eventHorizons[gate.id] = {tick = game.tick + 1.5*60-5, gate = gate}
 
     util.playSoundOnSurface(gate.entity.surface, gate.entity.position, "kj_stargate_open")
 
@@ -264,38 +331,8 @@ function findRandomGateOnSurface(surface)
     end
 end
 
-function OnLoad(e)
-	if storage.stargate then
-		for _, surface in pairs(storage.stargate) do
-            for _, gate in pairs(surface) do
-                setmetatable(gate, {__index = stargate})
-            end
-		end
-	end
-	if storage.dhd then
-		for _, surface in pairs(storage.dhd) do
-            for _, device in pairs(surface) do
-                setmetatable(device, {__index = dhd})
-            end
-		end
-	end
-
-	util.mtMgr.OnLoad()
-end
-
-function OnInit(e)
-    for _, surface in pairs(game.surfaces) do
-        addAddressToGlobal(surface, generateAdress(surface))
-        --[[Chunk({
-            position = {x = 0, y = 0},
-            surface = surface
-        })]]
-    end
-end
-
 function addAddressToGlobal(surface, address)
     if surface.platform ~= nil then return end
-    storage.addresses = storage.addresses or {}
     storage.addresses[surface.name] = storage.addresses[surface.name] or address
 end
 
@@ -346,18 +383,14 @@ function GateTransit(gate, player, vehicle)
         local modus = (vehicle.orientation == 0) and defines.riding.acceleration.reversing or defines.riding.acceleration.accelerating
 		player.riding_state = {acceleration = modus, direction = defines.riding.direction.straight}
 
-        storage.vehicles = storage.vehicles or {}
-        table.insert(storage.vehicles, {tick = game.tick + 5, vehicle = vehicle})
+        table.insert(storage.tasks.vehicles, {tick = game.tick + 5, vehicle = vehicle})
 
-        storage.ignoredVehicles = storage.ignoredVehicles or {}
         storage.ignoredVehicles[vehicle.unit_number] = game.tick + 10
     else
-        storage.players = storage.players or {}
-        table.insert(storage.players, {tick = game.tick + 15, player = player})
+        table.insert(storage.tasks.players, {tick = game.tick + 15, player = player})
     end
 
-    storage.delayedSounds = storage.delayedSounds or {}
-    table.insert(storage.delayedSounds, {
+    table.insert(storage.tasks.delayedSounds, {
         tick = game.tick + 5,
         surface = gate.entity.surface,
         position = gate.entity.position,
@@ -532,10 +565,10 @@ function OnRemoved(e)
 end
 
 function OnTick(e)
-    local players = storage.players
-    local vehicles = storage.vehicles
-    local sounds = storage.delayedSounds
-    local eventHorizons = storage.eventHorizons
+    local players = storage.tasks.players
+    local vehicles = storage.tasks.vehicles
+    local sounds = storage.tasks.delayedSounds
+    local eventHorizons = storage.tasks.eventHorizons
 
     if players ~= nil then
         for i = #players, 1, -1 do
@@ -546,7 +579,7 @@ function OnTick(e)
                     direction = 8
                 }
             else
-                table.remove(storage.players, i)
+                table.remove(storage.tasks.players, i)
             end
         end
     end
@@ -559,10 +592,10 @@ function OnTick(e)
                     if driver then
                         driver.riding_state = {acceleration = defines.riding.acceleration.nothing, direction = defines.riding.direction.straight}
                     end
-                    table.remove(storage.vehicles, i)
+                    table.remove(storage.tasks.vehicles, i)
                 end
             else
-                table.remove(storage.vehicles, i)
+                table.remove(storage.tasks.vehicles, i)
             end
         end
     end
@@ -571,7 +604,7 @@ function OnTick(e)
             local sound = sounds[i]
             if game.tick > sound.tick then
                 util.playSoundOnSurface(sound.surface, sound.position, sound.sound)
-                table.remove(storage.delayedSounds, i)
+                table.remove(storage.tasks.delayedSounds, i)
             end
         end
     end
@@ -601,7 +634,7 @@ function OnTick(e)
                 }
                 eH.gate.safeToTravel = true
                 eH.gate.animation.destructible = false
-                storage.eventHorizons[id] = nil
+                storage.tasks.eventHorizons[id] = nil
             end
         end
     end
@@ -649,8 +682,8 @@ function OnNthTickPlayer(e)
 end
 
 function OnNthTickGates(e)
-    local gates = storage.activeGates
-    local dhds = storage.unidledDhds
+    local gates = storage.tasks.activeGates
+    local dhds = storage.tasks.busyDhds
     local deleteGate = {}
     local deleteDhd = {}
 
@@ -663,7 +696,7 @@ function OnNthTickGates(e)
         end
     end
     for _, k in ipairs(deleteGate) do
-        storage.activeGates[k] = nil
+        storage.tasks.activeGates[k] = nil
     end
 
     if dhds ~= nil then
@@ -675,7 +708,7 @@ function OnNthTickGates(e)
         end
     end
     for _, k in ipairs(deleteDhd) do
-        storage.unidledDhds[k] = nil
+        storage.tasks.busyDhds[k] = nil
     end
 end
 
@@ -722,7 +755,6 @@ function Chunk(e)
     if surface.platform ~= nil then return end
 
     if position.x == 0 and position.y == 0 then
-        storage.autoGenGates = storage.autoGenGates or {}
         if not storage.autoGenGates[surface.name] then
             storage.autoGenGates[surface.name] = true
         else
@@ -760,7 +792,7 @@ script.on_event(defines.events.on_built_entity, OnBuilt)
 script.on_event(defines.events.on_robot_built_entity, OnBuilt)
 
 script.on_load(OnLoad)
---script.on_configuration_changed(OnConfigChanged)
+script.on_configuration_changed(initStorage)
 
 script.on_event(defines.events.on_player_mined_entity, OnRemoved)
 script.on_event(defines.events.on_robot_mined_entity, OnRemoved)

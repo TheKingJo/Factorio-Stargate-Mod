@@ -136,7 +136,6 @@ end
 
 function functions.findIDInGlobal(name, surface, id)
     if not surface and not id then return nil, nil end
-    storage[name] = storage[name] or {}
     if not storage[name][surface] then return nil, nil end
 
     if id then
@@ -152,7 +151,6 @@ end
 function functions.findInGlobal(name, entity)
     if entity == nil then return nil, nil end
     local sName = entity.surface.name
-    storage[name] = storage[name] or {}
     if not storage[name][sName] then return nil, nil end
 
     for id, object in pairs(storage[name][sName]) do
@@ -191,7 +189,6 @@ function functions.addToGlobal(name, entity, addContent)
     local sName = entity.surface.name
     local id = entity.unit_number or ((storage[name.."id"] or 0) + 1)
     storage[name.."id"] = id
-    storage[name] = storage[name] or {}
     storage[name][sName] = storage[name][sName] or {}
 
     local shortestOppEnt = functions.findEntity(opposite[name], oppositeEntity[name], entity)

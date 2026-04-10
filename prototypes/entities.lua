@@ -1,17 +1,24 @@
 local modname = "__kj_stargate__"
-local frame_sequence1 = {}
-local frame_sequence2 = {}
+local eHw_fs = {}
+local w_fs = {}
+local eHwbw_fs = {}
 for i=1, 16*0.5, 1 do
-    table.insert(frame_sequence1, 1)
+    table.insert(eHw_fs, 1)
 end
 for i=1, 15*1.5, 1 do
-    table.insert(frame_sequence2, 1)
+    table.insert(w_fs, 1)
+end
+for i=1, 16*1.75, 1 do
+    table.insert(eHwbw_fs, 1)
 end
 for i=2, 16, 1 do
-    table.insert(frame_sequence1, i)
+    table.insert(eHw_fs, i)
 end
 for i=2, 33, 1 do
-    table.insert(frame_sequence2, i)
+    table.insert(w_fs, i)
+end
+for i=16, 2, -1 do
+    table.insert(eHwbw_fs, i)
 end
 data:extend({
     {
@@ -242,7 +249,7 @@ data:extend({
                 {
                     size = 704,
                     shift = {1.25, 0.49},
-                    scale = 0.5,
+                    scale = 0.505,
                     frame_count = 64,
                     stripes = {
                         {
@@ -256,7 +263,7 @@ data:extend({
                     width = 704,
                     height = 704,
                     shift = {1.25, 0.49},
-                    scale = 0.5,
+                    scale = 0.505,
                     frame_count = 64,
                     blend_mode = "additive",
                     draw_as_glow = true,
@@ -267,6 +274,44 @@ data:extend({
                             width_in_frames = 8,
                         },
                     },
+                },
+            },
+        },
+    },
+})
+
+data:extend({
+    {
+        type = "explosion",
+        name = "kj_stargate_eventHorizon_short",
+        --order = "a-c-b",
+        flags = {"not-on-map", "placeable-off-grid"},
+        hidden = true,
+        subgroup = "explosions",
+        render_layer = "higher-object-under",
+        animations = {
+            layers = {
+                {
+                    filename = modname.."/graphics/entities/stargate/eventHorizon.png",
+                    size = 704,
+                    shift = {1.25, 0.49},
+                    scale = 0.505,
+                    frame_count = 28,
+                    line_length = 8,
+                    animation_speed = 16/60,
+                    usage = "explosion"
+                },
+                {
+                    filename = modname.."/graphics/entities/stargate/eventHorizon_light.png",
+                    size = 704,
+                    shift = {1.25, 0.49},
+                    scale = 0.505,
+                    frame_count = 28,
+                    line_length = 8,
+                    animation_speed = 16/60,
+                    usage = "explosion",
+                    blend_mode = "additive",
+                    draw_as_glow = true,
                 },
             },
         },
@@ -286,7 +331,7 @@ data:extend({
                     size = 704,
                     scale = 0.5,
                     frame_count = 16,
-                    frame_sequence = frame_sequence1,
+                    frame_sequence = eHw_fs,
                     line_length = 4,
                     shift = {1.25, 0.49},
                     animation_speed = 16/60,
@@ -297,13 +342,50 @@ data:extend({
                     size = 704,
                     scale = 0.5,
                     frame_count = 16,
-                    frame_sequence = frame_sequence1,
+                    frame_sequence = eHw_fs,
                     line_length = 4,
                     shift = {1.25, 0.49},
                     animation_speed = 16/60,
                     usage = "explosion",
                     draw_as_glow = true,
-                    blend_mode = "additive-soft",
+                    blend_mode = "additive",
+                },
+            }
+        },
+    },
+    {
+        type = "explosion",
+        name = "kj_stargate_eventHorizon_woosh_backward",
+        --order = "a-c-b",
+        flags = {"not-on-map", "placeable-off-grid"},
+        hidden = true,
+        subgroup = "explosions",
+        render_layer = "higher-object-under",
+        animations = {
+            layers = {
+                {
+                    filename = modname.."/graphics/entities/stargate/eventHorizon_woosh.png",
+                    size = 704,
+                    scale = 0.5,
+                    frame_count = 16,
+                    frame_sequence = eHwbw_fs,
+                    line_length = 4,
+                    shift = {1.25, 0.49},
+                    animation_speed = 16/60,
+                    usage = "explosion"
+                },
+                {
+                    filename = modname.."/graphics/entities/stargate/eventHorizon_woosh_light.png",
+                    size = 704,
+                    scale = 0.5,
+                    frame_count = 16,
+                    frame_sequence = eHwbw_fs,
+                    line_length = 4,
+                    shift = {1.25, 0.49},
+                    animation_speed = 16/60,
+                    usage = "explosion",
+                    draw_as_glow = true,
+                    blend_mode = "additive",
                 },
             }
         },
@@ -323,7 +405,7 @@ data:extend({
                 scale = 0.5,
                 frame_count = 33,
                 line_length = 6,
-                frame_sequence = frame_sequence2,
+                frame_sequence = w_fs,
                 shift = {0, 3},
                 animation_speed = 15/60,
                 usage = "explosion"
@@ -372,7 +454,6 @@ data:extend({
         }
     },]]
 })
-
 data:extend({
     {
         type = "projectile",
@@ -407,7 +488,7 @@ data:extend({
         hidden = true,
         affected_by_wind = false,
         cyclic = true,
-        duration = 60 * 1.5,
+        duration = 60 * 1.75,
         fade_away_duration = 0,
         spread_duration = 0,
         action_cooldown = 1,
@@ -476,12 +557,13 @@ data:extend({
         map_color = {r = 0.55, g = 0.55, b = 0.55, a = 1},
         gui_mode = "all",
         energy_source = {
+            render_no_power_icon = false,
             type = "electric",
             usage_priority = "secondary-input",
-            buffer_capacity = "5MJ",
-            drain = "1kW",
-            input_flow_limit = "300kW",
-            output_flow_limit = "300kW",
+            buffer_capacity = "0J",
+            drain = "0W",
+            input_flow_limit = "0W",
+            output_flow_limit = "0W",
         },
         animations = {
             north = {

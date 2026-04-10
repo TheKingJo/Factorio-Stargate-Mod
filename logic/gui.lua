@@ -72,7 +72,7 @@ function handlers.letter_click(event)
             local gate = dhd.stargate
             if char == "connect" then
                 if gate.active == false then
-                    game.print("Trying to establish connection")
+                    --game.print("Trying to establish connection")
                     util.playSoundOnSurface(gate.entity.surface, gate.entity.position, "kj_stargate_dhdc")
                     dhd:Connect(dhdSurface)
                 else
