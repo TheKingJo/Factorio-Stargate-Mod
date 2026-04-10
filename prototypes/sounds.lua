@@ -2,6 +2,14 @@ local modname = "__kj_stargate__"
 data:extend({
 	{
 		type = "sound",
+		name = "kj_stargate_dhd_connect",
+		filename = modname.."/sounds/dhd_connect.ogg",
+		volume = 1,
+		category = "environment",
+		audible_distance_modifier = 1,
+	},
+	{
+		type = "sound",
 		name = "kj_stargate_open",
 		filename = modname.."/sounds/gate_open.ogg",
 		volume = 1,

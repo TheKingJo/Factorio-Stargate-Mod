@@ -186,6 +186,7 @@ function deactivateGate(gate)
     gate.childs.soundEnt.destroy()
     gate.entity.minable = true
     gate.active = false
+    gate.safeToTravel = false
     gate.chevrons.animation_offset = 0
     gate.animation.destroy()
     gate.destination = nil
@@ -197,6 +198,9 @@ function activateGate(gate)
         gate.dhd.entity.minable = false
         gate.dhd:SetButtonLight(true)
         gate.dhd:CloseGUIs()
+        if storage.unidledDhds and storage.unidledDhds[gate.dhd.id] then
+            storage.unidledDhds[gate.dhd.id] = nil
+        end
     end
     gate.active = true
     --[[gate.animation = rendering.draw_animation{
@@ -210,23 +214,41 @@ function activateGate(gate)
         name = sgNames.sound,
         position = gate.entity.position,
     }
-    gate.chevrons.animation_offset = 7
-    gate.animation = gate.entity.surface.create_entity{
-        name = "kj_stargate_eventHorizon_ent",
-        position = util.vector2Add(gate.entity.position, {x = 0, y = -0.19}),
-    }
-    gate.animation.destructible = false
     gate.entity.minable = false
+    gate.chevrons.animation_offset = 7
+
+    storage.eventHorizons = storage.eventHorizons or {}
+    storage.eventHorizons[gate.id] = {tick = game.tick + 1.5*60-5, gate = gate}
+
     util.playSoundOnSurface(gate.entity.surface, gate.entity.position, "kj_stargate_open")
 
-    local effectPos = util.vector2Add(gate.entity.position, {x = 0, y = 2.5})
+    gate.entity.surface.create_entity {
+        name = "kj_stargate_eventHorizon_woosh",
+        position = util.vector2Add(gate.entity.position, {x = 0, y = 0.8}),
+    }
     gate.entity.surface.create_entity {
         name = "kj_stargate_woosh",
-        position = effectPos,
-        force = "enemy",
-        target = effectPos,
-        speed = 1,
+        position = util.vector2Add(gate.entity.position, {x = 0, y = 0.8}),
     }
+
+    --local effectPos1 = util.vector2Add(gate.entity.position, {x = 0, y = 2.5})
+    --local effectPos2 = util.vector2Add(gate.entity.position, {x = 0, y = 5.5})
+    --[[
+    local radius = 2.5
+    for x=-radius, radius, 1 do
+        for y=-radius, radius, 1 do
+            gate.entity.surface.create_entity {
+                name = "land-mine",
+                force = "player",
+                position = util.vector2Add(effectPos1, {x = x, y = y}),
+            }
+            gate.entity.surface.create_entity {
+                name = "land-mine",
+                force = "player",
+                position = util.vector2Add(effectPos2, {x = x, y = y}),
+            }
+        end
+    end]]
 end
 
 function findRandomGateOnSurface(surface)
@@ -444,6 +466,7 @@ function OnBuilt(e)
             oldTiles = oldTiles,
             destination = nil,
             chevrons = chevrons,
+            safeToTravel = false,
         }
         util.addToGlobal("stargate", tpArea, content)
 
@@ -469,10 +492,13 @@ function OnBuilt(e)
             glyphs = glyphAnimation
         }
         local dhd = util.addToGlobal("dhd", ent, content)
-        if dhd.stargate and dhd.stargate.destination and dhd.stargate.active then
-            dhd:SetButtonLight(true)
-            dhd:FetchAddress(dhd.stargate.destination)
-            dhd:SetGlyphs()
+        if dhd.stargate then
+            util.playSoundOnSurface(dhd.entity.surface, dhd.entity.position, "kj_stargate_dhd_connect", 1)
+            if dhd.stargate.destination and dhd.stargate.active then
+                dhd:SetButtonLight(true)
+                dhd:FetchAddress(dhd.stargate.destination)
+                dhd:SetGlyphs()
+            end
         end
     end
 end
@@ -509,6 +535,7 @@ function OnTick(e)
     local players = storage.players
     local vehicles = storage.vehicles
     local sounds = storage.delayedSounds
+    local eventHorizons = storage.eventHorizons
 
     if players ~= nil then
         for i = #players, 1, -1 do
@@ -548,6 +575,36 @@ function OnTick(e)
             end
         end
     end
+    if eventHorizons ~= nil then
+        for id, eH in pairs(eventHorizons) do
+            if game.tick > eH.tick then
+                local effectPos1 = util.vector2Add(eH.gate.entity.position, {x = 0, y = 2.5})
+                local effectPos2 = util.vector2Add(eH.gate.entity.position, {x = 0, y = 5.5})
+
+                eH.gate.animation = eH.gate.entity.surface.create_entity{
+                    name = "kj_stargate_eventHorizon_ent",
+                    position = util.vector2Add(eH.gate.entity.position, {x = 0, y = -0.19}),
+                }
+                eH.gate.entity.surface.create_entity {
+                    name = "kj_stargate_woosh_dmg",
+                    position = effectPos1,
+                    force = "enemy",
+                    target = effectPos1,
+                    speed = 1,
+                }
+                eH.gate.entity.surface.create_entity {
+                    name = "kj_stargate_woosh_dmg",
+                    position = effectPos2,
+                    force = "enemy",
+                    target = effectPos2,
+                    speed = 1,
+                }
+                eH.gate.safeToTravel = true
+                eH.gate.animation.destructible = false
+                storage.eventHorizons[id] = nil
+            end
+        end
+    end
 end
 
 function OnNthTickPlayer(e)
@@ -556,7 +613,7 @@ function OnNthTickPlayer(e)
     for sgSurface, gates in pairs(storage.stargate) do
         for gID, gate in pairs(gates) do
             if gate.valid == true and gate.entity and gate.entity.valid then
-                if gate.active == true and gate.destination then
+                if gate.safeToTravel == true and gate.destination then
                     for _, player in pairs(game.players) do
                         local vehicle = player.physical_vehicle
                         if player.surface.name == sgSurface and not (vehicle and vehicle.prototype.type == "spider-vehicle") then

@@ -1,4 +1,18 @@
 local modname = "__kj_stargate__"
+local frame_sequence1 = {}
+local frame_sequence2 = {}
+for i=1, 16*0.5, 1 do
+    table.insert(frame_sequence1, 1)
+end
+for i=1, 15*1.5, 1 do
+    table.insert(frame_sequence2, 1)
+end
+for i=2, 16, 1 do
+    table.insert(frame_sequence1, i)
+end
+for i=2, 33, 1 do
+    table.insert(frame_sequence2, i)
+end
 data:extend({
     {
         type = "simple-entity",
@@ -225,18 +239,8 @@ data:extend({
         continuous_animation = true,
         animation = {
             layers = {
-                --[[{
-                    width = 704,
-                    height = 704,
-                    shift = {1.25, 0.49},
-                    scale = 0.5,
-                    frame_count = 64,
-                    line_length = 8,
-                    filename = modname.."/graphics/entities/stargate/eventHorizon.png",
-                },]]
                 {
-                    width = 704,
-                    height = 704,
+                    size = 704,
                     shift = {1.25, 0.49},
                     scale = 0.5,
                     frame_count = 64,
@@ -265,6 +269,65 @@ data:extend({
                     },
                 },
             },
+        },
+    },
+    {
+        type = "explosion",
+        name = "kj_stargate_eventHorizon_woosh",
+        --order = "a-c-b",
+        flags = {"not-on-map", "placeable-off-grid"},
+        hidden = true,
+        subgroup = "explosions",
+        render_layer = "higher-object-under",
+        animations = {
+            layers = {
+                {
+                    filename = modname.."/graphics/entities/stargate/eventHorizon_woosh.png",
+                    size = 704,
+                    scale = 0.5,
+                    frame_count = 16,
+                    frame_sequence = frame_sequence1,
+                    line_length = 4,
+                    shift = {1.25, 0.49},
+                    animation_speed = 16/60,
+                    usage = "explosion"
+                },
+                {
+                    filename = modname.."/graphics/entities/stargate/eventHorizon_woosh_light.png",
+                    size = 704,
+                    scale = 0.5,
+                    frame_count = 16,
+                    frame_sequence = frame_sequence1,
+                    line_length = 4,
+                    shift = {1.25, 0.49},
+                    animation_speed = 16/60,
+                    usage = "explosion",
+                    draw_as_glow = true,
+                    blend_mode = "additive-soft",
+                },
+            }
+        },
+    },
+    {
+        type = "explosion",
+        name = "kj_stargate_woosh",
+        flags = {"not-on-map", "placeable-off-grid"},
+        hidden = true,
+        subgroup = "explosions",
+        render_layer = "higher-object-above",
+        animations = {
+            {
+                filename = modname.."/graphics/entities/stargate/woosh.png",
+                draw_as_glow = true,
+                size = 768,
+                scale = 0.5,
+                frame_count = 33,
+                line_length = 6,
+                frame_sequence = frame_sequence2,
+                shift = {0, 3},
+                animation_speed = 15/60,
+                usage = "explosion"
+            }
         },
     },
     {
@@ -313,7 +376,7 @@ data:extend({
 data:extend({
     {
         type = "projectile",
-        name = "kj_stargate_woosh",
+        name = "kj_stargate_woosh_dmg",
         flags = {"not-on-map"},
         hidden = true,
         acceleration = 0.005,
@@ -344,7 +407,7 @@ data:extend({
         hidden = true,
         affected_by_wind = false,
         cyclic = true,
-        duration = 60 * 2,
+        duration = 60 * 1.5,
         fade_away_duration = 0,
         spread_duration = 0,
         action_cooldown = 1,

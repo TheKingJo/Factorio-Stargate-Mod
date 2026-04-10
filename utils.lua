@@ -270,6 +270,10 @@ function functions.lettersFromAddress(name, suffix)
     return address
 end
 
+---@param surface surface surface the sound is to be played on
+---@param position Position position the sound is to be played at
+---@param sound string name of the sound
+---@param volume? number volume
 function functions.playSoundOnSurface(surface, position, sound, volume)
 	surface.play_sound {
 		path = sound,
