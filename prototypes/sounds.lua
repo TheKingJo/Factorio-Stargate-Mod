@@ -28,25 +28,17 @@ data:extend({
 		type = "sound",
 		name = "kj_stargate_fail",
 		filename = modname.."/sounds/gate_fail.ogg",
-		volume = 1,
+		volume = 0.75,
 		category = "environment",
-		audible_distance_modifier = 1,
+		audible_distance_modifier = 0.75,
 	},
 	{
 		type = "sound",
 		name = "kj_stargate_enter",
 		filename = modname.."/sounds/gate_enter.ogg",
-		volume = 1,
+		volume = 0.75,
 		category = "environment",
-		audible_distance_modifier = 1,
-	},
-	{
-		type = "sound",
-		name = "kj_stargate_openIdle",
-		filename = modname.."/sounds/gate_puddle.ogg",
-		volume = 1,
-		category = "environment",
-		audible_distance_modifier = 1,
+		audible_distance_modifier = 0.75,
 	},
 })
 
@@ -82,7 +74,7 @@ data:extend({
 		filename = modname.."/sounds/dhd_1.ogg",
 		volume = 1,
 		category = "environment",
-		audible_distance_modifier = 1,
+		audible_distance_modifier = 0.75,
 	},
 	{
 		type = "sound",
@@ -90,7 +82,7 @@ data:extend({
 		filename = modname.."/sounds/dhd_2.ogg",
 		volume = 1,
 		category = "environment",
-		audible_distance_modifier = 1,
+		audible_distance_modifier = 0.75,
 	},
 	{
 		type = "sound",
@@ -98,7 +90,7 @@ data:extend({
 		filename = modname.."/sounds/dhd_3.ogg",
 		volume = 1,
 		category = "environment",
-		audible_distance_modifier = 1,
+		audible_distance_modifier = 0.75,
 	},
 	{
 		type = "sound",
@@ -106,7 +98,7 @@ data:extend({
 		filename = modname.."/sounds/dhd_4.ogg",
 		volume = 1,
 		category = "environment",
-		audible_distance_modifier = 1,
+		audible_distance_modifier = 0.75,
 	},
 	{
 		type = "sound",
@@ -114,7 +106,7 @@ data:extend({
 		filename = modname.."/sounds/dhd_5.ogg",
 		volume = 1,
 		category = "environment",
-		audible_distance_modifier = 1,
+		audible_distance_modifier = 0.75,
 	},
 	{
 		type = "sound",
@@ -122,7 +114,7 @@ data:extend({
 		filename = modname.."/sounds/dhd_6.ogg",
 		volume = 1,
 		category = "environment",
-		audible_distance_modifier = 1,
+		audible_distance_modifier = 0.75,
 	},
 	{
 		type = "sound",
@@ -130,7 +122,7 @@ data:extend({
 		filename = modname.."/sounds/dhd_7.ogg",
 		volume = 1,
 		category = "environment",
-		audible_distance_modifier = 1,
+		audible_distance_modifier = 0.75,
 	},
 	{
 		type = "sound",
@@ -138,6 +130,6 @@ data:extend({
 		filename = modname.."/sounds/dhd_c.ogg",
 		volume = 1,
 		category = "environment",
-		audible_distance_modifier = 1,
+		audible_distance_modifier = 0.75,
 	},
 })

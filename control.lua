@@ -4,7 +4,7 @@ require("util")
 sg_guis = require("logic.gui")
 mod_gui = require("mod-gui")
 glib = require("__glib__/glib")
-
+--seed: 163867536
 
 local sgNames = {
     placement = "kj_stargate_placement",
@@ -199,11 +199,15 @@ dhd = {
             --game.print("omg we found a connection!")
             self.stargate:Connect(findRandomGateOnSurface(surface))
         else
-            util.playSoundOnSurface(self.stargate.entity.surface, self.stargate.entity.position, "kj_stargate_fail")
+            if self.stargate then
+                self.stargate.chevrons.animation_offset = 0
+                util.playSoundOnSurface(self.stargate.entity.surface, self.stargate.entity.position, "kj_stargate_fail")
+            else
+                util.playSoundOnSurface(self.entity.surface, self.entity.position, "kj_stargate_fail")
+            end
             --game.print("no gate with that address. emptying ram")
             self:ResetGlyphs()
             self:CloseGUIs()
-            self.stargate.chevrons.animation_offset = 0
             self.address = {}
             self.addressLetters = {}
         end
@@ -409,6 +413,7 @@ function OnBuilt(e)
         local surface = ent.surface
         local tpArea = surface.create_entity{
             name = sgNames.tpArea,
+            force = "neutral",
             position = util.vector2Add(pos, {x = 0, y = -1.8}),
         }
         local chevrons = rendering.draw_animation{
@@ -526,6 +531,14 @@ function OnBuilt(e)
         }
         local dhd = util.addToGlobal("dhd", ent, content)
         if dhd.stargate then
+            rendering.draw_animation{
+                animation = "kj_stargate_dhd_"..ent.direction,
+                animation_speed = 40/60,
+                time_to_live = 60,
+                target = ent.position,
+                surface = ent.surface,
+                render_layer = "object",
+            }
             util.playSoundOnSurface(dhd.entity.surface, dhd.entity.position, "kj_stargate_dhd_connect", 1)
             if dhd.stargate.destination and dhd.stargate.active then
                 dhd:SetButtonLight(true)

@@ -22,7 +22,7 @@ for i=16, 2, -1 do
 end
 data:extend({
     {
-        type = "simple-entity",
+        type = "simple-entity-with-owner",
         name = "kj_stargate_auto_gen",
         icon = modname.."/graphics/entities/stargate/icon.png",
         icon_size = 128,
@@ -89,6 +89,7 @@ data:extend({
         icon_size = 128,
         collision_box = {{-3.9, -2.4}, {3.9, 2.4}},
         selection_box = {{-4,   -2.5}, {4,   2.5}},
+        drawing_box_vertical_extension = 3,
         minable = {mining_time = 1, result = "kj_stargate_placement"},
         map_color = {r = 0.55, g = 0.55, b = 0.55, a = 1},
         picture = {
@@ -150,10 +151,11 @@ data:extend({
         }
     },
     {
-        type = "simple-entity",
+        type = "simple-entity-with-owner",
         name = "kj_stargate_transferArea",
         icon = modname.."/graphics/entities/stargate/icon.png",
         icon_size = 128,
+        factoriopedia_alternative = "kj_stargate_placement",
         flags = {"placeable-neutral", "placeable-off-grid", "not-flammable"},
         map_color = {1, 1, 1, 1},
         collision_mask = {layers = {}},
@@ -219,8 +221,7 @@ data:extend({
             min_entity_count = 1,
             entity_to_sound_ratio = 1,
             sound = {
-		        filename = modname.."/sounds/gate_puddle.ogg",
-                volume = 1,
+                variations = sound_variations(modname.."/sounds/gate_puddle", 5)
             }
         },
     },
@@ -229,6 +230,8 @@ data:extend({
         name = "kj_stargate_eventHorizon_ent",
         collision_box = {{-1, -1}, {1, 1}},
 		collision_mask = {layers = {}},
+        factoriopedia_alternative = "kj_stargate_placement",
+        hidden = true,
         icon = modname.."/graphics/entities/stargate/icon.png",
         icon_size = 128,
         flags = {"placeable-neutral", "placeable-off-grid", "not-flammable"},
@@ -549,187 +552,187 @@ data:extend({
 
 data:extend({
     {
-        type = "electric-energy-interface",
+        type = "recipe-category",
         name = "kj_dhd",
-        collision_box = {{-1, -1}, {1, 1}},
+    },
+    {
+        type = "assembling-machine",
+        name = "kj_dhd",
+        collision_box = {{-0.98, -1}, {0.98, 1}},
         selection_box = {{-1, -1}, {1, 1}},
         minable = {mining_time = 1, result = "kj_dhd"},
         map_color = {r = 0.55, g = 0.55, b = 0.55, a = 1},
-        gui_mode = "all",
-        energy_source = {
-            render_no_power_icon = false,
-            type = "electric",
-            usage_priority = "secondary-input",
-            buffer_capacity = "0J",
-            drain = "0W",
-            input_flow_limit = "0W",
-            output_flow_limit = "0W",
-        },
-        animations = {
-            north = {
-                layers = {
-                    {
-                        width = 576/2,
-                        height = 576/2,
-                        x = 0,
-                        y = 576/2,
-                        frame_count = 1,
-                        shift = {0, 0.5},
-                        scale = 0.5,
-                        animation_speed = 1,
-                        max_advance = 1,
-                        stripes =
+        crafting_categories = {"kj_dhd"},
+        crafting_speed = 1,
+        energy_source = {type = "void"},
+        energy_usage = "1W",
+        graphics_set = {
+            animation = {
+                north = {
+                    layers = {
                         {
+                            width = 576/2,
+                            height = 576/2,
+                            x = 0,
+                            y = 576/2,
+                            frame_count = 1,
+                            shift = {0, 0.5},
+                            scale = 0.5,
+                            animation_speed = 1,
+                            max_advance = 1,
+                            stripes =
                             {
-                                filename = modname.."/graphics/entities/dhd/dhd.png",
-                                width_in_frames = 2,
-                                height_in_frames = 2,
-                            },
-                        }
-                    },
-                    {
-                        size = 576/2,
-                        x = 0,
-                        y = 576/2,
-                        frame_count = 1,
-                        shift = {0, 0.5},
-                        scale = 0.5,
-                        animation_speed = 1,
-                        max_advance = 1,
-                        draw_as_shadow = true,
-                        stripes =
+                                {
+                                    filename = modname.."/graphics/entities/dhd/dhd.png",
+                                    width_in_frames = 2,
+                                    height_in_frames = 2,
+                                },
+                            }
+                        },
                         {
+                            size = 576/2,
+                            x = 0,
+                            y = 576/2,
+                            frame_count = 1,
+                            shift = {0, 0.5},
+                            scale = 0.5,
+                            animation_speed = 1,
+                            max_advance = 1,
+                            draw_as_shadow = true,
+                            stripes =
                             {
-                                filename = modname.."/graphics/entities/dhd/dhd_shadow.png",
-                                width_in_frames = 2,
-                                height_in_frames = 2,
-                            },
-                        }
-                    },
-                }
-            },
-            east = {
-                layers = {
-                    {
-                        size = 576/2,
-                        x = 576/2,
-                        y = 576/2,
-                        frame_count = 1,
-                        shift = {0, 0.5},
-                        scale = 0.5,
-                        animation_speed = 1,
-                        max_advance = 1,
-                        stripes =
+                                {
+                                    filename = modname.."/graphics/entities/dhd/dhd_shadow.png",
+                                    width_in_frames = 2,
+                                    height_in_frames = 2,
+                                },
+                            }
+                        },
+                    }
+                },
+                east = {
+                    layers = {
                         {
+                            size = 576/2,
+                            x = 576/2,
+                            y = 576/2,
+                            frame_count = 1,
+                            shift = {0, 0.5},
+                            scale = 0.5,
+                            animation_speed = 1,
+                            max_advance = 1,
+                            stripes =
                             {
-                                filename = modname.."/graphics/entities/dhd/dhd.png",
-                                width_in_frames = 2,
-                                height_in_frames = 2,
-                            },
-                        }
-                    },
-                    {
-                        size = 576/2,
-                        x = 576/2,
-                        y = 576/2,
-                        frame_count = 1,
-                        shift = {0, 0.5},
-                        scale = 0.5,
-                        animation_speed = 1,
-                        max_advance = 1,
-                        draw_as_shadow = true,
-                        stripes =
+                                {
+                                    filename = modname.."/graphics/entities/dhd/dhd.png",
+                                    width_in_frames = 2,
+                                    height_in_frames = 2,
+                                },
+                            }
+                        },
                         {
+                            size = 576/2,
+                            x = 576/2,
+                            y = 576/2,
+                            frame_count = 1,
+                            shift = {0, 0.5},
+                            scale = 0.5,
+                            animation_speed = 1,
+                            max_advance = 1,
+                            draw_as_shadow = true,
+                            stripes =
                             {
-                                filename = modname.."/graphics/entities/dhd/dhd_shadow.png",
-                                width_in_frames = 2,
-                                height_in_frames = 2,
-                            },
-                        }
-                    },
-                }
-            },
-            south = {
-                layers = {
-                    {
-                        size = 576/2,
-                        x = 0,
-                        y = 0,
-                        frame_count = 1,
-                        shift = {0, 0.5},
-                        scale = 0.5,
-                        animation_speed = 1,
-                        max_advance = 1,
-                        stripes =
+                                {
+                                    filename = modname.."/graphics/entities/dhd/dhd_shadow.png",
+                                    width_in_frames = 2,
+                                    height_in_frames = 2,
+                                },
+                            }
+                        },
+                    }
+                },
+                south = {
+                    layers = {
                         {
+                            size = 576/2,
+                            x = 0,
+                            y = 0,
+                            frame_count = 1,
+                            shift = {0, 0.5},
+                            scale = 0.5,
+                            animation_speed = 1,
+                            max_advance = 1,
+                            stripes =
                             {
-                                filename = modname.."/graphics/entities/dhd/dhd.png",
-                                width_in_frames = 2,
-                                height_in_frames = 2,
-                            },
-                        }
-                    },
-                    {
-                        size = 576/2,
-                        x = 0,
-                        y = 0,
-                        frame_count = 1,
-                        shift = {0, 0.5},
-                        scale = 0.5,
-                        animation_speed = 1,
-                        max_advance = 1,
-                        draw_as_shadow = true,
-                        stripes =
+                                {
+                                    filename = modname.."/graphics/entities/dhd/dhd.png",
+                                    width_in_frames = 2,
+                                    height_in_frames = 2,
+                                },
+                            }
+                        },
                         {
+                            size = 576/2,
+                            x = 0,
+                            y = 0,
+                            frame_count = 1,
+                            shift = {0, 0.5},
+                            scale = 0.5,
+                            animation_speed = 1,
+                            max_advance = 1,
+                            draw_as_shadow = true,
+                            stripes =
                             {
-                                filename = modname.."/graphics/entities/dhd/dhd_shadow.png",
-                                width_in_frames = 2,
-                                height_in_frames = 2,
-                            },
-                        }
-                    },
-                }
-            },
-            west = {
-                layers = {
-                    {
-                        size = 576/2,
-                        x = 576/2,
-                        y = 0,
-                        frame_count = 1,
-                        shift = {0, 0.5},
-                        scale = 0.5,
-                        animation_speed = 1,
-                        max_advance = 1,
-                        stripes =
+                                {
+                                    filename = modname.."/graphics/entities/dhd/dhd_shadow.png",
+                                    width_in_frames = 2,
+                                    height_in_frames = 2,
+                                },
+                            }
+                        },
+                    }
+                },
+                west = {
+                    layers = {
                         {
+                            size = 576/2,
+                            x = 576/2,
+                            y = 0,
+                            frame_count = 1,
+                            shift = {0, 0.5},
+                            scale = 0.5,
+                            animation_speed = 1,
+                            max_advance = 1,
+                            stripes =
                             {
-                                filename = modname.."/graphics/entities/dhd/dhd.png",
-                                width_in_frames = 2,
-                                height_in_frames = 2,
-                            },
-                        }
-                    },
-                    {
-                        size = 576/2,
-                        x = 576/2,
-                        y = 0,
-                        frame_count = 1,
-                        shift = {0, 0.5},
-                        scale = 0.5,
-                        animation_speed = 1,
-                        max_advance = 1,
-                        draw_as_shadow = true,
-                        stripes =
+                                {
+                                    filename = modname.."/graphics/entities/dhd/dhd.png",
+                                    width_in_frames = 2,
+                                    height_in_frames = 2,
+                                },
+                            }
+                        },
                         {
+                            size = 576/2,
+                            x = 576/2,
+                            y = 0,
+                            frame_count = 1,
+                            shift = {0, 0.5},
+                            scale = 0.5,
+                            animation_speed = 1,
+                            max_advance = 1,
+                            draw_as_shadow = true,
+                            stripes =
                             {
-                                filename = modname.."/graphics/entities/dhd/dhd_shadow.png",
-                                width_in_frames = 2,
-                                height_in_frames = 2,
-                            },
-                        }
-                    },
-                }
+                                {
+                                    filename = modname.."/graphics/entities/dhd/dhd_shadow.png",
+                                    width_in_frames = 2,
+                                    height_in_frames = 2,
+                                },
+                            }
+                        },
+                    }
+                },
             },
         },
         surface_conditions = {
