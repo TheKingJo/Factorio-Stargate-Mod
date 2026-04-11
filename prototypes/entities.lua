@@ -95,15 +95,13 @@ data:extend({
         picture = {
             layers = {
                 {
-                    width = 704,
-                    height = 704,
+                    size = 704,
                     shift = {1.25, -1.5},
                     scale = 0.5,
                     filename = modname.."/graphics/entities/stargate/gate.png",
                 },
                 {
-                    width = 704,
-                    height = 704,
+                    size = 704,
                     shift = {1.25, -1.5},
                     scale = 0.5,
                     draw_as_shadow = true,
@@ -126,22 +124,17 @@ data:extend({
         icon_size = 128,
         flags = {"placeable-neutral", "placeable-off-grid", "not-flammable"},
         map_color = {r = 0.55, g = 0.55, b = 0.55, a = 1},
-        --collision_box = {{-1.5, -0.5}, {1.5, 0.5}},
-        --selection_box = {{-1.5, -0.5}, {1.5, 0.5}},
-        --render_layer = "object-under",
 		collision_mask = {layers = {}},
         picture = {
             layers = {
                 {
-                    width = 704,
-                    height = 704,
+                    size = 704,
                     shift = {1.25, 0.5},
                     scale = 0.5,
                     filename = modname.."/graphics/entities/stargate/gate.png",
                 },
                 {
-                    width = 704,
-                    height = 704,
+                    size = 704,
                     shift = {1.25, 0.5},
                     scale = 0.5,
                     draw_as_shadow = true,
@@ -263,8 +256,7 @@ data:extend({
                     },
                 },
                 {
-                    width = 704,
-                    height = 704,
+                    size = 704,
                     shift = {1.25, 0.49},
                     scale = 0.505,
                     frame_count = 64,
@@ -287,7 +279,6 @@ data:extend({
     {
         type = "explosion",
         name = "kj_stargate_eventHorizon_short",
-        --order = "a-c-b",
         flags = {"not-on-map", "placeable-off-grid"},
         hidden = true,
         subgroup = "explosions",
@@ -322,7 +313,6 @@ data:extend({
     {
         type = "explosion",
         name = "kj_stargate_eventHorizon_woosh",
-        --order = "a-c-b",
         flags = {"not-on-map", "placeable-off-grid"},
         hidden = true,
         subgroup = "explosions",
@@ -332,7 +322,7 @@ data:extend({
                 {
                     filename = modname.."/graphics/entities/stargate/eventHorizon_woosh.png",
                     size = 704,
-                    scale = 0.5,
+                    scale = 0.505,
                     frame_count = 16,
                     frame_sequence = eHw_fs,
                     line_length = 4,
@@ -343,7 +333,7 @@ data:extend({
                 {
                     filename = modname.."/graphics/entities/stargate/eventHorizon_woosh_light.png",
                     size = 704,
-                    scale = 0.5,
+                    scale = 0.505,
                     frame_count = 16,
                     frame_sequence = eHw_fs,
                     line_length = 4,
@@ -359,7 +349,6 @@ data:extend({
     {
         type = "explosion",
         name = "kj_stargate_eventHorizon_woosh_backward",
-        --order = "a-c-b",
         flags = {"not-on-map", "placeable-off-grid"},
         hidden = true,
         subgroup = "explosions",
@@ -369,7 +358,7 @@ data:extend({
                 {
                     filename = modname.."/graphics/entities/stargate/eventHorizon_woosh.png",
                     size = 704,
-                    scale = 0.5,
+                    scale = 0.505,
                     frame_count = 16,
                     frame_sequence = eHwbw_fs,
                     line_length = 4,
@@ -380,7 +369,7 @@ data:extend({
                 {
                     filename = modname.."/graphics/entities/stargate/eventHorizon_woosh_light.png",
                     size = 704,
-                    scale = 0.5,
+                    scale = 0.505,
                     frame_count = 16,
                     frame_sequence = eHwbw_fs,
                     line_length = 4,
@@ -420,8 +409,7 @@ data:extend({
         name = "kj_stargate_chevrons",
         layers = {
             {
-                width = 704,
-                height = 704,
+                size = 704,
                 shift = {1.25, 0.5},
                 scale = 0.5,
                 frame_count = 8,
@@ -437,16 +425,14 @@ data:extend({
         name = "kj_stargate_eventHorizon",
         layers = {
             {
-                width = 704,
-                height = 704,
+                size = 704,
                 shift = {1.25, 0.5},
                 scale = 0.5,
                 frame_count = 1,
                 filename = modname.."/graphics/entities/stargate/eventHorizon.png",
             },
             {
-                width = 704,
-                height = 704,
+                size = 704,
                 shift = {1.25, 0.5},
                 scale = 0.5,
                 frame_count = 1,
@@ -571,8 +557,7 @@ data:extend({
                 north = {
                     layers = {
                         {
-                            width = 576/2,
-                            height = 576/2,
+                            size = 576/2,
                             x = 0,
                             y = 576/2,
                             frame_count = 1,
