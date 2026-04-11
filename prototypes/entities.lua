@@ -1,13 +1,165 @@
 local modname = "__kj_stargate__"
+local eHw_fs = {}
+local w_fs = {}
+local eHwbw_fs = {}
+for i=1, 16*0.5, 1 do
+    table.insert(eHw_fs, 1)
+end
+for i=1, 15*1.5, 1 do
+    table.insert(w_fs, 1)
+end
+for i=1, 16*1.75, 1 do
+    table.insert(eHwbw_fs, 1)
+end
+for i=2, 16, 1 do
+    table.insert(eHw_fs, i)
+end
+for i=2, 33, 1 do
+    table.insert(w_fs, i)
+end
+for i=16, 2, -1 do
+    table.insert(eHwbw_fs, i)
+end
 data:extend({
     {
-        type = "simple-entity",
+        type = "tips-and-tricks-item",
+        name = "kj_stargate",
+        tag = "[item=kj_stargate_placement]",
+        --category = "game-interaction",
+        is_title = true,
+        order = "z",
+        trigger = {
+            type = "or",
+            triggers = {
+                {
+                    type = "build-entity",
+                    entity = "kj_stargate_placement",
+                    count = 1,
+                },
+                {
+                    type = "build-entity",
+                    entity = "kj_dhd",
+                    count = 1,
+                },
+                {
+                    type = "craft-item",
+                    event_type = "crafting-finished",
+                    item = "kj_stargate_placement",
+                },
+            },
+        },
+        simulation = {
+            init = [[
+                player = game.simulation.create_test_player{name = "big k"}
+                player.teleport({-4, 0.5})
+                game.simulation.camera_player = player
+                game.simulation.camera_position = {0, 0.5}
+                game.simulation.camera_player_cursor_position = player.position
+                player.character.direction = defines.direction.east
+
+                step_1 = function()
+                biter = game.surfaces[1].create_entity{name = "medium-biter", position = {12 + (math.random() * 2), -4 + (math.random() * 4)}}
+                biter.speed = 0.05
+                biter.commandable.set_command
+                {
+                    type = defines.command.attack,
+                    target = player.character
+                }
+
+                tree = game.surfaces[1].create_entity{name = "tree-02", position = {4, 2.5}}
+
+                local count = 60
+                script.on_nth_tick(1, function()
+                    if count > 0 then count = count - 1 return end
+                    step_2()
+                end)
+                end
+
+                step_2 = function()
+                local rand_x = -1.5
+                local rand_y = -1
+                local position = {0.5 * ((biter.position.x + rand_x) + player.position.x), 0.5 * ((biter.position.y + rand_y) + player.position.y)}
+                player.clear_items_inside()
+                player.insert("pistol")
+                player.insert("piercing-rounds-magazine")
+                player.force.set_ammo_damage_modifier("bullet", 0.5)
+
+                script.on_nth_tick(1, function()
+                    if not biter.valid then
+                    step_3()
+                    return
+                    end
+                    if game.simulation.move_cursor({position = position}) then
+                    player.shooting_state = {state  = defines.shooting.shooting_enemies, position = position}
+                    end
+                end)
+
+                end
+
+                step_3 = function()
+                local count = 60
+                script.on_nth_tick(1, function()
+                    if count > 0 then count = count - 1 return end
+
+                    if game.simulation.move_cursor({position = tree.position}) then
+                    step_4()
+                    end
+                end)
+                end
+
+                step_4 = function()
+                local count = 30
+                script.on_nth_tick(1, function()
+                    if count > 0 then count = count - 1 return end
+                    if not tree.valid then
+                    step_5()
+                    end
+                    player.shooting_state = {state  = defines.shooting.shooting_selected, position = game.simulation.camera_player_cursor_position}
+                end)
+                end
+
+                step_5 = function()
+                local count = 30
+                script.on_nth_tick(1, function()
+                    if count > 0 then count = count - 1 return end
+                    if game.simulation.move_cursor({position = player.position}) then
+                    reset()
+                    end
+                end)
+                end
+
+                reset = function()
+
+                local count = 30
+                script.on_nth_tick(1, function()
+                    if count > 0 then count = count - 1 return end
+                    start()
+                end)
+                end
+
+                start = function()
+                local count = 30
+                script.on_nth_tick(1, function()
+                    if count > 0 then count = count - 1 return end
+                    step_1()
+                end)
+                end
+
+                start()
+
+            ]]
+        }
+    },
+    {
+        type = "simple-entity-with-owner",
         name = "kj_stargate_auto_gen",
         icon = modname.."/graphics/entities/stargate/icon.png",
         icon_size = 128,
         collision_box = {{-3, -3}, {3, 3}},
         selection_box = {{-3, -3}, {3, 3}},
 		collision_mask = {layers = {water_tile = true, out_of_map = true}},
+        selection_priority = 25,
+        map_color = {r = 0.55, g = 0.55, b = 0.55, a = 1},
         minable = {
             mining_time = 15,
             results = {
@@ -66,19 +218,19 @@ data:extend({
         icon_size = 128,
         collision_box = {{-3.9, -2.4}, {3.9, 2.4}},
         selection_box = {{-4,   -2.5}, {4,   2.5}},
+        drawing_box_vertical_extension = 3,
         minable = {mining_time = 1, result = "kj_stargate_placement"},
+        map_color = {r = 0.55, g = 0.55, b = 0.55, a = 1},
         picture = {
             layers = {
                 {
-                    width = 704,
-                    height = 704,
+                    size = 704,
                     shift = {1.25, -1.5},
                     scale = 0.5,
                     filename = modname.."/graphics/entities/stargate/gate.png",
                 },
                 {
-                    width = 704,
-                    height = 704,
+                    size = 704,
                     shift = {1.25, -1.5},
                     scale = 0.5,
                     draw_as_shadow = true,
@@ -100,22 +252,18 @@ data:extend({
         hidden = true,
         icon_size = 128,
         flags = {"placeable-neutral", "placeable-off-grid", "not-flammable"},
-        --collision_box = {{-1.5, -0.5}, {1.5, 0.5}},
-        --selection_box = {{-1.5, -0.5}, {1.5, 0.5}},
-        --render_layer = "object-under",
+        map_color = {r = 0.55, g = 0.55, b = 0.55, a = 1},
 		collision_mask = {layers = {}},
         picture = {
             layers = {
                 {
-                    width = 704,
-                    height = 704,
+                    size = 704,
                     shift = {1.25, 0.5},
                     scale = 0.5,
                     filename = modname.."/graphics/entities/stargate/gate.png",
                 },
                 {
-                    width = 704,
-                    height = 704,
+                    size = 704,
                     shift = {1.25, 0.5},
                     scale = 0.5,
                     draw_as_shadow = true,
@@ -125,15 +273,18 @@ data:extend({
         }
     },
     {
-        type = "simple-entity",
+        type = "simple-entity-with-owner",
         name = "kj_stargate_transferArea",
         icon = modname.."/graphics/entities/stargate/icon.png",
         icon_size = 128,
+        factoriopedia_alternative = "kj_stargate_placement",
         flags = {"placeable-neutral", "placeable-off-grid", "not-flammable"},
+        map_color = {1, 1, 1, 1},
         collision_mask = {layers = {}},
         collision_box = {{-1.5, -0.3}, {1.5, 0.3}},
         selection_box = {{-4, -0.8}, {4, 3}},
         minable = {mining_time = 1, result = "kj_stargate_placement"},
+        selection_priority = 25,
     },
     {
         type = "simple-entity",
@@ -142,6 +293,7 @@ data:extend({
         icon = modname.."/graphics/entities/stargate/icon.png",
         icon_size = 128,
         flags = {"placeable-neutral", "placeable-off-grid", "not-flammable"},
+        map_color = {r = 0.55, g = 0.55, b = 0.55, a = 1},
         collision_box = {{-0.5, -1.5}, {0.5, 2}},
     },
     {
@@ -151,6 +303,7 @@ data:extend({
         icon = modname.."/graphics/entities/stargate/icon.png",
         icon_size = 128,
         flags = {"placeable-neutral", "placeable-off-grid", "not-flammable"},
+        map_color = {r = 0.55, g = 0.55, b = 0.55, a = 1},
         collision_box = {{-3, -0.225}, {3, 0.225}},
     },
     {
@@ -160,6 +313,7 @@ data:extend({
         icon = modname.."/graphics/entities/stargate/icon.png",
         icon_size = 128,
         flags = {"placeable-neutral", "placeable-off-grid", "not-flammable"},
+        map_color = {r = 0.55, g = 0.55, b = 0.55, a = 1},
         collision_box = {{-0.75, -0.1}, {0.75, 0.1}},
     },
     {
@@ -169,6 +323,7 @@ data:extend({
         icon = modname.."/graphics/entities/stargate/icon.png",
         icon_size = 128,
         flags = {"placeable-neutral", "placeable-off-grid", "not-flammable", "building-direction-16-way"},
+        map_color = {r = 0.55, g = 0.55, b = 0.55, a = 1},
         collision_box = {{-1, -0.1}, {1, 0.1}},
         is_military_target  = false,
     },
@@ -179,6 +334,7 @@ data:extend({
         icon = modname.."/graphics/entities/stargate/icon.png",
         icon_size = 128,
         flags = {"placeable-neutral", "placeable-off-grid", "not-flammable"},
+        map_color = {r = 0.55, g = 0.55, b = 0.55, a = 1},
 		collision_mask = {layers = {}},
         is_military_target  = false,
         ambient_sounds = {
@@ -187,8 +343,7 @@ data:extend({
             min_entity_count = 1,
             entity_to_sound_ratio = 1,
             sound = {
-		        filename = modname.."/sounds/gate_puddle.ogg",
-                volume = 1,
+                variations = sound_variations(modname.."/sounds/gate_puddle", 5)
             }
         },
     },
@@ -197,9 +352,12 @@ data:extend({
         name = "kj_stargate_eventHorizon_ent",
         collision_box = {{-1, -1}, {1, 1}},
 		collision_mask = {layers = {}},
+        factoriopedia_alternative = "kj_stargate_placement",
+        hidden = true,
         icon = modname.."/graphics/entities/stargate/icon.png",
         icon_size = 128,
         flags = {"placeable-neutral", "placeable-off-grid", "not-flammable"},
+        map_color = {r = 0.55, g = 0.55, b = 0.55, a = 1},
         gui_mode = "none",
         energy_source = {
             render_no_power_icon = false,
@@ -213,20 +371,10 @@ data:extend({
         continuous_animation = true,
         animation = {
             layers = {
-                --[[{
-                    width = 704,
-                    height = 704,
-                    shift = {1.25, 0.49},
-                    scale = 0.5,
-                    frame_count = 64,
-                    line_length = 8,
-                    filename = modname.."/graphics/entities/stargate/eventHorizon.png",
-                },]]
                 {
-                    width = 704,
-                    height = 704,
+                    size = 704,
                     shift = {1.25, 0.49},
-                    scale = 0.5,
+                    scale = 0.505,
                     frame_count = 64,
                     stripes = {
                         {
@@ -237,10 +385,9 @@ data:extend({
                     },
                 },
                 {
-                    width = 704,
-                    height = 704,
+                    size = 704,
                     shift = {1.25, 0.49},
-                    scale = 0.5,
+                    scale = 0.505,
                     frame_count = 64,
                     blend_mode = "additive",
                     draw_as_glow = true,
@@ -255,13 +402,143 @@ data:extend({
             },
         },
     },
+})
+
+data:extend({
+    {
+        type = "explosion",
+        name = "kj_stargate_eventHorizon_short",
+        flags = {"not-on-map", "placeable-off-grid"},
+        hidden = true,
+        subgroup = "explosions",
+        render_layer = "higher-object-under",
+        animations = {
+            layers = {
+                {
+                    filename = modname.."/graphics/entities/stargate/eventHorizon.png",
+                    size = 704,
+                    shift = {1.25, 0.49},
+                    scale = 0.505,
+                    frame_count = 28,
+                    line_length = 8,
+                    animation_speed = 16/60,
+                    usage = "explosion"
+                },
+                {
+                    filename = modname.."/graphics/entities/stargate/eventHorizon_light.png",
+                    size = 704,
+                    shift = {1.25, 0.49},
+                    scale = 0.505,
+                    frame_count = 28,
+                    line_length = 8,
+                    animation_speed = 16/60,
+                    usage = "explosion",
+                    blend_mode = "additive",
+                    draw_as_glow = true,
+                },
+            },
+        },
+    },
+    {
+        type = "explosion",
+        name = "kj_stargate_eventHorizon_woosh",
+        flags = {"not-on-map", "placeable-off-grid"},
+        hidden = true,
+        subgroup = "explosions",
+        render_layer = "higher-object-under",
+        animations = {
+            layers = {
+                {
+                    filename = modname.."/graphics/entities/stargate/eventHorizon_woosh.png",
+                    size = 704,
+                    scale = 0.505,
+                    frame_count = 16,
+                    frame_sequence = eHw_fs,
+                    line_length = 4,
+                    shift = {1.25, 0.49},
+                    animation_speed = 16/60,
+                    usage = "explosion"
+                },
+                {
+                    filename = modname.."/graphics/entities/stargate/eventHorizon_woosh_light.png",
+                    size = 704,
+                    scale = 0.505,
+                    frame_count = 16,
+                    frame_sequence = eHw_fs,
+                    line_length = 4,
+                    shift = {1.25, 0.49},
+                    animation_speed = 16/60,
+                    usage = "explosion",
+                    draw_as_glow = true,
+                    blend_mode = "additive",
+                },
+            }
+        },
+    },
+    {
+        type = "explosion",
+        name = "kj_stargate_eventHorizon_woosh_backward",
+        flags = {"not-on-map", "placeable-off-grid"},
+        hidden = true,
+        subgroup = "explosions",
+        render_layer = "higher-object-under",
+        animations = {
+            layers = {
+                {
+                    filename = modname.."/graphics/entities/stargate/eventHorizon_woosh.png",
+                    size = 704,
+                    scale = 0.505,
+                    frame_count = 16,
+                    frame_sequence = eHwbw_fs,
+                    line_length = 4,
+                    shift = {1.25, 0.49},
+                    animation_speed = 16/60,
+                    usage = "explosion"
+                },
+                {
+                    filename = modname.."/graphics/entities/stargate/eventHorizon_woosh_light.png",
+                    size = 704,
+                    scale = 0.505,
+                    frame_count = 16,
+                    frame_sequence = eHwbw_fs,
+                    line_length = 4,
+                    shift = {1.25, 0.49},
+                    animation_speed = 16/60,
+                    usage = "explosion",
+                    draw_as_glow = true,
+                    blend_mode = "additive",
+                },
+            }
+        },
+    },
+    {
+        type = "explosion",
+        name = "kj_stargate_woosh",
+        flags = {"not-on-map", "placeable-off-grid"},
+        hidden = true,
+        subgroup = "explosions",
+        render_layer = "higher-object-above",
+        animations = {
+            {
+                filename = modname.."/graphics/entities/stargate/woosh.png",
+                draw_as_glow = true,
+                size = 768,
+                scale = 0.5,
+                frame_count = 33,
+                line_length = 6,
+                frame_sequence = w_fs,
+                shift = {0, 3},
+                animation_speed = 15/60,
+                usage = "explosion"
+            }
+        },
+    },
     {
         type = "animation",
         name = "kj_stargate_chevrons",
         layers = {
             {
-                width = 704,
-                height = 704,
+                size = 704,
                 shift = {1.25, 0.5},
                 scale = 0.5,
                 frame_count = 8,
@@ -277,16 +554,14 @@ data:extend({
         name = "kj_stargate_eventHorizon",
         layers = {
             {
-                width = 704,
-                height = 704,
+                size = 704,
                 shift = {1.25, 0.5},
                 scale = 0.5,
                 frame_count = 1,
                 filename = modname.."/graphics/entities/stargate/eventHorizon.png",
             },
             {
-                width = 704,
-                height = 704,
+                size = 704,
                 shift = {1.25, 0.5},
                 scale = 0.5,
                 frame_count = 1,
@@ -297,11 +572,10 @@ data:extend({
         }
     },]]
 })
-
 data:extend({
     {
         type = "projectile",
-        name = "kj_stargate_woosh",
+        name = "kj_stargate_woosh_dmg",
         flags = {"not-on-map"},
         hidden = true,
         acceleration = 0.005,
@@ -332,7 +606,7 @@ data:extend({
         hidden = true,
         affected_by_wind = false,
         cyclic = true,
-        duration = 60 * 2,
+        duration = 60 * 1.75,
         fade_away_duration = 0,
         spread_duration = 0,
         action_cooldown = 1,
@@ -393,185 +667,186 @@ data:extend({
 
 data:extend({
     {
-        type = "electric-energy-interface",
+        type = "recipe-category",
         name = "kj_dhd",
-        collision_box = {{-1, -1}, {1, 1}},
+    },
+    {
+        type = "assembling-machine",
+        name = "kj_dhd",
+        collision_box = {{-0.98, -1}, {0.98, 1}},
         selection_box = {{-1, -1}, {1, 1}},
         minable = {mining_time = 1, result = "kj_dhd"},
-        gui_mode = "all",
-        energy_source = {
-            type = "electric",
-            usage_priority = "secondary-input",
-            buffer_capacity = "5MJ",
-            drain = "1kW",
-            input_flow_limit = "300kW",
-            output_flow_limit = "300kW",
-        },
-        animations = {
-            north = {
-                layers = {
-                    {
-                        width = 576/2,
-                        height = 576/2,
-                        x = 0,
-                        y = 576/2,
-                        frame_count = 1,
-                        shift = {0, 0.5},
-                        scale = 0.5,
-                        animation_speed = 1,
-                        max_advance = 1,
-                        stripes =
+        map_color = {r = 0.55, g = 0.55, b = 0.55, a = 1},
+        crafting_categories = {"kj_dhd"},
+        crafting_speed = 1,
+        energy_source = {type = "void"},
+        energy_usage = "1W",
+        graphics_set = {
+            animation = {
+                north = {
+                    layers = {
                         {
+                            size = 576/2,
+                            x = 0,
+                            y = 576/2,
+                            frame_count = 1,
+                            shift = {0, 0.5},
+                            scale = 0.5,
+                            animation_speed = 1,
+                            max_advance = 1,
+                            stripes =
                             {
-                                filename = modname.."/graphics/entities/dhd/dhd.png",
-                                width_in_frames = 2,
-                                height_in_frames = 2,
-                            },
-                        }
-                    },
-                    {
-                        size = 576/2,
-                        x = 0,
-                        y = 576/2,
-                        frame_count = 1,
-                        shift = {0, 0.5},
-                        scale = 0.5,
-                        animation_speed = 1,
-                        max_advance = 1,
-                        draw_as_shadow = true,
-                        stripes =
+                                {
+                                    filename = modname.."/graphics/entities/dhd/dhd.png",
+                                    width_in_frames = 2,
+                                    height_in_frames = 2,
+                                },
+                            }
+                        },
                         {
+                            size = 576/2,
+                            x = 0,
+                            y = 576/2,
+                            frame_count = 1,
+                            shift = {0, 0.5},
+                            scale = 0.5,
+                            animation_speed = 1,
+                            max_advance = 1,
+                            draw_as_shadow = true,
+                            stripes =
                             {
-                                filename = modname.."/graphics/entities/dhd/dhd_shadow.png",
-                                width_in_frames = 2,
-                                height_in_frames = 2,
-                            },
-                        }
-                    },
-                }
-            },
-            east = {
-                layers = {
-                    {
-                        size = 576/2,
-                        x = 576/2,
-                        y = 576/2,
-                        frame_count = 1,
-                        shift = {0, 0.5},
-                        scale = 0.5,
-                        animation_speed = 1,
-                        max_advance = 1,
-                        stripes =
+                                {
+                                    filename = modname.."/graphics/entities/dhd/dhd_shadow.png",
+                                    width_in_frames = 2,
+                                    height_in_frames = 2,
+                                },
+                            }
+                        },
+                    }
+                },
+                east = {
+                    layers = {
                         {
+                            size = 576/2,
+                            x = 576/2,
+                            y = 576/2,
+                            frame_count = 1,
+                            shift = {0, 0.5},
+                            scale = 0.5,
+                            animation_speed = 1,
+                            max_advance = 1,
+                            stripes =
                             {
-                                filename = modname.."/graphics/entities/dhd/dhd.png",
-                                width_in_frames = 2,
-                                height_in_frames = 2,
-                            },
-                        }
-                    },
-                    {
-                        size = 576/2,
-                        x = 576/2,
-                        y = 576/2,
-                        frame_count = 1,
-                        shift = {0, 0.5},
-                        scale = 0.5,
-                        animation_speed = 1,
-                        max_advance = 1,
-                        draw_as_shadow = true,
-                        stripes =
+                                {
+                                    filename = modname.."/graphics/entities/dhd/dhd.png",
+                                    width_in_frames = 2,
+                                    height_in_frames = 2,
+                                },
+                            }
+                        },
                         {
+                            size = 576/2,
+                            x = 576/2,
+                            y = 576/2,
+                            frame_count = 1,
+                            shift = {0, 0.5},
+                            scale = 0.5,
+                            animation_speed = 1,
+                            max_advance = 1,
+                            draw_as_shadow = true,
+                            stripes =
                             {
-                                filename = modname.."/graphics/entities/dhd/dhd_shadow.png",
-                                width_in_frames = 2,
-                                height_in_frames = 2,
-                            },
-                        }
-                    },
-                }
-            },
-            south = {
-                layers = {
-                    {
-                        size = 576/2,
-                        x = 0,
-                        y = 0,
-                        frame_count = 1,
-                        shift = {0, 0.5},
-                        scale = 0.5,
-                        animation_speed = 1,
-                        max_advance = 1,
-                        stripes =
+                                {
+                                    filename = modname.."/graphics/entities/dhd/dhd_shadow.png",
+                                    width_in_frames = 2,
+                                    height_in_frames = 2,
+                                },
+                            }
+                        },
+                    }
+                },
+                south = {
+                    layers = {
                         {
+                            size = 576/2,
+                            x = 0,
+                            y = 0,
+                            frame_count = 1,
+                            shift = {0, 0.5},
+                            scale = 0.5,
+                            animation_speed = 1,
+                            max_advance = 1,
+                            stripes =
                             {
-                                filename = modname.."/graphics/entities/dhd/dhd.png",
-                                width_in_frames = 2,
-                                height_in_frames = 2,
-                            },
-                        }
-                    },
-                    {
-                        size = 576/2,
-                        x = 0,
-                        y = 0,
-                        frame_count = 1,
-                        shift = {0, 0.5},
-                        scale = 0.5,
-                        animation_speed = 1,
-                        max_advance = 1,
-                        draw_as_shadow = true,
-                        stripes =
+                                {
+                                    filename = modname.."/graphics/entities/dhd/dhd.png",
+                                    width_in_frames = 2,
+                                    height_in_frames = 2,
+                                },
+                            }
+                        },
                         {
+                            size = 576/2,
+                            x = 0,
+                            y = 0,
+                            frame_count = 1,
+                            shift = {0, 0.5},
+                            scale = 0.5,
+                            animation_speed = 1,
+                            max_advance = 1,
+                            draw_as_shadow = true,
+                            stripes =
                             {
-                                filename = modname.."/graphics/entities/dhd/dhd_shadow.png",
-                                width_in_frames = 2,
-                                height_in_frames = 2,
-                            },
-                        }
-                    },
-                }
-            },
-            west = {
-                layers = {
-                    {
-                        size = 576/2,
-                        x = 576/2,
-                        y = 0,
-                        frame_count = 1,
-                        shift = {0, 0.5},
-                        scale = 0.5,
-                        animation_speed = 1,
-                        max_advance = 1,
-                        stripes =
+                                {
+                                    filename = modname.."/graphics/entities/dhd/dhd_shadow.png",
+                                    width_in_frames = 2,
+                                    height_in_frames = 2,
+                                },
+                            }
+                        },
+                    }
+                },
+                west = {
+                    layers = {
                         {
+                            size = 576/2,
+                            x = 576/2,
+                            y = 0,
+                            frame_count = 1,
+                            shift = {0, 0.5},
+                            scale = 0.5,
+                            animation_speed = 1,
+                            max_advance = 1,
+                            stripes =
                             {
-                                filename = modname.."/graphics/entities/dhd/dhd.png",
-                                width_in_frames = 2,
-                                height_in_frames = 2,
-                            },
-                        }
-                    },
-                    {
-                        size = 576/2,
-                        x = 576/2,
-                        y = 0,
-                        frame_count = 1,
-                        shift = {0, 0.5},
-                        scale = 0.5,
-                        animation_speed = 1,
-                        max_advance = 1,
-                        draw_as_shadow = true,
-                        stripes =
+                                {
+                                    filename = modname.."/graphics/entities/dhd/dhd.png",
+                                    width_in_frames = 2,
+                                    height_in_frames = 2,
+                                },
+                            }
+                        },
                         {
+                            size = 576/2,
+                            x = 576/2,
+                            y = 0,
+                            frame_count = 1,
+                            shift = {0, 0.5},
+                            scale = 0.5,
+                            animation_speed = 1,
+                            max_advance = 1,
+                            draw_as_shadow = true,
+                            stripes =
                             {
-                                filename = modname.."/graphics/entities/dhd/dhd_shadow.png",
-                                width_in_frames = 2,
-                                height_in_frames = 2,
-                            },
-                        }
-                    },
-                }
+                                {
+                                    filename = modname.."/graphics/entities/dhd/dhd_shadow.png",
+                                    width_in_frames = 2,
+                                    height_in_frames = 2,
+                                },
+                            }
+                        },
+                    }
+                },
             },
         },
         surface_conditions = {
@@ -715,7 +990,7 @@ data:extend({
         walking_speed_modifier = 0.5,
         vehicle_friction_modifier = 0.5,
         collision_mask = {layers={ground_tile=true}},
-        map_color={0, 0, 0},
+        map_color = {r = 0.55, g = 0.55, b = 0.55, a = 1},
         layer = 0,
         variants = {
             material_background =
