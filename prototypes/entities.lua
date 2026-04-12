@@ -275,11 +275,20 @@ data:extend({
     {
         type = "simple-entity-with-owner",
         name = "kj_stargate_transferArea",
+        dying_explosion = "rocket-silo-explosion",
         icon = modname.."/graphics/entities/stargate/icon.png",
         icon_size = 128,
         factoriopedia_alternative = "kj_stargate_placement",
         flags = {"placeable-neutral", "placeable-off-grid", "not-flammable"},
         map_color = {1, 1, 1, 1},
+        max_health = 1,
+        resistances = {
+            {
+                type = "explosion",
+                decrease = 1000,
+                percent  = 0,
+            },
+        },
         collision_mask = {layers = {}},
         collision_box = {{-1.5, -0.3}, {1.5, 0.3}},
         selection_box = {{-4, -0.8}, {4, 3}},
@@ -513,24 +522,47 @@ data:extend({
     },
     {
         type = "explosion",
-        name = "kj_stargate_woosh",
+        name = "kj_stargate_woosh_glow",
         flags = {"not-on-map", "placeable-off-grid"},
         hidden = true,
         subgroup = "explosions",
-        render_layer = "higher-object-above",
+        render_layer = "projectile",
         animations = {
             {
-                filename = modname.."/graphics/entities/stargate/woosh.png",
+                filename = modname.."/graphics/entities/stargate/woosh_glow.png",
+                blend_mode = "additive",
                 draw_as_glow = true,
-                size = 768,
+                size = 832,
                 scale = 0.5,
                 frame_count = 33,
                 line_length = 6,
                 frame_sequence = w_fs,
-                shift = {0, 3},
+                shift = {0, 2.5},
                 animation_speed = 15/60,
                 usage = "explosion"
             }
+        },
+    },
+    {
+        type = "explosion",
+        name = "kj_stargate_woosh",
+        flags = {"not-on-map", "placeable-off-grid"},
+        hidden = true,
+        subgroup = "explosions",
+        render_layer = "projectile",
+        animations = {
+            {
+                filename = modname.."/graphics/entities/stargate/woosh.png",
+                draw_as_glow = true,
+                size = 832,
+                scale = 0.5,
+                frame_count = 33,
+                line_length = 6,
+                frame_sequence = w_fs,
+                shift = {0, 2.5},
+                animation_speed = 15/60,
+                usage = "explosion"
+            },
         },
     },
     {
@@ -987,6 +1019,7 @@ data:extend({
         type = "tile",
         name = "kj_stargate_slowDownTile",
         hidden = true,
+        allows_being_covered = false,
         walking_speed_modifier = 0.5,
         vehicle_friction_modifier = 0.5,
         collision_mask = {layers={ground_tile=true}},

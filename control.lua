@@ -64,6 +64,7 @@ function initStorage()
         vehicles = true,
         players = true,
         delayedSounds = true,
+        delayedTurnOffs = true,
     }
     for name, _ in pairs(names) do
         storage[name] = storage[name] or {}
@@ -108,6 +109,7 @@ stargate = {
         if otherGate == nil then return end
         if otherGate.destination ~= nil then --other gate has connection
             thisGate.dhd:ResetGlyphs()
+            thisGate.dhd:CloseGUIs()
             util.playSoundOnSurface(thisGate.entity.surface, thisGate.entity.position, "kj_stargate_fail")
         else
             if thisGate.destination ~= nil then
@@ -156,11 +158,14 @@ dhd = {
     end,
 
     FetchAddress = function(self, otherGate)
-        --self.address = util.lettersFromAddress(storage.addresses[otherGate.entity.surface.name], "poo_"..poo[otherGate.entity.surface.name])
-        self.address = table.deepcopy(otherGate.dhd.address)
-        self.address[7] = "poo_"..poo[self.entity.surface.name]
-        self.addressLetters = table.deepcopy(otherGate.dhd.addressLetters)
-        self.addressLetters["poo_"..poo[self.entity.surface.name]] = true
+        local sName = otherGate.entity.surface.name
+        self.address, self.addressLetters = util.lettersFromAddress(storage.addresses[sName], "poo_"..poo[sName], "poo_"..poo[self.entity.surface.name])
+        --we do it this way (obv) so we display the address of the contrary gate
+
+        --self.address = table.deepcopy(otherGate.dhd.address)
+        --self.address[7] = "poo_"..poo[self.entity.surface.name]
+        --self.addressLetters = table.deepcopy(otherGate.dhd.addressLetters)
+        --self.addressLetters["poo_"..poo[self.entity.surface.name]] = true
     end,
 
     SetGlyphs = function(self)
@@ -173,6 +178,8 @@ dhd = {
         for _, glyph in pairs(self.glyphs) do
             glyph.animation_offset = 0
         end
+        self.address = {}
+        self.addressLetters = {}
     end,
 
 
@@ -208,8 +215,6 @@ dhd = {
             --game.print("no gate with that address. emptying ram")
             self:ResetGlyphs()
             self:CloseGUIs()
-            self.address = {}
-            self.addressLetters = {}
         end
 	end,
 
@@ -243,17 +248,15 @@ function deactivateGate(gate)
         gate.dhd:CloseGUIs()
         if gate.dhd.address then
             gate.dhd:ResetGlyphs()
-            gate.dhd.address = {}
-            gate.dhd.addressLetters = {}
         end
     end
     gate.childs.soundEnt.destroy()
     gate.entity.minable = true
     gate.active = false
-    gate.safeToTravel = false
+    --gate.safeToTravel = false
     gate.chevrons.animation_offset = 0
     gate.animation.destroy()
-    gate.destination = nil
+    --gate.destination = nil
     gate.entity.surface.create_entity {
         name = "kj_stargate_eventHorizon_short",
         position = util.vector2Add(gate.entity.position, {x = 0, y = 0.8}),
@@ -262,6 +265,7 @@ function deactivateGate(gate)
         name = "kj_stargate_eventHorizon_woosh_backward",
         position = util.vector2Add(gate.entity.position, {x = 0, y = 0.8}),
     }
+    storage.tasks.delayedTurnOffs[gate.id] = {tick = game.tick + 105, gate = gate}
     util.playSoundOnSurface(gate.entity.surface, gate.entity.position, "kj_stargate_close")
 end
 
@@ -300,6 +304,10 @@ function activateGate(gate)
     gate.entity.surface.create_entity {
         name = "kj_stargate_woosh",
         position = util.vector2Add(gate.entity.position, {x = 0, y = 0.8}),
+    }
+    gate.entity.surface.create_entity {
+        name = "kj_stargate_woosh_glow",
+        position = util.vector2Add(gate.entity.position, {x = 0, y = 0.55}),
     }
 
     --local effectPos1 = util.vector2Add(gate.entity.position, {x = 0, y = 2.5})
@@ -468,7 +476,7 @@ function OnBuilt(e)
             },
         }
 
-        tpArea.destructible = false
+        --tpArea.destructible = false
         for _, child in pairs(childs) do
             child.destructible = false
         end
@@ -582,6 +590,7 @@ function OnTick(e)
     local vehicles = storage.tasks.vehicles
     local sounds = storage.tasks.delayedSounds
     local eventHorizons = storage.tasks.eventHorizons
+    local delayedTurnOffs = storage.tasks.delayedTurnOffs
 
     if players ~= nil then
         for i = #players, 1, -1 do
@@ -648,6 +657,15 @@ function OnTick(e)
                 eH.gate.safeToTravel = true
                 eH.gate.animation.destructible = false
                 storage.tasks.eventHorizons[id] = nil
+            end
+        end
+    end
+    if delayedTurnOffs ~= nil then
+        for id, dTO in pairs(delayedTurnOffs) do
+            if game.tick > dTO.tick then
+                dTO.gate.safeToTravel = false
+                dTO.gate.destination = nil
+                storage.tasks.delayedTurnOffs[id] = nil
             end
         end
     end
@@ -762,6 +780,11 @@ function AssembleLettersInDHDGUI(root, dhdSurface, dhd)
     glib.add(root, sg_guis.dhd_letter("connect", dhdSurface, dhd.id, dhd.stargate.active))
 end
 
+function OnDamaged(e)
+    local entity = e.entity
+    entity.health = math.floor(e.final_health + 0.5)
+end
+
 function Chunk(e)
     local position = e.position
     local surface = e.surface
@@ -810,6 +833,11 @@ script.on_configuration_changed(initStorage)
 script.on_event(defines.events.on_player_mined_entity, OnRemoved)
 script.on_event(defines.events.on_robot_mined_entity, OnRemoved)
 script.on_event(defines.events.on_entity_died, OnRemoved)
+
+script.on_event(defines.events.on_entity_damaged , OnDamaged, {
+    {filter = "damage-type", type = "explosion"},
+    {filter = "name", name = "kj_stargate_transferArea", mode = "and"},
+})
 
 script.on_event(defines.events.on_tick, OnTick)
 script.on_nth_tick(60, OnNthTickGates)

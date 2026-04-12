@@ -255,16 +255,18 @@ function functions.removeFromGlobal(name, entity)
     end
 end
 
-function functions.lettersFromAddress(name, suffix)
-    local address = {}
+function functions.lettersFromAddress(name, suffix1, suffix2)
+    local address, addressLetters = {}, {}
     for i = 1, #name do
         address[i] = name:sub(i, i)
+        addressLetters[name:sub(i, i)] = true
     end
-    if suffix then
-        address[#address+1] = suffix
+    if suffix1 and suffix2 then
+        address[#address+1] = suffix1
+        addressLetters[suffix2] = true
     end
 
-    return address
+    return address, addressLetters
 end
 
 ---@param surface surface surface the sound is to be played on
