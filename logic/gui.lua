@@ -80,7 +80,7 @@ function handlers.letter_click(event)
                 end
                 --dhd:CloseGUIs()
                 --element.parent.parent.parent.parent.parent.parent.destroy() --close menu
-            elseif gate.active == false then
+            elseif gate.active == false and gate.safeToTravel == false then
                 if element.toggled == false then --clicked letter button
                     if #dhd.address < 7 then
                         element.toggled = not element.toggled

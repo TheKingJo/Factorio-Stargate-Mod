@@ -526,7 +526,7 @@ data:extend({
         flags = {"not-on-map", "placeable-off-grid"},
         hidden = true,
         subgroup = "explosions",
-        render_layer = "projectile",
+        render_layer = "cargo-hatch",
         animations = {
             {
                 filename = modname.."/graphics/entities/stargate/woosh_glow.png",

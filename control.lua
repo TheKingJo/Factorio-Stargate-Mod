@@ -54,7 +54,7 @@ function initStorage()
         stargate = true,
         tasks = true,
         addresses = true,
-        ignoredVehicles = true,
+        ignoredVehicles = true, --vehicles that were just teleported are ignored for some ticks so they dont teleport constantly back and forth
         autoGenGates = true,
     }
     local tasks = {
@@ -199,8 +199,9 @@ dhd = {
             end
         end
 
-        if dhdSurface == surface then result = false end
-        if storage.stargate[surface] == nil then result = false end
+        if dhdSurface == surface then result = false end --cant connect to same surface
+        if storage.stargate[surface] == nil then result = false end --no gates on that surface
+        --we have decided to allow multiple gate connections between surf a and b because it is canon
 
         if result == true then
             --game.print("omg we found a connection!")
@@ -333,7 +334,9 @@ end
 function findRandomGateOnSurface(surface)
     local gates = {}
     for _, gate in pairs(storage.stargate[surface]) do
-        table.insert(gates, gate)
+        if gate.active == false then
+            table.insert(gates, gate)
+        end
     end
 
     if #gates ~= nil then
