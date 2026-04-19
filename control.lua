@@ -521,8 +521,8 @@ function OnBuilt(e)
 
         ent.destroy()
     elseif ent.name == dhdName then --dhd placed
-        --ent.destructible = false
         ent.rotatable = false
+        ent.force = "neutral"
 
         local glyphAnimation = {}
         for i = 1, 7, 1 do
@@ -574,7 +574,7 @@ function OnRemoved(e)
 
     elseif ent.name == dhdName then
         local dhd, _ = util.findInGlobal("dhd", ent)
-        if dhd then
+        if dhd and dhd.stargate then
             dhd:Connect("deineMom")
         end
         local stargate = util.removeFromGlobal("dhd", ent)
@@ -789,22 +789,29 @@ function OnDamaged(e)
     if type ~= "explosion" and type ~= "physical" then return end
 
     local entityName = {
-        kj_dhd = "kj_stargate_auto_gen",
-        kj_stargate_transferArea = "kj_dhd_auto_gen"
+        kj_dhd = "kj_dhd_auto_gen",
+        kj_stargate_transferArea = "kj_stargate_auto_gen"
+    }
+    local remnant = {
+        kj_dhd = "medium-small-remnants",
+        kj_stargate_transferArea = "medium-remnants"
     }
 
     entity.health = math.floor(e.final_health + 0.5)
     if entity.health <= 0.1 then
-        if type == "explosion" then
-            --spawn a burried gate below
+        if type == "explosion" then --spawn a burried variant below
             local ent = entity.surface.create_entity{
                 name = entityName[entity.name],
                 position = entity.position,
                 force = "neutral",
             }
+            ent.destructible = false
             ent.graphics_variation = math.random(1,4)
-        else
-            --physical damage overload is supposed to destroy the gate
+        else --physical damage overload is supposed to destroy the gate
+            entity.surface.create_entity{
+                name = remnant[entity.name],
+                position = entity.position,
+            }
         end
     end
 end
@@ -840,12 +847,14 @@ function Chunk(e)
                 force = "neutral",
             }
             ent.graphics_variation = math.random(1,4)
+            ent.destructible = false
             ent = surface.create_entity{
                 name = "kj_dhd_auto_gen",
                 position = pos,
                 force = "neutral",
             }
             ent.graphics_variation = math.random(1,4)
+            ent.destructible = false
             game.print("Placed stargate and dhd at [gps="..pos.x..","..pos.y..","..surface.name.."]. Needed "..i.." attempts.")
         else
             game.print("Couldn't place stargate and dhd on "..surface.name.."! Starting area too crowded.")

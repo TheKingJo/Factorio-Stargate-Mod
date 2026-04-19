@@ -153,7 +153,7 @@ data:extend({
     {
         type = "simple-entity-with-owner",
         name = "kj_stargate_auto_gen",
-        icon = modname.."/graphics/entities/stargate/icon.png",
+        icon = modname.."/graphics/entities/stargate/remnant_icon.png",
         icon_size = 128,
         collision_box = {{-3, -3}, {3, 3}},
         selection_box = {{-3, -3}, {3, 3}},
@@ -171,7 +171,7 @@ data:extend({
             {
                 layers = {
                     {
-                        filename = modname.."/graphics/entities/stargate/remnant_combined.png",
+                        filename = modname.."/graphics/entities/stargate/remnant.png",
                         size = 467,
                         scale = 0.5,
                     },
@@ -180,7 +180,7 @@ data:extend({
             {
                 layers = {
                     {
-                        filename = modname.."/graphics/entities/stargate/remnant_combined.png",
+                        filename = modname.."/graphics/entities/stargate/remnant.png",
                         size = 467,
                         x = 467,
                         scale = 0.5,
@@ -190,7 +190,7 @@ data:extend({
             {
                 layers = {
                     {
-                        filename = modname.."/graphics/entities/stargate/remnant_combined.png",
+                        filename = modname.."/graphics/entities/stargate/remnant.png",
                         size = 467,
                         y = 467,
                         scale = 0.5,
@@ -200,7 +200,7 @@ data:extend({
             {
                 layers = {
                     {
-                        filename = modname.."/graphics/entities/stargate/remnant_combined.png",
+                        filename = modname.."/graphics/entities/stargate/remnant.png",
                         size = 467,
                         x = 467,
                         y = 467,
@@ -213,7 +213,7 @@ data:extend({
     {
         type = "simple-entity-with-owner",
         name = "kj_dhd_auto_gen",
-        icon = modname.."/graphics/entities/stargate/icon.png",
+        icon = modname.."/graphics/entities/dhd/remnant_icon.png",
         icon_size = 128,
         collision_box = {{-1, -1}, {1, 1}},
         selection_box = {{-1, -1}, {1, 1}},
@@ -231,40 +231,40 @@ data:extend({
             {
                 layers = {
                     {
-                        filename = modname.."/graphics/entities/stargate/remnant_combined.png",
-                        size = 467,
-                        scale = 0.25,
+                        filename = modname.."/graphics/entities/dhd/remnant.png",
+                        size = 288,
+                        scale = 0.5,
                     },
                 }
             },
             {
                 layers = {
                     {
-                        filename = modname.."/graphics/entities/stargate/remnant_combined.png",
-                        size = 467,
-                        x = 467,
-                        scale = 0.25,
+                        filename = modname.."/graphics/entities/dhd/remnant.png",
+                        size = 288,
+                        x = 288,
+                        scale = 0.5,
                     },
                 }
             },
             {
                 layers = {
                     {
-                        filename = modname.."/graphics/entities/stargate/remnant_combined.png",
-                        size = 467,
-                        y = 467,
-                        scale = 0.25,
+                        filename = modname.."/graphics/entities/dhd/remnant.png",
+                        size = 288,
+                        y = 288,
+                        scale = 0.5,
                     },
                 }
             },
             {
                 layers = {
                     {
-                        filename = modname.."/graphics/entities/stargate/remnant_combined.png",
-                        size = 467,
-                        x = 467,
-                        y = 467,
-                        scale = 0.25,
+                        filename = modname.."/graphics/entities/dhd/remnant.png",
+                        size = 288,
+                        x = 288,
+                        y = 288,
+                        scale = 0.5,
                     },
                 }
             },
@@ -337,6 +337,9 @@ data:extend({
         dying_explosion = "rocket-silo-explosion",
         icon = modname.."/graphics/entities/stargate/icon.png",
         icon_size = 128,
+        collision_mask = {layers = {trigger_target = true}},
+        collision_box = {{-1.5, -0.3}, {1.5, 0.3}},
+        selection_box = {{-4, -0.8}, {4, 3}},
         factoriopedia_alternative = "kj_stargate_placement",
         flags = {"placeable-neutral", "placeable-off-grid", "not-flammable"},
         map_color = {1, 1, 1, 1},
@@ -349,13 +352,10 @@ data:extend({
             },
             {
                 type = "physical",
-                decrease = 5000,
+                decrease = 15000,
                 percent  = 0,
             },
         },
-        collision_mask = {layers = {}},
-        collision_box = {{-1.5, -0.3}, {1.5, 0.3}},
-        selection_box = {{-4, -0.8}, {4, 3}},
         minable = {mining_time = 1, result = "kj_stargate_placement"},
         selection_priority = 25,
     },
@@ -769,9 +769,13 @@ data:extend({
     {
         type = "assembling-machine",
         name = "kj_dhd",
+        icon = modname.."/graphics/entities/dhd/icon.png",
+        icon_size = 128,
+        dying_explosion = "big-explosion",
         collision_box = {{-0.98, -1}, {0.98, 1}},
         selection_box = {{-1, -1}, {1, 1}},
         minable = {mining_time = 1, result = "kj_dhd"},
+        flags = {"not-blueprintable", "placeable-neutral", "not-flammable"},
         map_color = {r = 0.55, g = 0.55, b = 0.55, a = 1},
         crafting_categories = {"kj_dhd"},
         crafting_speed = 1,
@@ -785,7 +789,7 @@ data:extend({
             },
             {
                 type = "physical",
-                decrease = 2500,
+                decrease = 10000,
                 percent  = 0,
             },
         },
