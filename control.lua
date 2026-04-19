@@ -521,7 +521,7 @@ function OnBuilt(e)
 
         ent.destroy()
     elseif ent.name == dhdName then --dhd placed
-        ent.destructible = false
+        --ent.destructible = false
         ent.rotatable = false
 
         local glyphAnimation = {}
@@ -785,7 +785,28 @@ end
 
 function OnDamaged(e)
     local entity = e.entity
+    local type = e.damage_type.name
+    if type ~= "explosion" and type ~= "physical" then return end
+
+    local entityName = {
+        kj_dhd = "kj_stargate_auto_gen",
+        kj_stargate_transferArea = "kj_dhd_auto_gen"
+    }
+
     entity.health = math.floor(e.final_health + 0.5)
+    if entity.health <= 0.1 then
+        if type == "explosion" then
+            --spawn a burried gate below
+            local ent = entity.surface.create_entity{
+                name = entityName[entity.name],
+                position = entity.position,
+                force = "neutral",
+            }
+            ent.graphics_variation = math.random(1,4)
+        else
+            --physical damage overload is supposed to destroy the gate
+        end
+    end
 end
 
 function Chunk(e)
@@ -817,12 +838,17 @@ function Chunk(e)
                 name = "kj_stargate_auto_gen",
                 position = pos,
                 force = "neutral",
-                direction = math.random(0,3)*4
             }
             ent.graphics_variation = math.random(1,4)
-            game.print("Placed stargate at [gps="..pos.x..","..pos.y..","..surface.name.."]. Needed "..i.." attempts.")
+            ent = surface.create_entity{
+                name = "kj_dhd_auto_gen",
+                position = pos,
+                force = "neutral",
+            }
+            ent.graphics_variation = math.random(1,4)
+            game.print("Placed stargate and dhd at [gps="..pos.x..","..pos.y..","..surface.name.."]. Needed "..i.." attempts.")
         else
-            game.print("Couldn't place stargate on "..surface.name.."! Starting area too crowded.")
+            game.print("Couldn't place stargate and dhd on "..surface.name.."! Starting area too crowded.")
         end
     end
 end
@@ -838,8 +864,8 @@ script.on_event(defines.events.on_robot_mined_entity, OnRemoved)
 script.on_event(defines.events.on_entity_died, OnRemoved)
 
 script.on_event(defines.events.on_entity_damaged , OnDamaged, {
-    {filter = "damage-type", type = "explosion"},
-    {filter = "name", name = "kj_stargate_transferArea", mode = "and"},
+    {filter = "name", name = "kj_stargate_transferArea"},
+    {filter = "name", name = "kj_dhd", mode = "or"},
 })
 
 script.on_event(defines.events.on_tick, OnTick)

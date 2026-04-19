@@ -164,7 +164,6 @@ data:extend({
             mining_time = 15,
             results = {
                 {type = "item", name = "kj_stargate_placement", amount = 1},
-                {type = "item", name = "kj_dhd", amount = 1},
             }
         },
         render_layer = "decorative",
@@ -206,6 +205,66 @@ data:extend({
                         x = 467,
                         y = 467,
                         scale = 0.5,
+                    },
+                }
+            },
+        },
+    },
+    {
+        type = "simple-entity-with-owner",
+        name = "kj_dhd_auto_gen",
+        icon = modname.."/graphics/entities/stargate/icon.png",
+        icon_size = 128,
+        collision_box = {{-1, -1}, {1, 1}},
+        selection_box = {{-1, -1}, {1, 1}},
+		collision_mask = {layers = {water_tile = true, out_of_map = true}},
+        selection_priority = 30,
+        map_color = {r = 0.55, g = 0.55, b = 0.55, a = 1},
+        minable = {
+            mining_time = 15,
+            results = {
+                {type = "item", name = "kj_dhd", amount = 1},
+            }
+        },
+        render_layer = "decorative",
+        pictures = {
+            {
+                layers = {
+                    {
+                        filename = modname.."/graphics/entities/stargate/remnant_combined.png",
+                        size = 467,
+                        scale = 0.25,
+                    },
+                }
+            },
+            {
+                layers = {
+                    {
+                        filename = modname.."/graphics/entities/stargate/remnant_combined.png",
+                        size = 467,
+                        x = 467,
+                        scale = 0.25,
+                    },
+                }
+            },
+            {
+                layers = {
+                    {
+                        filename = modname.."/graphics/entities/stargate/remnant_combined.png",
+                        size = 467,
+                        y = 467,
+                        scale = 0.25,
+                    },
+                }
+            },
+            {
+                layers = {
+                    {
+                        filename = modname.."/graphics/entities/stargate/remnant_combined.png",
+                        size = 467,
+                        x = 467,
+                        y = 467,
+                        scale = 0.25,
                     },
                 }
             },
@@ -286,6 +345,11 @@ data:extend({
             {
                 type = "explosion",
                 decrease = 1000,
+                percent  = 0,
+            },
+            {
+                type = "physical",
+                decrease = 5000,
                 percent  = 0,
             },
         },
@@ -713,6 +777,18 @@ data:extend({
         crafting_speed = 1,
         energy_source = {type = "void"},
         energy_usage = "1W",
+        resistances = {
+            {
+                type = "explosion",
+                decrease = 1000,
+                percent  = 0,
+            },
+            {
+                type = "physical",
+                decrease = 2500,
+                percent  = 0,
+            },
+        },
         graphics_set = {
             animation = {
                 north = {
