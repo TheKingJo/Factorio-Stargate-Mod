@@ -105,6 +105,9 @@ function OnInit(e)
 end
 
 stargate = {
+    Initialize = function(self)
+    end,
+
 	Connect = function(thisGate, otherGate)
         if otherGate == nil then return end
         if otherGate.destination ~= nil then --other gate has connection
@@ -141,9 +144,30 @@ stargate = {
             --game.print("Gates disconnected: "..self.id.."|"..dest.id)
         end
     end,
+
+    Reset = function(self)
+        self.chevrons.animation_offset = 0
+    end,
 }
 
 dhd = {
+    Initialize = function(self)
+        rendering.draw_animation{
+            animation = "kj_stargate_dhd_"..self.entity.direction,
+            animation_speed = 40/60,
+            time_to_live = 60,
+            target = self.entity.position,
+            surface = self.entity.surface,
+            render_layer = "object",
+        }
+        util.playSoundOnSurface(self.entity.surface, self.entity.position, "kj_stargate_dhd_connect", 1)
+        if self.stargate.destination and self.stargate.active then
+            self:SetButtonLight(true)
+            self:FetchAddress(self.stargate.destination)
+            self:SetGlyphs()
+        end
+    end,
+
     SetButtonLight = function(self, status)
         if status == true then
             self.buttonLight = rendering.draw_sprite{
@@ -201,7 +225,7 @@ dhd = {
 
         if dhdSurface == surface then result = false end --cant connect to same surface
         if storage.stargate[surface] == nil then result = false end --no gates on that surface
-        --we have decided to allow multiple gate connections between surf a and b because it is canon
+        --i have decided to allow multiple gate connections between surf a and b because it is canon
 
         if result == true then
             --game.print("omg we found a connection!")
@@ -240,23 +264,27 @@ dhd = {
             end
         end
     end,
+
+    Reset = function(self)
+        self.entity.minable = true
+        self:SetButtonLight(false)
+        self:CloseGUIs()
+        if self.address then
+            self:ResetGlyphs()
+        end
+    end,
 }
 
 function deactivateGate(gate)
     if gate.dhd then
-        gate.dhd.entity.minable = true
-        gate.dhd:SetButtonLight(false)
-        gate.dhd:CloseGUIs()
-        if gate.dhd.address then
-            gate.dhd:ResetGlyphs()
-        end
+        gate.dhd:Reset()
     end
+    gate:Reset()
     gate.childs.soundEnt.destroy()
+    gate.animation.destroy()
     gate.entity.minable = true
     gate.active = false
     --gate.safeToTravel = false
-    gate.chevrons.animation_offset = 0
-    gate.animation.destroy()
     --gate.destination = nil
     gate.entity.surface.create_entity {
         name = "kj_stargate_eventHorizon_short",
@@ -542,20 +570,7 @@ function OnBuilt(e)
         }
         local dhd = util.addToGlobal("dhd", ent, content)
         if dhd.stargate then
-            rendering.draw_animation{
-                animation = "kj_stargate_dhd_"..ent.direction,
-                animation_speed = 40/60,
-                time_to_live = 60,
-                target = ent.position,
-                surface = ent.surface,
-                render_layer = "object",
-            }
-            util.playSoundOnSurface(dhd.entity.surface, dhd.entity.position, "kj_stargate_dhd_connect", 1)
-            if dhd.stargate.destination and dhd.stargate.active then
-                dhd:SetButtonLight(true)
-                dhd:FetchAddress(dhd.stargate.destination)
-                dhd:SetGlyphs()
-            end
+            dhd:Initialize()
         end
     end
 end
@@ -787,6 +802,10 @@ function OnDamaged(e)
     local entity = e.entity
     local type = e.damage_type.name
     if type ~= "explosion" and type ~= "physical" then return end
+    if entity.name == "kj_stargate_transferArea" and e.source and e.source.name == "kj_woosh_cloud" then
+        entity.health = 1
+        return
+    end
 
     local entityName = {
         kj_dhd = "kj_dhd_auto_gen",

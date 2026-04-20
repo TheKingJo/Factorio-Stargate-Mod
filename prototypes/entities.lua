@@ -771,6 +771,7 @@ data:extend({
         name = "kj_dhd",
         icon = modname.."/graphics/entities/dhd/icon.png",
         icon_size = 128,
+        max_health = 1,
         dying_explosion = "big-explosion",
         collision_box = {{-0.98, -1}, {0.98, 1}},
         selection_box = {{-1, -1}, {1, 1}},

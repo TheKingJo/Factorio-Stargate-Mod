@@ -213,6 +213,7 @@ function functions.addToGlobal(name, entity, addContent)
 
     if shortestOppEnt ~= nil and shortestOppEntObj ~= nil and shortestOppEntObj[name] == nil then
         shortestOppEntObj[name] = storage[name][sName][id]
+        shortestOppEntObj:Initialize()
     else
         --game.print("Couldn't find "..opposite[name].." nearby!")
     end
@@ -227,32 +228,48 @@ function functions.removeFromGlobal(name, entity)
     if not storage[name] then return end
     if not storage[name][sName] then return end
 
-    for id, storObj in pairs(storage[name][sName]) do
-        if storObj.entity == entity then
-            local returnValue
+    local storObj, id = functions.findInGlobal(name, entity)
+    local returnValue
 
-            if storObj[opposite[name]] ~= nil then --object to be removed has mapped opposite entity - find new or nil it
-                local shortestOppEnt = functions.findEntity(name, oppositeEntity[name], storObj[opposite[name]].entity, entity)
-                local shortestOppEntObj = functions.findInGlobal(name, shortestOppEnt)
-                storObj[opposite[name]][name] = shortestOppEntObj
+    if storObj[opposite[name]] ~= nil then --object to be removed has mapped opposite entity - find new for them or nil it
+        local shortestEnt = functions.findEntity(name, oppositeEntity[opposite[name]], storObj[opposite[name]].entity, entity)
+        local shortestEntObj = functions.findInGlobal(name, shortestEnt)
+        storObj[opposite[name]][name] = shortestEntObj
+        storObj[opposite[name]]:Reset()
 
-                if shortestOppEntObj ~= nil then
-                    shortestOppEntObj[opposite[name]] = storObj[opposite[name]]
-                end
+        if shortestEntObj ~= nil then
+            shortestEntObj[opposite[name]] = storObj[opposite[name]]
+            storObj[opposite[name]]:Initialize()
+        end
 
-                returnValue = storObj[opposite[name]]
-            end
+        returnValue = storObj[opposite[name]]
+    end
 
-            if storObj.childs then
-                for _, ent in pairs(storObj.childs) do
-                    ent.destroy()
-                end
-            end
-
-            storage[name][sName][id] = nil
-            return returnValue
+    if storObj.childs then
+        for _, ent in pairs(storObj.childs) do
+            ent.destroy()
         end
     end
+
+    if storObj.chevrons then
+        storObj.chevrons.destroy()
+    end
+
+    if storObj.animation then
+        storObj.animation.destroy()
+    end
+
+    if storObj.glyphs then
+        for _,glyph in pairs(storObj.glyphs) do
+        glyph.destroy()
+        end
+    end
+
+    storage.tasks.activeGates[id] = nil
+    storage.tasks.busyDhds[id] = nil
+
+    storage[name][sName][id] = nil
+    return returnValue
 end
 
 function functions.lettersFromAddress(name, suffix1, suffix2)
