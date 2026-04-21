@@ -56,6 +56,7 @@ function initStorage()
         addresses = true,
         ignoredVehicles = true, --vehicles that were just teleported are ignored for some ticks so they dont teleport constantly back and forth
         autoGenGates = true,
+        illegalCars = true,
     }
     local tasks = {
         activeGates = true,
@@ -71,6 +72,15 @@ function initStorage()
     end
     for task, _ in pairs(tasks) do
         storage.tasks[task] = storage.tasks[task] or {}
+    end
+
+    local cars = prototypes.get_entity_filtered({{filter = "type", type = "car"}})
+    for name, car in pairs(cars) do
+        local collBox = car.collision_box
+        if math.abs(collBox.left_top.x) + math.abs(collBox.right_bottom.x) > 3 then
+            storage.illegalCars[name] = true
+        end
+        game.print("saas")
     end
 end
 
