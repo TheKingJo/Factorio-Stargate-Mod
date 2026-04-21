@@ -134,11 +134,11 @@ stargate = {
         end
 	end,
 
-    Disconnect = function(self)
+    Disconnect = function(self, override)
         local dest = self.destination
         if dest then
-            deactivateGate(self)
-            deactivateGate(dest)
+            deactivateGate(self, override)
+            deactivateGate(dest, override)
 
             storage.tasks.activeGates[self.id] = nil
             --game.print("Gates disconnected: "..self.id.."|"..dest.id)
@@ -146,7 +146,9 @@ stargate = {
     end,
 
     Reset = function(self)
-        self.chevrons.animation_offset = 0
+        if self.destination == nil then
+            self.chevrons.animation_offset = 0
+        end
     end,
 }
 
@@ -232,7 +234,9 @@ dhd = {
             self.stargate:Connect(findRandomGateOnSurface(surface))
         else
             if self.stargate then
-                self.stargate.chevrons.animation_offset = 0
+                if self.stargate.destination == nil then
+                    self.stargate.chevrons.animation_offset = 0
+                end
                 util.playSoundOnSurface(self.stargate.entity.surface, self.stargate.entity.position, "kj_stargate_fail")
             else
                 util.playSoundOnSurface(self.entity.surface, self.entity.position, "kj_stargate_fail")
@@ -275,13 +279,15 @@ dhd = {
     end,
 }
 
-function deactivateGate(gate)
+function deactivateGate(gate, override)
     if gate.dhd then
         gate.dhd:Reset()
     end
     gate:Reset()
     gate.childs.soundEnt.destroy()
-    gate.animation.destroy()
+    if gate.animation then
+        gate.animation.destroy()
+    end
     gate.entity.minable = true
     gate.active = false
     --gate.safeToTravel = false
@@ -294,7 +300,13 @@ function deactivateGate(gate)
         name = "kj_stargate_eventHorizon_woosh_backward",
         position = util.vector2Add(gate.entity.position, {x = 0, y = 0.8}),
     }
-    storage.tasks.delayedTurnOffs[gate.id] = {tick = game.tick + 105, gate = gate}
+    if override then
+        gate.safeToTravel = false
+        gate.destination = nil
+        storage.tasks.eventHorizons[gate.id] = nil
+    else
+        storage.tasks.delayedTurnOffs[gate.id] = {tick = game.tick + 105, gate = gate}
+    end
     util.playSoundOnSurface(gate.entity.surface, gate.entity.position, "kj_stargate_close")
 end
 
@@ -808,8 +820,8 @@ function OnDamaged(e)
     end
 
     local entityName = {
-        kj_dhd = "kj_dhd_auto_gen",
-        kj_stargate_transferArea = "kj_stargate_auto_gen"
+        kj_dhd = "dhd",
+        kj_stargate_transferArea = "stargate"
     }
     local remnant = {
         kj_dhd = "medium-small-remnants",
@@ -818,9 +830,14 @@ function OnDamaged(e)
 
     entity.health = math.floor(e.final_health + 0.5)
     if entity.health <= 0.1 then
+        local obj, _ = util.findInGlobal(entityName[entity.name], entity)
+        if entityName[entity.name] == "stargate" then
+            obj:Disconnect(true)
+        end
+
         if type == "explosion" then --spawn a burried variant below
             local ent = entity.surface.create_entity{
-                name = entityName[entity.name],
+                name = "kj_"..entityName[entity.name].."_auto_gen",
                 position = entity.position,
                 force = "neutral",
             }

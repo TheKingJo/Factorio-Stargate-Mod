@@ -147,21 +147,6 @@ function functions.findIDInGlobal(name, surface, id)
     return nil
 end
 
----@return table, number [if it exists in global]
-function functions.findInGlobal(name, entity)
-    if entity == nil then return nil, nil end
-    local sName = entity.surface.name
-    if not storage[name][sName] then return nil, nil end
-
-    for id, object in pairs(storage[name][sName]) do
-        if object.entity == entity then
-            return object, id
-        end
-    end
-
-    return nil, nil
-end
-
 function functions.splitNameId(input)
     local surface1, id1, surface2, id2 = string.match(
             input, "^%(([^%.]+)%.(-?%d+)%)%.%(([^%.]+)%.(-?%d+)%)$"
@@ -180,6 +165,21 @@ function functions.splitNameId2(input)
     else
         return nil, nil, nil
     end
+end
+
+---@return table, number [if it exists in global]
+function functions.findInGlobal(name, entity)
+    if entity == nil then return nil, nil end
+    local sName = entity.surface.name
+    if not storage[name][sName] then return nil, nil end
+
+    for id, object in pairs(storage[name][sName]) do
+        if object.entity == entity then
+            return object, id
+        end
+    end
+
+    return nil, nil
 end
 
 ---@param name string name of storage table
@@ -257,6 +257,10 @@ function functions.removeFromGlobal(name, entity)
 
     if storObj.animation then
         storObj.animation.destroy()
+    end
+
+    if storObj.buttonLight then
+        storObj.buttonLight.destroy()
     end
 
     if storObj.glyphs then
