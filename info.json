@@ -10,6 +10,7 @@
   "dependencies": [
     "base",
     "glib >= 0.1.8",
-    "space-age >= 2.0.0"
+    "space-age >= 2.0.0",
+    "(?) kj_vehicles >= 2.0.0"
   ]
 }

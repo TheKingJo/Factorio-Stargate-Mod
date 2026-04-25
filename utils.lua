@@ -62,8 +62,8 @@ function functions.getRotatedBox(area, rotation)
         local dy = p.y - cy
 
         --Rotation clockwise
-        local rx = dx * cosA + dy * sinA
-        local ry = -dx * sinA + dy * cosA
+        local rx = dx * cosA - dy * sinA
+        local ry = dx * sinA + dy * cosA
 
         rotated[i] = {
             x = cx + rx,

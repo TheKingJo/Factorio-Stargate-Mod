@@ -745,40 +745,11 @@ data:extend({
                     {
                         type = "area",
                         radius = 2.5,
+                        ignore_collision_condition = true,
                         action_delivery =
                         {
                             type = "instant",
-                            target_effects =
-                            {
-                                {
-                                    type = "damage",
-                                    damage = { amount = 999999, type = "electric"}
-                                },
-                                {
-                                    type = "damage",
-                                    damage = { amount = 999999, type = "impact"}
-                                },
-                                {
-                                    type = "damage",
-                                    damage = { amount = 999999, type = "fire"}
-                                },
-                                {
-                                    type = "damage",
-                                    damage = { amount = 999999, type = "physical"}
-                                },
-                                {
-                                    type = "damage",
-                                    damage = { amount = 999999, type = "poison"}
-                                },
-                                {
-                                    type = "damage",
-                                    damage = { amount = 999999, type = "acid"}
-                                },
-                                {
-                                    type = "damage",
-                                    damage = { amount = 999999, type = "laser"}
-                                },
-                            }
+                            target_effects = {},
                         }
                     }
                 }
@@ -786,6 +757,15 @@ data:extend({
         },
     },
 })
+
+for name, _ in pairs(data.raw["damage-type"]) do
+    if name ~= "flak" then
+        table.insert(data.raw["smoke-with-trigger"]["kj_woosh_cloud"].action.action_delivery.target_effects.action.action_delivery.target_effects, {
+            type = "damage",
+            damage = {amount = 999999, type = name}
+        })
+    end
+end
 
 data:extend({
     {

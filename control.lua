@@ -4,6 +4,7 @@ require("util")
 sg_guis = require("logic.gui")
 mod_gui = require("mod-gui")
 glib = require("__glib__/glib")
+kj_compat = require("__kj_vehicles__.utils")
 --seed: 163867536
 
 local sgNames = {
@@ -82,6 +83,13 @@ function initStorage()
         end
         game.print("saas")
     end
+    if kj_compat.wideCars then
+        for _, name in pairs(kj_compat.wideCars) do
+            storage.illegalCars[name] = true
+        end
+    end
+    storage.illegalCars["heli-entity-_-"] = true
+    storage.illegalCars["scout-heli-entity-_-"] = true
 end
 
 function OnLoad(e)
@@ -436,8 +444,10 @@ function GateTransit(gate, player, vehicle)
     )
     if vehicle ~= nil then
         local speed = vehicle.speed
+        local collBox = vehicle.prototype.collision_box
+        local extraDistance = (math.abs(collBox.left_top.y) + math.abs(collBox.right_bottom.y)) / 2
         vehicle.teleport(
-            pos,
+            util.vector2Add(pos, {x = 0, y = extraDistance + 0.25}),
             gate.entity.surface
         )
         --flip car in certain value ranges
@@ -744,6 +754,7 @@ function OnNthTickPlayer(e)
                             GateTransit(gate.destination, player, vehicle)
                         end
                     else --player in vehicle
+                        if storage.illegalCars[vehicle.name] then return end
                         local iV = storage.ignoredVehicles and storage.ignoredVehicles[vehicle.unit_number]
                         if not iV or (iV and iV < game.tick) then
                             if util.rotatedBoxInsideBoundingBox(vehicle.bounding_box, vehicle.orientation, gate.entity.bounding_box) == true then
