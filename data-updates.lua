@@ -10,5 +10,16 @@ for _, dmgType in pairs(data.raw["damage-type"]) do
         decrease = 0,
         percent  = 100
     })
+
+    table.insert(data.raw["simple-entity-with-owner"]["kj_stargate_auto_gen"].resistances, {
+        type = dmgType.name,
+        decrease = 0,
+        percent  = 100
+    })
+    table.insert(data.raw["simple-entity-with-owner"]["kj_dhd_auto_gen"].resistances, {
+        type = dmgType.name,
+        decrease = 0,
+        percent  = 100
+    })
     ::continue::
 end

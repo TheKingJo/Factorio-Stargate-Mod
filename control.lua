@@ -138,7 +138,7 @@ stargate = {
                 otherGate.dhd:SetGlyphs()
             end
 
-            storage.tasks.activeGates[thisGate.id] = {tick = game.tick + 20*60, stargate = thisGate}
+            storage.tasks.activeGates[thisGate.id] = {tick = game.tick + 20*60, maxTick = game.tick + 60*60, stargate = thisGate}
 
             --game.print("Gates connected: "..thisGate.id.."|"..otherGate.id)
         end
@@ -293,7 +293,7 @@ function deactivateGate(gate, override)
     if gate.dhd then
         gate.dhd:Reset()
     end
-    gate:Reset()
+    gate.chevrons.animation_offset = 0
     gate.childs.soundEnt.destroy()
     if gate.animation then
         gate.animation.destroy()
@@ -302,22 +302,22 @@ function deactivateGate(gate, override)
     gate.active = false
     --gate.safeToTravel = false
     --gate.destination = nil
-    gate.entity.surface.create_entity {
-        name = "kj_stargate_eventHorizon_short",
-        position = util.vector2Add(gate.entity.position, {x = 0, y = 0.8}),
-    }
-    gate.entity.surface.create_entity {
-        name = "kj_stargate_eventHorizon_woosh_backward",
-        position = util.vector2Add(gate.entity.position, {x = 0, y = 0.8}),
-    }
     if override then
         gate.safeToTravel = false
         gate.destination = nil
         storage.tasks.eventHorizons[gate.id] = nil
     else
+        util.playSoundOnSurface(gate.entity.surface, gate.entity.position, "kj_stargate_close")
+        gate.entity.surface.create_entity {
+            name = "kj_stargate_eventHorizon_short",
+            position = util.vector2Add(gate.entity.position, {x = 0, y = 0.8}),
+        }
+        gate.entity.surface.create_entity {
+            name = "kj_stargate_eventHorizon_woosh_backward",
+            position = util.vector2Add(gate.entity.position, {x = 0, y = 0.8}),
+        }
         storage.tasks.delayedTurnOffs[gate.id] = {tick = game.tick + 105, gate = gate}
     end
-    util.playSoundOnSurface(gate.entity.surface, gate.entity.position, "kj_stargate_close")
 end
 
 function activateGate(gate)
@@ -445,14 +445,21 @@ function GateTransit(gate, player, vehicle)
         vehicle.speed = speed
         vehicle.set_driver(player)
 
-        local modus = (vehicle.orientation == 0) and defines.riding.acceleration.reversing or defines.riding.acceleration.accelerating
-		player.riding_state = {acceleration = modus, direction = defines.riding.direction.straight}
+        --local modus = (vehicle.orientation == 0) and defines.riding.acceleration.reversing or defines.riding.acceleration.accelerating
+		player.riding_state = {acceleration = defines.riding.acceleration.nothing, direction = defines.riding.direction.straight}
 
-        table.insert(storage.tasks.vehicles, {tick = game.tick + 5, vehicle = vehicle})
+        local duration = math.max(1, (1 / math.abs(speed)))
+        table.insert(storage.tasks.vehicles, {tick = game.tick + duration, vehicle = vehicle})
 
         storage.ignoredVehicles[vehicle.unit_number] = game.tick + 10
     else
-        table.insert(storage.tasks.players, {tick = game.tick + 15, player = player})
+        local duration = math.max(5, (1 / player.character_running_speed) * 2.25)
+        table.insert(storage.tasks.players, {tick = game.tick + duration, player = player})
+    end
+
+    local activeGate = storage.tasks.activeGates[gate.id]
+    if activeGate then
+        activeGate.tick = math.min(activeGate.tick + 3 * 60, activeGate.maxTick)
     end
 
     table.insert(storage.tasks.delayedSounds, {
@@ -604,6 +611,12 @@ function OnRemoved(e)
 	if ent.name == sgNames.tpArea then
         local sg = util.findInGlobal("stargate", ent)
         if sg.oldTiles then
+            for i = #sg.oldTiles, 1, -1 do
+                local tile = sg.oldTiles[i]
+                if ent.surface.get_tile(tile.position.x, tile.position.y).name == "nuclear-ground" then
+                    table.remove(sg.oldTiles, i)
+                end
+            end
             ent.surface.set_tiles(sg.oldTiles)
         end
 
@@ -714,29 +727,30 @@ end
 function OnNthTickPlayer(e)
     if not storage.stargate then return end
     local deleteGate = {}
-    for sgSurface, gates in pairs(storage.stargate) do
-        for gID, gate in pairs(gates) do
+    for _, player in pairs(game.players) do
+        if not storage.stargate[player.surface.name] then return end
+
+        for gID, gate in pairs(storage.stargate[player.surface.name]) do
             if gate.valid == true and gate.entity and gate.entity.valid then
                 if gate.safeToTravel == true and gate.destination then
-                    for _, player in pairs(game.players) do
-                        local vehicle = player.physical_vehicle
-                        if player.surface.name == sgSurface and not (vehicle and vehicle.prototype.type == "spider-vehicle") then
-                            if vehicle == nil then --player not in vehicle
-                                if util.positionInBoundingBox(player.physical_position, gate.entity.bounding_box) == true then
-                                    --game.print(e.tick.." - Player "..player.name.." entered gate on "..player.surface.name)
+                    local vehicle = player.physical_vehicle
+                    if (vehicle and vehicle.prototype.type == "spider-vehicle") then return end
+                    if util.getDistance(player.physical_position, gate.entity.position) > 13 then return end
 
-                                    GateTransit(gate.destination, player, vehicle)
-                                end
-                            else --player in vehicle
-                                local iV = storage.ignoredVehicles and storage.ignoredVehicles[vehicle.unit_number]
-                                if not iV or (iV and iV < game.tick) then
-                                    if util.rotatedBoxInsideBoundingBox(vehicle.bounding_box, vehicle.orientation, gate.entity.bounding_box) == true then
-                                        --game.print(e.tick.." - Player "..player.name.." entered gate on "..player.surface.name)
+                    if vehicle == nil then --player not in vehicle
+                        if util.boundingBoxesCollision(player.character.bounding_box, gate.entity.bounding_box) then
+                            --game.print(e.tick.." - Player "..player.name.." entered gate on "..player.surface.name)
 
-                                        GateTransit(gate.destination, player, vehicle)
-                                        iV = nil
-                                    end
-                                end
+                            GateTransit(gate.destination, player, vehicle)
+                        end
+                    else --player in vehicle
+                        local iV = storage.ignoredVehicles and storage.ignoredVehicles[vehicle.unit_number]
+                        if not iV or (iV and iV < game.tick) then
+                            if util.rotatedBoxInsideBoundingBox(vehicle.bounding_box, vehicle.orientation, gate.entity.bounding_box) == true then
+                                --game.print(e.tick.." - Player "..player.name.." entered gate on "..player.surface.name)
+
+                                GateTransit(gate.destination, player, vehicle)
+                                iV = nil
                             end
                         end
                     end
@@ -824,8 +838,8 @@ function OnDamaged(e)
     local entity = e.entity
     local type = e.damage_type.name
     if type ~= "explosion" and type ~= "physical" then return end
-    if entity.name == "kj_stargate_transferArea" and e.source and e.source.name == "kj_woosh_cloud" then
-        entity.health = 1
+    if (entity.name == "kj_stargate_transferArea" or entity.name == "kj_dhd") and e.source and e.source.name == "kj_woosh_cloud" then
+        entity.health = entity.max_health
         return
     end
 
@@ -840,24 +854,26 @@ function OnDamaged(e)
 
     entity.health = math.floor(e.final_health + 0.5)
     if entity.health <= 0.1 then
-        local obj, _ = util.findInGlobal(entityName[entity.name], entity)
-        if entityName[entity.name] == "stargate" then
-            obj:Disconnect(true)
-        end
+        if string.sub(entity.name, -8) ~= "auto_gen" then
+            local obj, _ = util.findInGlobal(entityName[entity.name], entity)
+            if entityName[entity.name] == "stargate" then
+                obj:Disconnect(true)
+            end
 
-        if type == "explosion" then --spawn a burried variant below
-            local ent = entity.surface.create_entity{
-                name = "kj_"..entityName[entity.name].."_auto_gen",
-                position = entity.position,
-                force = "neutral",
-            }
-            ent.destructible = false
-            ent.graphics_variation = math.random(1,4)
-        else --physical damage overload is supposed to destroy the gate
-            entity.surface.create_entity{
-                name = remnant[entity.name],
-                position = entity.position,
-            }
+            if type == "explosion" then --spawn a burried variant below
+                local ent = entity.surface.create_entity{
+                    name = "kj_"..entityName[entity.name].."_auto_gen",
+                    position = entity.position,
+                    force = "neutral",
+                }
+                --ent.destructible = false
+                ent.graphics_variation = math.random(1,4)
+            else --physical damage overload is supposed to destroy the gate
+                entity.surface.create_entity{
+                    name = remnant[entity.name],
+                    position = entity.position,
+                }
+            end
         end
     end
 end
@@ -893,14 +909,14 @@ function Chunk(e)
                 force = "neutral",
             }
             ent.graphics_variation = math.random(1,4)
-            ent.destructible = false
+            --ent.destructible = false
             ent = surface.create_entity{
                 name = "kj_dhd_auto_gen",
                 position = pos,
                 force = "neutral",
             }
             ent.graphics_variation = math.random(1,4)
-            ent.destructible = false
+            --ent.destructible = false
             game.print("Placed stargate and dhd at [gps="..pos.x..","..pos.y..","..surface.name.."]. Needed "..i.." attempts.")
         else
             game.print("Couldn't place stargate and dhd on "..surface.name.."! Starting area too crowded.")
@@ -921,6 +937,8 @@ script.on_event(defines.events.on_entity_died, OnRemoved)
 script.on_event(defines.events.on_entity_damaged , OnDamaged, {
     {filter = "name", name = "kj_stargate_transferArea"},
     {filter = "name", name = "kj_dhd", mode = "or"},
+    {filter = "name", name = "kj_stargate_auto_gen", mode = "or"},
+    {filter = "name", name = "kj_dhd_auto_gen", mode = "or"},
 })
 
 script.on_event(defines.events.on_tick, OnTick)

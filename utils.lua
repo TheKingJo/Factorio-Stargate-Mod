@@ -112,6 +112,15 @@ function functions.positionInBoundingBox(pos, area)
     return false
 end
 
+function functions.boundingBoxesCollision(a, b)
+    return not (
+        a.right_bottom.x <= b.left_top.x or
+        a.left_top.x >= b.right_bottom.x or
+        a.right_bottom.y <= b.left_top.y or
+        a.left_top.y >= b.right_bottom.y
+    )
+end
+
 ---@param name string name of storage table
 ---@param entName string name of the entity
 ---@param entity LuaEntity the created entity

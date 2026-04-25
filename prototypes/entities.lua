@@ -154,17 +154,30 @@ data:extend({
         type = "simple-entity-with-owner",
         name = "kj_stargate_auto_gen",
         icon = modname.."/graphics/entities/stargate/remnant_icon.png",
+        dying_explosion = "big-explosion",
         icon_size = 128,
         collision_box = {{-3, -3}, {3, 3}},
         selection_box = {{-3, -3}, {3, 3}},
 		collision_mask = {layers = {water_tile = true, out_of_map = true}},
-        selection_priority = 25,
+        selection_priority = 45,
         map_color = {r = 0.55, g = 0.55, b = 0.55, a = 1},
         minable = {
             mining_time = 15,
             results = {
                 {type = "item", name = "kj_stargate_placement", amount = 1},
             }
+        },
+        resistances = {
+            {
+                type = "explosion",
+                decrease = 0,
+                percent  = 100,
+            },
+            {
+                type = "physical",
+                decrease = 15000,
+                percent  = 0,
+            },
         },
         render_layer = "decorative",
         pictures = {
@@ -214,17 +227,30 @@ data:extend({
         type = "simple-entity-with-owner",
         name = "kj_dhd_auto_gen",
         icon = modname.."/graphics/entities/dhd/remnant_icon.png",
+        dying_explosion = "big-explosion",
         icon_size = 128,
         collision_box = {{-1, -1}, {1, 1}},
         selection_box = {{-1, -1}, {1, 1}},
 		collision_mask = {layers = {water_tile = true, out_of_map = true}},
-        selection_priority = 30,
+        selection_priority = 46,
         map_color = {r = 0.55, g = 0.55, b = 0.55, a = 1},
         minable = {
             mining_time = 15,
             results = {
                 {type = "item", name = "kj_dhd", amount = 1},
             }
+        },
+        resistances = {
+            {
+                type = "explosion",
+                decrease = 0,
+                percent  = 100,
+            },
+            {
+                type = "physical",
+                decrease = 15000,
+                percent  = 0,
+            },
         },
         render_layer = "decorative",
         pictures = {
@@ -357,7 +383,7 @@ data:extend({
             },
         },
         minable = {mining_time = 1, result = "kj_stargate_placement"},
-        selection_priority = 25,
+        selection_priority = 45,
     },
     {
         type = "simple-entity",
@@ -773,7 +799,7 @@ data:extend({
         icon_size = 128,
         max_health = 1,
         dying_explosion = "big-explosion",
-        collision_box = {{-0.98, -1}, {0.98, 1}},
+        collision_box = {{-0.96, -0.98}, {0.96, 0.98}},
         selection_box = {{-1, -1}, {1, 1}},
         minable = {mining_time = 1, result = "kj_dhd"},
         flags = {"not-blueprintable", "placeable-neutral", "not-flammable"},
