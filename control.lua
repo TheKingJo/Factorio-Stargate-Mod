@@ -4,7 +4,10 @@ require("util")
 sg_guis = require("logic.gui")
 mod_gui = require("mod-gui")
 glib = require("__glib__/glib")
-kj_compat = require("__kj_vehicles__.utils")
+
+if script.active_mods["kj_vehicles"] then
+    kj_compat = require("__kj_vehicles__.utils")
+end
 --seed: 163867536
 
 local sgNames = {
@@ -83,7 +86,7 @@ function initStorage()
         end
         game.print("saas")
     end
-    if kj_compat.wideCars then
+    if kj_compat and kj_compat.wideCars then
         for _, name in pairs(kj_compat.wideCars) do
             storage.illegalCars[name] = true
         end
