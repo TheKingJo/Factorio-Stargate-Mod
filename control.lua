@@ -12,9 +12,11 @@ end
 
 local sgNames = {
     placement = "kj_stargate_placement",
+    placementSignaled = "kj_stargate_signaled_placement",
     base = "kj_stargate_base",
     sound = "kj_stargate_ambientSound",
     tpArea = "kj_stargate_transferArea",
+    tpAreaSignaled = "kj_stargate_transferArea_signaled",
     colliderV = "kj_stargate_colliderVert",
     colliderH1 = "kj_stargate_colliderHori1",
     colliderH2 = "kj_stargate_colliderHori2",
@@ -489,7 +491,53 @@ function OnBuilt(e)
     if not ent.valid then return end
     --game.print("Placed "..ent.name)
 
-	if ent.name == sgNames.placement then --stargate placed
+	if ent.name == sgNames.placementSignaled then --signaled stargate placed
+        local pos = ent.position
+        local surface = ent.surface
+        local tpArea = surface.create_entity{
+            name = sgNames.tpAreaSignaled,
+            force = "neutral",
+            position = util.vector2Add(pos, {x = 0, y = -1.8}),
+        }
+        local chevrons = rendering.draw_animation{
+            animation = "kj_stargate_chevrons",
+            target = util.vector2Add(pos, {x = 0, y = -2}),
+            surface = surface,
+            render_layer = "object",
+            animation_speed = 0,
+        }
+        local childs = {
+            baseEnt = surface.create_entity{
+                name = sgNames.base,
+                position = util.vector2Add(pos, {x = 0, y = -2}),
+            },
+            colliderV1 = surface.create_entity{
+                name = sgNames.colliderV,
+                position = util.vector2Add(pos, {x = -3.5, y = -1}),
+            },
+            colliderV2 = surface.create_entity{
+                name = sgNames.colliderV,
+                position = util.vector2Add(pos, {x = 3.5, y = -1}),
+            },
+        }
+
+        for _, child in pairs(childs) do
+            child.destructible = false
+        end
+
+        local content = {
+            manual = false,
+            valid = true,
+            active = false,
+            childs = childs,
+            destination = nil,
+            chevrons = chevrons,
+            safeToTravel = false,
+        }
+        util.addToGlobal("stargate", tpArea, content)
+
+        ent.destroy()
+    elseif ent.name == sgNames.placement then --manual stargate placed
         local pos = ent.position
         local surface = ent.surface
         local tpArea = surface.create_entity{
@@ -579,6 +627,7 @@ function OnBuilt(e)
         surface.set_tiles(calcPosis)
 
         local content = {
+            manual = true,
             valid = true,
             active = false,
             childs = childs,
@@ -781,6 +830,34 @@ function OnNthTickPlayer(e)
 end
 
 function OnNthTickGates(e)
+    if not storage.stargate then return end
+    local surfaces = storage.stargate
+
+    for _, surface in pairs(surfaces) do
+        for _, gate in pairs(surface) do
+            if gate.manual == false then
+                local signals = gate.entity.get_signals(1)
+                if signals ~= nil then
+                    local address = ""
+
+                    for i = #signals, 1, -1 do
+                        signal = signals[i]
+                        --game.print(signal.signal.name..": "..signal.count)
+                        local glyph = signal.signal.name:match("^kj_sg_glyph_(.+)$")
+
+                        if charLookup[glyph] ~= nil then
+                            address = address..glyph
+                            --game.print("Glyph "..glyph.." found.")
+                        end
+                    end
+                    game.print("Address: "..address)
+                end
+            end
+        end
+    end
+end
+
+function OnNthTickTasks(e)
     local gates = storage.tasks.activeGates
     local dhds = storage.tasks.busyDhds
     local deleteGate = {}
@@ -814,7 +891,7 @@ end
 function GuiOpened(e)
     local player = game.players[e.player_index]
 
-    if e.entity and e.entity.name == "kj_dhd" then
+    if e.entity and e.entity.name == dhdName then
         local dhd, dhdID = util.findInGlobal("dhd", e.entity)
         if dhd == nil or dhd.stargate == nil then
             player.opened = nil
@@ -836,6 +913,10 @@ function GuiOpened(e)
         gui.force_auto_center()
         gui.bring_to_front()
         player.opened = gui
+    end
+
+    if e.entity and e.entity.name == sgNames.tpAreaSignaled then
+        player.opened = nil
     end
 end
 
@@ -956,7 +1037,8 @@ script.on_event(defines.events.on_entity_damaged , OnDamaged, {
 })
 
 script.on_event(defines.events.on_tick, OnTick)
-script.on_nth_tick(60, OnNthTickGates)
+script.on_nth_tick(60, OnNthTickTasks)
+script.on_nth_tick(10, OnNthTickGates)
 script.on_nth_tick(2, OnNthTickPlayer)
 
 script.on_event(defines.events.on_surface_created,

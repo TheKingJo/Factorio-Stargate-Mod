@@ -1,6 +1,20 @@
 data:extend({
     {
         type = "item-with-entity-data",
+        name = "kj_stargate_signaled_placement",
+        icon = "__kj_stargate__/graphics/entities/stargate/icon.png",
+        icon_size = 128,
+        subgroup = "transport",
+        order = "0",
+        --inventory_move_sound = item_sounds.vehicle_inventory_move,
+        --pick_sound = item_sounds.vehicle_inventory_pickup,
+        --drop_sound = item_sounds.vehicle_inventory_move,
+        place_result = "kj_stargate_signaled_placement",
+        stack_size = 1,
+        weight = 1000 * 1000,
+    },
+    {
+        type = "item-with-entity-data",
         name = "kj_stargate_placement",
         icon = "__kj_stargate__/graphics/entities/stargate/icon.png",
         icon_size = 128,
