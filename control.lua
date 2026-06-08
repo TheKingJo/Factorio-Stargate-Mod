@@ -11,7 +11,7 @@ if script.active_mods["kj_vehicles"] then
 end
 --seed: 163867536
 
-local sgNames = {
+sgNames = {
     placement = "kj_stargate_placement",
     placementSignaled = "kj_stargate_signaled_placement",
     base = "kj_stargate_base",
@@ -23,9 +23,9 @@ local sgNames = {
     colliderH2 = "kj_stargate_colliderHori2",
     colliderD = "kj_stargate_colliderDiag",
 }
-local dhdName = "kj_dhd"
+dhdName = "kj_dhd"
 
-local chevronChars = {}
+chevronChars = {}
 for i = string.byte("A"), string.byte("S") do
     table.insert(chevronChars, string.char(i))
 end
@@ -33,7 +33,7 @@ for i = string.byte("a"), string.byte("s") do
     table.insert(chevronChars, string.char(i))
 end
 
-local poos = 5
+poos = 5
 charLookup = {}
 for i, char in ipairs(chevronChars) do
     charLookup[char] = i
@@ -469,18 +469,43 @@ function OnNthTickGates(e)
                 local signals = gate.entity.get_signals(1)
                 if signals ~= nil then
                     local address = ""
+                    local index = 1
+                    local successful = false
 
-                    for i = #signals, 1, -1 do
-                        signal = signals[i]
-                        --game.print(signal.signal.name..": "..signal.count)
-                        local glyph = signal.signal.name:match("^kj_sg_glyph_(.+)$")
+                    table.sort(signals, function(a, b) --sort ascending
+                        return a.count < b.count
+                    end)
 
-                        if charLookup[glyph] ~= nil then
-                            address = address..glyph
-                            --game.print("Glyph "..glyph.." found.")
+                    for i, signal in ipairs(signals) do
+                        if signal.count == index then
+                            --game.print(signal.signal.name..": "..signal.count)
+                            local glyph = signal.signal.name:match("^kj_sg_glyph_(.+)$")
+
+                            if charLookup[glyph] ~= nil then
+                                address = address..glyph
+                                --game.print("Glyph "..glyph.." found.")
+                            end
+
+                            if index == 7 then
+                                successful = true
+                            end
+
+                            index = index + 1
+
+                        else
+                            i = #signals
+                            successful = false
                         end
                     end
                     game.print("Address: "..address)
+
+                    if successful == true then
+                        for s, ads in pairs(storage.addresses) do
+                            if address == ads then
+                                game.print("Address found")
+                            end
+                        end
+                    end
                 end
             end
         end
