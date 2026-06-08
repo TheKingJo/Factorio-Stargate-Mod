@@ -1,12 +1,3 @@
-local sgOffset = {x = 0, y = 1.3}
-local poo = {
-    nauvis = 1,
-    gleba = 5,
-    aquilo = 2,
-    vulcanus = 4,
-    fulgora = 3,
-}
-
 stargate = {
     Initialize = function(self)
     end,

@@ -10,7 +10,14 @@ if script.active_mods["kj_vehicles"] then
     kj_compat = require("__kj_vehicles__.utils")
 end
 --seed: 163867536
-
+sgOffset = {x = 0, y = 1.3}
+poo = {
+    nauvis = 1,
+    gleba = 5,
+    aquilo = 2,
+    vulcanus = 4,
+    fulgora = 3,
+}
 sgNames = {
     placement = "kj_stargate_placement",
     placementSignaled = "kj_stargate_signaled_placement",
@@ -33,12 +40,11 @@ for i = string.byte("a"), string.byte("s") do
     table.insert(chevronChars, string.char(i))
 end
 
-poos = 5
 charLookup = {}
 for i, char in ipairs(chevronChars) do
     charLookup[char] = i
 end
-for i = 1, poos, 1 do
+for i = 1, #poo, 1 do
     charLookup["poo_"..i] = 1
 end
 
@@ -478,25 +484,29 @@ function OnNthTickGates(e)
 
                     for i, signal in ipairs(signals) do
                         if signal.count == index then
-                            --game.print(signal.signal.name..": "..signal.count)
                             local glyph = signal.signal.name:match("^kj_sg_glyph_(.+)$")
-
-                            if charLookup[glyph] ~= nil then
-                                address = address..glyph
-                                --game.print("Glyph "..glyph.." found.")
-                            end
 
                             if index == 7 then
                                 successful = true
                             end
 
-                            index = index + 1
+                            if charLookup[glyph] ~= nil then
+                                if glyph ~= "poo_"..poo[gate.entity.surface.name] then
+                                    address = address..glyph
+                                else
+                                    if glyph:match("_(%d+)$") ~= poo[gate.entity.surface.name] then
+                                        successful = false
+                                    end
+                                end
+                            end
 
+                            index = index + 1
                         else
                             i = #signals
                             successful = false
                         end
                     end
+
                     game.print("Address: "..address)
 
                     if successful == true then
