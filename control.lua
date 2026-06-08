@@ -44,7 +44,7 @@ charLookup = {}
 for i, char in ipairs(chevronChars) do
     charLookup[char] = i
 end
-for i = 1, #poo, 1 do
+for i = 1, 5, 1 do
     charLookup["poo_"..i] = 1
 end
 
@@ -471,12 +471,13 @@ function OnNthTickGates(e)
 
     for _, surface in pairs(surfaces) do
         for _, gate in pairs(surface) do
-            if gate.manual == false then
+            if gate.manual == false and gate.active == false then
                 local signals = gate.entity.get_signals(1)
                 if signals ~= nil then
                     local address = ""
                     local index = 1
                     local successful = false
+                    local surfaceName = gate.entity.surface.name
 
                     table.sort(signals, function(a, b) --sort ascending
                         return a.count < b.count
@@ -491,10 +492,11 @@ function OnNthTickGates(e)
                             end
 
                             if charLookup[glyph] ~= nil then
-                                if glyph ~= "poo_"..poo[gate.entity.surface.name] then
+                                if glyph ~= "poo_"..poo[surfaceName] then
                                     address = address..glyph
                                 else
-                                    if glyph:match("_(%d+)$") ~= poo[gate.entity.surface.name] then
+                                    local saas = glyph:match("_(%d+)$")
+                                    if tonumber(saas) ~= poo[surfaceName] then
                                         successful = false
                                     end
                                 end
@@ -502,7 +504,7 @@ function OnNthTickGates(e)
 
                             index = index + 1
                         else
-                            i = #signals
+                            index = #signals
                             successful = false
                         end
                     end
@@ -510,9 +512,12 @@ function OnNthTickGates(e)
                     game.print("Address: "..address)
 
                     if successful == true then
-                        for s, ads in pairs(storage.addresses) do
-                            if address == ads then
-                                game.print("Address found")
+                        for surf, ads in pairs(storage.addresses) do
+                            if surf ~= surfaceName then
+                                if address == ads then
+                                    game.print("Address found")
+                                    gate:Connect(findRandomGateOnSurface(surf))
+                                end
                             end
                         end
                     end
@@ -588,16 +593,17 @@ end
 function OnDamaged(e)
     local entity = e.entity
     local type = e.damage_type.name
+    local entityName = {
+        kj_dhd = "dhd",
+        kj_stargate_transferArea = "stargate",
+        kj_stargate_transferArea_signaled = "stargate"
+    }
     if type ~= "explosion" and type ~= "physical" then return end
-    if (entity.name == "kj_stargate_transferArea" or entity.name == "kj_dhd") and e.source and e.source.name == "kj_woosh_cloud" then
+    if (entityName[entity.name] ~= nil) and e.source and e.source.name == "kj_woosh_cloud" then
         entity.health = entity.max_health
         return
     end
 
-    local entityName = {
-        kj_dhd = "dhd",
-        kj_stargate_transferArea = "stargate"
-    }
     local remnant = {
         kj_dhd = "medium-small-remnants",
         kj_stargate_transferArea = "medium-remnants"
@@ -687,6 +693,7 @@ script.on_event(defines.events.on_entity_died, OnRemoved)
 
 script.on_event(defines.events.on_entity_damaged , OnDamaged, {
     {filter = "name", name = "kj_stargate_transferArea"},
+    {filter = "name", name = "kj_stargate_transferArea_signaled"},
     {filter = "name", name = "kj_dhd", mode = "or"},
     {filter = "name", name = "kj_stargate_auto_gen", mode = "or"},
     {filter = "name", name = "kj_dhd_auto_gen", mode = "or"},
