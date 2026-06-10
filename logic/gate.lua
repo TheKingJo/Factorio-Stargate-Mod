@@ -225,6 +225,7 @@ function activateGate(gate)
         name = sgNames.sound,
         position = gate.entity.position,
     }
+    gate.childs.soundEnt.destructible = false
     gate.entity.minable = false
     gate.chevrons.animation_offset = 7
 
@@ -273,7 +274,7 @@ function findRandomGateOnSurface(surface)
         end
     end
 
-    if #gates ~= nil then
+    if #gates ~= 0 then
         return gates[math.random(#gates)]
     else
         return nil

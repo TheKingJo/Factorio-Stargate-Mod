@@ -305,8 +305,9 @@ end
 function OnRemoved(e)
 	local ent = e.entity
     if not ent.valid then return end
+    game.print(ent.name.." destroyed")
 
-	if ent.name == sgNames.tpArea then
+	if ent.name == sgNames.tpArea or ent.name == sgNames.tpAreaSignaled then
         local sg = util.findInGlobal("stargate", ent)
         if sg.oldTiles then
             for i = #sg.oldTiles, 1, -1 do
@@ -693,7 +694,7 @@ script.on_event(defines.events.on_entity_died, OnRemoved)
 
 script.on_event(defines.events.on_entity_damaged , OnDamaged, {
     {filter = "name", name = "kj_stargate_transferArea"},
-    {filter = "name", name = "kj_stargate_transferArea_signaled"},
+    {filter = "name", name = "kj_stargate_transferArea_signaled", mode = "or"},
     {filter = "name", name = "kj_dhd", mode = "or"},
     {filter = "name", name = "kj_stargate_auto_gen", mode = "or"},
     {filter = "name", name = "kj_dhd_auto_gen", mode = "or"},
