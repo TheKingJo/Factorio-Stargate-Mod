@@ -5,8 +5,10 @@ stargate = {
 	Connect = function(thisGate, otherGate)
         if otherGate == nil then return end
         if otherGate.destination ~= nil then --other gate has connection
-            thisGate.dhd:ResetGlyphs()
-            thisGate.dhd:CloseGUIs()
+            if thisGate.dhd then
+                thisGate.dhd:ResetGlyphs()
+                thisGate.dhd:CloseGUIs()
+            end
             util.playSoundOnSurface(thisGate.entity.surface, thisGate.entity.position, "kj_stargate_fail")
         else
             if thisGate.destination ~= nil then

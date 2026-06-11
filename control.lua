@@ -61,7 +61,7 @@ function initStorage()
     }
     local tasks = {
         activeGates = true,
-        busyDhds = true,
+        busyDhds = true, -- tracks the resets of dhd after x time
         eventHorizons = true,
         vehicles = true,
         players = true,
@@ -472,7 +472,7 @@ function OnNthTickGates(e)
 
     for _, surface in pairs(surfaces) do
         for _, gate in pairs(surface) do
-            if gate.manual == false and gate.active == false then
+            if gate.manual == false and gate.active == false and gate.safeToTravel == false then
                 local signals = gate.entity.get_signals(1)
                 if signals ~= nil then
                     local address = ""
