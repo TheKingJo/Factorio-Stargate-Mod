@@ -183,16 +183,12 @@ function OnBuilt(e)
         }
         local chevrons = rendering.draw_animation{
             animation = "kj_stargate_chevrons",
-            target = util.vector2Add(pos, {x = 0, y = -2}),
+            target = util.vector2Add(pos, {x = 0, y = -1.99}),
             surface = surface,
             render_layer = "object",
             animation_speed = 0,
         }
         local childs = {
-            baseEnt = surface.create_entity{
-                name = sgNames.base,
-                position = util.vector2Add(pos, {x = 0, y = -2}),
-            },
             colliderV1 = surface.create_entity{
                 name = sgNames.colliderV,
                 position = util.vector2Add(pos, {x = -3.5, y = -1}),
@@ -237,6 +233,13 @@ function OnBuilt(e)
         for _, child in pairs(childs) do
             child.destructible = false
         end
+
+        childs.baseEnt = rendering.draw_sprite{
+            sprite = "kj_stargate_base_sprite",
+            target = util.vector2Add(pos, {x = 0, y = -2}),
+            surface = surface,
+            render_layer = "object",
+        }
 
         local posis = {x = {-0.5, -1.5}, y = {0, 1, 2}}
         local calcPosis = {}
@@ -388,9 +391,11 @@ function OnTick(e)
                 local effectPos1 = util.vector2Add(eH.gate.entity.position, {x = 0, y = 2.5})
                 local effectPos2 = util.vector2Add(eH.gate.entity.position, {x = 0, y = 5.5})
 
-                eH.gate.animation = eH.gate.entity.surface.create_entity{
-                    name = "kj_stargate_eventHorizon_ent",
-                    position = util.vector2Add(eH.gate.entity.position, {x = 0, y = -0.19}),
+                eH.gate.animation = rendering.draw_animation{
+                    animation = "kj_stargate_eventHorizon",
+                    target = util.vector2Add(eH.gate.entity.position, {x = 0, y = -0.19}),
+                    surface = eH.gate.entity.surface,
+                    render_layer = "object",
                 }
                 eH.gate.entity.surface.create_entity {
                     name = "kj_stargate_woosh_dmg",
@@ -407,7 +412,6 @@ function OnTick(e)
                     speed = 1,
                 }
                 eH.gate.safeToTravel = true
-                eH.gate.animation.destructible = false
                 storage.tasks.eventHorizons[id] = nil
             end
         end

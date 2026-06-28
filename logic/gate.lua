@@ -166,7 +166,7 @@ dhd = {
     end,
 
     Reset = function(self)
-        self.entity.minable = true
+        self.entity.minable_flag = true
         self:SetButtonLight(false)
         self:CloseGUIs()
         if self.address then
@@ -184,7 +184,7 @@ function deactivateGate(gate, override)
     if gate.animation then
         gate.animation.destroy()
     end
-    gate.entity.minable = true
+    gate.entity.minable_flag = true
     gate.active = false
     --gate.safeToTravel = false
     --gate.destination = nil
@@ -208,7 +208,7 @@ end
 
 function activateGate(gate)
     if gate.dhd then
-        gate.dhd.entity.minable = false
+        gate.dhd.entity.minable_flag = false
         gate.dhd:SetButtonLight(true)
         gate.dhd:CloseGUIs()
         if storage.tasks.busyDhds and storage.tasks.busyDhds[gate.dhd.id] then
@@ -216,19 +216,12 @@ function activateGate(gate)
         end
     end
     gate.active = true
-    --[[gate.animation = rendering.draw_animation{
-        animation = "kj_stargate_eventHorizon",
-        target = util.vector2Add(gate.entity.position, {x = 0, y = -10.2}),--gate.childs.baseEnt,
-        surface = gate.entity.surface,
-        render_layer = "object",
-        y_scale = 5,
-    }]]
     gate.childs.soundEnt = gate.entity.surface.create_entity{
         name = sgNames.sound,
         position = gate.entity.position,
     }
     gate.childs.soundEnt.destructible = false
-    gate.entity.minable = false
+    gate.entity.minable_flag = false
     gate.chevrons.animation_offset = 7
 
     storage.tasks.eventHorizons[gate.id] = {tick = game.tick + 1.5*60-5, gate = gate}
