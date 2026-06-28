@@ -143,10 +143,6 @@ function OnBuilt(e)
             animation_speed = 0,
         }
         local childs = {
-            baseEnt = surface.create_entity{
-                name = sgNames.base,
-                position = util.vector2Add(pos, {x = 0, y = -2}),
-            },
             colliderV1 = surface.create_entity{
                 name = sgNames.colliderV,
                 position = util.vector2Add(pos, {x = -3.5, y = -1}),
@@ -160,6 +156,13 @@ function OnBuilt(e)
         for _, child in pairs(childs) do
             child.destructible = false
         end
+
+        childs.baseEnt = rendering.draw_sprite{
+            sprite = "kj_stargate_base_sprite",
+            target = util.vector2Add(pos, {x = 0, y = -2}),
+            surface = surface,
+            render_layer = "object",
+        }
 
         local content = {
             manual = false,

@@ -340,7 +340,7 @@ data:extend({
         collision_box = {{-1.5, -0.3}, {1.5, 0.3}},
         selection_box = {{-4, -0.8}, {4, 3}},
         circuit_wire_max_distance = 9,
-        circuit_connector = data.raw["assembling-machine"]["assembling-machine-1"].circuit_connector,
+        circuit_connector = {data.raw["assembling-machine"]["assembling-machine-1"].circuit_connector[1]},
         factoriopedia_alternative = "kj_stargate_placement",
         flags = {"placeable-neutral", "placeable-off-grid", "not-flammable"},
         map_color = {1, 1, 1, 1},
