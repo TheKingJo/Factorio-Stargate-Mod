@@ -4,7 +4,10 @@ require("util")
 sg_guis = require("logic.gui")
 mod_gui = require("mod-gui")
 glib = require("__glib__/glib")
-kj_compat = require("__kj_vehicles__.utils")
+
+if script.active_mods["kj_vehicles"] then
+    kj_compat = require("__kj_vehicles__.utils")
+end
 --seed: 163867536
 
 local sgNames = {
@@ -83,7 +86,7 @@ function initStorage()
         end
         game.print("saas")
     end
-    if kj_compat.wideCars then
+    if kj_compat and kj_compat.wideCars then
         for _, name in pairs(kj_compat.wideCars) do
             storage.illegalCars[name] = true
         end
@@ -288,7 +291,7 @@ dhd = {
     end,
 
     Reset = function(self)
-        self.entity.minable = true
+        self.entity.minable_flag = true
         self:SetButtonLight(false)
         self:CloseGUIs()
         if self.address then
@@ -306,7 +309,7 @@ function deactivateGate(gate, override)
     if gate.animation then
         gate.animation.destroy()
     end
-    gate.entity.minable = true
+    gate.entity.minable_flag = true
     gate.active = false
     --gate.safeToTravel = false
     --gate.destination = nil
@@ -330,7 +333,7 @@ end
 
 function activateGate(gate)
     if gate.dhd then
-        gate.dhd.entity.minable = false
+        gate.dhd.entity.minable_flag = false
         gate.dhd:SetButtonLight(true)
         gate.dhd:CloseGUIs()
         if storage.tasks.busyDhds and storage.tasks.busyDhds[gate.dhd.id] then
@@ -338,18 +341,11 @@ function activateGate(gate)
         end
     end
     gate.active = true
-    --[[gate.animation = rendering.draw_animation{
-        animation = "kj_stargate_eventHorizon",
-        target = util.vector2Add(gate.entity.position, {x = 0, y = -10.2}),--gate.childs.baseEnt,
-        surface = gate.entity.surface,
-        render_layer = "object",
-        y_scale = 5,
-    }]]
     gate.childs.soundEnt = gate.entity.surface.create_entity{
         name = sgNames.sound,
         position = gate.entity.position,
     }
-    gate.entity.minable = false
+    gate.entity.minable_flag = false
     gate.chevrons.animation_offset = 7
 
     storage.tasks.eventHorizons[gate.id] = {tick = game.tick + 1.5*60-5, gate = gate}
@@ -496,16 +492,12 @@ function OnBuilt(e)
         }
         local chevrons = rendering.draw_animation{
             animation = "kj_stargate_chevrons",
-            target = util.vector2Add(pos, {x = 0, y = -2}),
+            target = util.vector2Add(pos, {x = 0, y = -1.99}),
             surface = surface,
             render_layer = "object",
             animation_speed = 0,
         }
         local childs = {
-            baseEnt = surface.create_entity{
-                name = sgNames.base,
-                position = util.vector2Add(pos, {x = 0, y = -2}),
-            },
             colliderV1 = surface.create_entity{
                 name = sgNames.colliderV,
                 position = util.vector2Add(pos, {x = -3.5, y = -1}),
@@ -550,6 +542,13 @@ function OnBuilt(e)
         for _, child in pairs(childs) do
             child.destructible = false
         end
+
+        childs.baseEnt = rendering.draw_sprite{
+            sprite = "kj_stargate_base_sprite",
+            target = util.vector2Add(pos, {x = 0, y = -2}),
+            surface = surface,
+            render_layer = "object",
+        }
 
         local posis = {x = {-0.5, -1.5}, y = {0, 1, 2}}
         local calcPosis = {}
@@ -699,9 +698,11 @@ function OnTick(e)
                 local effectPos1 = util.vector2Add(eH.gate.entity.position, {x = 0, y = 2.5})
                 local effectPos2 = util.vector2Add(eH.gate.entity.position, {x = 0, y = 5.5})
 
-                eH.gate.animation = eH.gate.entity.surface.create_entity{
-                    name = "kj_stargate_eventHorizon_ent",
-                    position = util.vector2Add(eH.gate.entity.position, {x = 0, y = -0.19}),
+                eH.gate.animation = rendering.draw_animation{
+                    animation = "kj_stargate_eventHorizon",
+                    target = util.vector2Add(eH.gate.entity.position, {x = 0, y = -0.19}),
+                    surface = eH.gate.entity.surface,
+                    render_layer = "object",
                 }
                 eH.gate.entity.surface.create_entity {
                     name = "kj_stargate_woosh_dmg",
@@ -718,7 +719,6 @@ function OnTick(e)
                     speed = 1,
                 }
                 eH.gate.safeToTravel = true
-                eH.gate.animation.destructible = false
                 storage.tasks.eventHorizons[id] = nil
             end
         end

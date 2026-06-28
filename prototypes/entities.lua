@@ -331,30 +331,22 @@ data:extend({
         },
     },
     {
-        type = "simple-entity",
-        name = "kj_stargate_base",
-        icon = modname.."/graphics/entities/stargate/icon.png",
-        hidden = true,
-        icon_size = 128,
-        flags = {"placeable-neutral", "placeable-off-grid", "not-flammable"},
-        map_color = {r = 0.55, g = 0.55, b = 0.55, a = 1},
-		collision_mask = {layers = {}},
-        picture = {
-            layers = {
-                {
-                    size = 704,
-                    shift = {1.25, 0.5},
-                    scale = 0.5,
-                    filename = modname.."/graphics/entities/stargate/gate.png",
-                },
-                {
-                    size = 704,
-                    shift = {1.25, 0.5},
-                    scale = 0.5,
-                    draw_as_shadow = true,
-                    filename = modname.."/graphics/entities/stargate/gate_shadow.png",
-                },
-            }
+        type = "sprite",
+        name = "kj_stargate_base_sprite",
+        layers = {
+            {
+                size = 704,
+                shift = {1.25, 0.5},
+                scale = 0.5,
+                filename = modname.."/graphics/entities/stargate/gate.png",
+            },
+            {
+                size = 704,
+                shift = {1.25, 0.5},
+                scale = 0.5,
+                draw_as_shadow = true,
+                filename = modname.."/graphics/entities/stargate/gate_shadow.png",
+            },
         }
     },
     {
@@ -444,61 +436,6 @@ data:extend({
             sound = {
                 variations = sound_variations(modname.."/sounds/gate_puddle", 5)
             }
-        },
-    },
-    {
-        type = "electric-energy-interface",
-        name = "kj_stargate_eventHorizon_ent",
-        collision_box = {{-1, -1}, {1, 1}},
-		collision_mask = {layers = {}},
-        factoriopedia_alternative = "kj_stargate_placement",
-        hidden = true,
-        icon = modname.."/graphics/entities/stargate/icon.png",
-        icon_size = 128,
-        flags = {"placeable-neutral", "placeable-off-grid", "not-flammable"},
-        map_color = {r = 0.55, g = 0.55, b = 0.55, a = 1},
-        gui_mode = "none",
-        energy_source = {
-            render_no_power_icon = false,
-            type = "electric",
-            usage_priority = "secondary-input",
-            buffer_capacity = "0J",
-            drain = "0W",
-            input_flow_limit = "0W",
-            output_flow_limit = "0W",
-        },
-        continuous_animation = true,
-        animation = {
-            layers = {
-                {
-                    size = 704,
-                    shift = {1.25, 0.49},
-                    scale = 0.505,
-                    frame_count = 64,
-                    stripes = {
-                        {
-                            filename = modname.."/graphics/entities/stargate/eventHorizon.png",
-                            height_in_frames = 8,
-                            width_in_frames = 8,
-                        },
-                    },
-                },
-                {
-                    size = 704,
-                    shift = {1.25, 0.49},
-                    scale = 0.505,
-                    frame_count = 64,
-                    blend_mode = "additive",
-                    draw_as_glow = true,
-                    stripes = {
-                        {
-                            filename = modname.."/graphics/entities/stargate/eventHorizon_light.png",
-                            height_in_frames = 8,
-                            width_in_frames = 8,
-                        },
-                    },
-                },
-            },
         },
     },
 })
@@ -671,28 +608,30 @@ data:extend({
             },
         }
     },
-    --[[{
+    {
         type = "animation",
         name = "kj_stargate_eventHorizon",
         layers = {
             {
                 size = 704,
-                shift = {1.25, 0.5},
-                scale = 0.5,
-                frame_count = 1,
+                shift = {1.25, 0.49},
+                scale = 0.505,
+                line_length = 8,
+                frame_count = 64,
                 filename = modname.."/graphics/entities/stargate/eventHorizon.png",
             },
             {
                 size = 704,
-                shift = {1.25, 0.5},
-                scale = 0.5,
-                frame_count = 1,
+                shift = {1.25, 0.49},
+                scale = 0.505,
+                line_length = 8,
+                frame_count = 64,
                 blend_mode = "additive",
                 draw_as_glow = true,
-                filename = modname.."/graphics/entities/stargate/gate_light.png",
+                filename = modname.."/graphics/entities/stargate/eventHorizon_light.png",
             },
         }
-    },]]
+    },
 })
 data:extend({
     {
@@ -1113,11 +1052,13 @@ data:extend({
         map_color = {r = 0.55, g = 0.55, b = 0.55, a = 1},
         layer = 0,
         variants = {
-            material_background =
+            main =
             {
-                picture = "__core__/graphics/empty.png",
-                count = 1,
-                scale = 1
+                {
+                    picture = "__core__/graphics/empty.png",
+                    count = 1,
+                    size = 1
+                }
             },
             empty_transitions = true
         },
