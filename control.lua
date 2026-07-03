@@ -26,8 +26,9 @@ sgNames = {
     tpArea = "kj_stargate_transferArea",
     tpAreaSignaled = "kj_stargate_transferArea_signaled",
     colliderV = "kj_stargate_colliderVert",
-    colliderH1 = "kj_stargate_colliderHori1",
-    colliderH2 = "kj_stargate_colliderHori2",
+    colliderHL = "kj_stargate_colliderHoriLong",
+    colliderHB = "kj_stargate_colliderHoriBig",
+    colliderHS = "kj_stargate_colliderHoriShort",
     colliderD = "kj_stargate_colliderDiag",
 }
 dhdName = "kj_dhd"
@@ -136,20 +137,57 @@ function OnBuilt(e)
             position = util.vector2Add(pos, {x = 0, y = -1.8}),
         }
         local chevrons = rendering.draw_animation{
-            animation = "kj_stargate_chevrons",
-            target = util.vector2Add(pos, {x = 0, y = -2}),
+            animation = "kj_stargate_chevrons_s",
+            target = util.vector2Add(pos, {x = 0, y = -0.99}),
             surface = surface,
             render_layer = "object",
             animation_speed = 0,
         }
         local childs = {
-            colliderV1 = surface.create_entity{
+            colliderH11 = surface.create_entity{
+                name = sgNames.colliderHL,
+                position = util.vector2Add(pos, {x = 0, y = -2.275}),
+            },
+            colliderH12 = surface.create_entity{
+                name = sgNames.colliderHL,
+                position = util.vector2Add(pos, {x = 0, y = -2.275-0.75}),
+            },
+
+            colliderVB1 = surface.create_entity{
                 name = sgNames.colliderV,
+                position = util.vector2Add(pos, {x = -2.75, y = -0.5}),
+            },
+            colliderVB2 = surface.create_entity{
+                name = sgNames.colliderV,
+                position = util.vector2Add(pos, {x = 2.75, y = -0.5}),
+            },
+            colliderVB3 = surface.create_entity{
+                name = sgNames.colliderV,
+                position = util.vector2Add(pos, {x = -1.75-0.025, y = -0.5}),
+            },
+            colliderVB4 = surface.create_entity{
+                name = sgNames.colliderV,
+                position = util.vector2Add(pos, {x = 1.75+0.025, y = -0.5}),
+            },
+
+            colliderH21 = surface.create_entity{
+                name = sgNames.colliderHB,
                 position = util.vector2Add(pos, {x = -3.5, y = -1}),
             },
-            colliderV2 = surface.create_entity{
-                name = sgNames.colliderV,
+            colliderH22 = surface.create_entity{
+                name = sgNames.colliderHB,
                 position = util.vector2Add(pos, {x = 3.5, y = -1}),
+            },
+
+            colliderVL1 = surface.create_entity{
+                name = sgNames.colliderHL,
+                position = util.vector2Add(pos, {x = -1.5, y = 2}),
+                direction = defines.direction.east,
+            },
+            colliderVL2 = surface.create_entity{
+                name = sgNames.colliderHL,
+                position = util.vector2Add(pos, {x = 1.5, y = 2}),
+                direction = defines.direction.east,
             },
         }
 
@@ -158,8 +196,8 @@ function OnBuilt(e)
         end
 
         childs.baseEnt = rendering.draw_sprite{
-            sprite = "kj_stargate_base_sprite",
-            target = util.vector2Add(pos, {x = 0, y = -2}),
+            sprite = "kj_stargate_base_sprite_s",
+            target = util.vector2Add(pos, {x = 0, y = -1}),
             surface = surface,
             render_layer = "object",
         }
@@ -200,26 +238,29 @@ function OnBuilt(e)
                 name = sgNames.colliderV,
                 position = util.vector2Add(pos, {x = 3.5, y = -1}),
             },
+
             colliderH11 = surface.create_entity{
-                name = sgNames.colliderH1,
+                name = sgNames.colliderHL,
                 position = util.vector2Add(pos, {x = 0, y = -2.275}),
             },
+
             colliderH21 = surface.create_entity{
-                name = sgNames.colliderH2,
+                name = sgNames.colliderHS,
                 position = util.vector2Add(pos, {x = -2.5, y = -0.5}),
             },
             colliderH22 = surface.create_entity{
-                name = sgNames.colliderH2,
+                name = sgNames.colliderHS,
                 position = util.vector2Add(pos, {x = 2.5, y = -0.5}),
             },
             colliderH31 = surface.create_entity{
-                name = sgNames.colliderH2,
+                name = sgNames.colliderHS,
                 position = util.vector2Add(pos, {x = -2.25, y = -1.6}),
             },
             colliderH32 = surface.create_entity{
-                name = sgNames.colliderH2,
+                name = sgNames.colliderHS,
                 position = util.vector2Add(pos, {x = 2.25, y = -1.6}),
             },
+
             colliderD1 = surface.create_entity{
                 name = sgNames.colliderD,
                 position = util.vector2Add(pos, {x = -2.366, y = 0.225}),
@@ -444,7 +485,7 @@ function OnNthTickPlayer(e)
                     if util.getDistance(player.physical_position, gate.entity.position) > 13 then return end
 
                     if vehicle == nil then --player not in vehicle
-                        if util.boundingBoxesCollision(player.character.bounding_box, gate.entity.bounding_box) then
+                        if player.character and util.boundingBoxesCollision(player.character.bounding_box, gate.entity.bounding_box) then
                             --game.print(e.tick.." - Player "..player.name.." entered gate on "..player.surface.name)
 
                             GateTransit(gate.destination, player, vehicle)
