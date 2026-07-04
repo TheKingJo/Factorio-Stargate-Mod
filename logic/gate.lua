@@ -196,11 +196,11 @@ function deactivateGate(gate, override)
         util.playSoundOnSurface(gate.entity.surface, gate.entity.position, "kj_stargate_close")
         gate.entity.surface.create_entity {
             name = "kj_stargate_eventHorizon_short",
-            position = util.vector2Add(gate.entity.position, {x = 0, y = 0.8}),
+            position = util.vector2Add(gate.entity.position, {x = 0, y = 0.5}),
         }
         gate.entity.surface.create_entity {
             name = "kj_stargate_eventHorizon_woosh_backward",
-            position = util.vector2Add(gate.entity.position, {x = 0, y = 0.8}),
+            position = util.vector2Add(gate.entity.position, {x = 0, y = 0.5}),
         }
         storage.tasks.delayedTurnOffs[gate.id] = {tick = game.tick + 105, gate = gate}
     end
@@ -230,7 +230,7 @@ function activateGate(gate)
 
     gate.entity.surface.create_entity {
         name = "kj_stargate_eventHorizon_woosh",
-        position = util.vector2Add(gate.entity.position, {x = 0, y = 0.8}),
+        position = util.vector2Add(gate.entity.position, {x = 0, y = 0.5}),
     }
     gate.entity.surface.create_entity {
         name = "kj_stargate_woosh",

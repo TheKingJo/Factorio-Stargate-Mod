@@ -448,16 +448,28 @@ data:extend({
         layers = {
             {
                 size = 832,
-                shift = {0, 0.5},
+                shift = {0, 1.4},
                 scale = 0.5,
                 filename = modname.."/graphics/entities/stargate/s_gate.png",
             },
             {
                 size = 992,
-                shift = {2.5, 0.5},
+                shift = {2.5, 1.4},
                 scale = 0.5,
                 draw_as_shadow = true,
                 filename = modname.."/graphics/entities/stargate/s_gate_shadow.png",
+            },
+        }
+    },
+    {
+        type = "sprite",
+        name = "kj_stargate_base_sprite_s_background",
+        layers = {
+            {
+                size = 832,
+                shift = {0, 2},
+                scale = 0.5,
+                filename = modname.."/graphics/entities/stargate/s_gate_background.png",
             },
         }
     },
@@ -546,13 +558,13 @@ data:extend({
         flags = {"not-on-map", "placeable-off-grid"},
         hidden = true,
         subgroup = "explosions",
-        render_layer = "higher-object-under",
+        render_layer = "object",
         animations = {
             layers = {
                 {
                     filename = modname.."/graphics/entities/stargate/eventHorizon.png",
                     size = 704,
-                    shift = {1.25, 0.49},
+                    shift = {1.25, 0.49+0.3},
                     scale = 0.505,
                     frame_count = 28,
                     line_length = 8,
@@ -562,7 +574,7 @@ data:extend({
                 {
                     filename = modname.."/graphics/entities/stargate/eventHorizon_light.png",
                     size = 704,
-                    shift = {1.25, 0.49},
+                    shift = {1.25, 0.49+0.3},
                     scale = 0.505,
                     frame_count = 28,
                     line_length = 8,
@@ -580,7 +592,7 @@ data:extend({
         flags = {"not-on-map", "placeable-off-grid"},
         hidden = true,
         subgroup = "explosions",
-        render_layer = "higher-object-under",
+        render_layer = "object",
         animations = {
             layers = {
                 {
@@ -590,7 +602,7 @@ data:extend({
                     frame_count = 16,
                     frame_sequence = eHw_fs,
                     line_length = 4,
-                    shift = {1.25, 0.49},
+                    shift = {1.25, 0.49+0.3},
                     animation_speed = 16/60,
                     usage = "explosion"
                 },
@@ -601,7 +613,7 @@ data:extend({
                     frame_count = 16,
                     frame_sequence = eHw_fs,
                     line_length = 4,
-                    shift = {1.25, 0.49},
+                    shift = {1.25, 0.49+0.3},
                     animation_speed = 16/60,
                     usage = "explosion",
                     draw_as_glow = true,
@@ -616,7 +628,7 @@ data:extend({
         flags = {"not-on-map", "placeable-off-grid"},
         hidden = true,
         subgroup = "explosions",
-        render_layer = "higher-object-under",
+        render_layer = "object",
         animations = {
             layers = {
                 {
@@ -626,7 +638,7 @@ data:extend({
                     frame_count = 16,
                     frame_sequence = eHwbw_fs,
                     line_length = 4,
-                    shift = {1.25, 0.49},
+                    shift = {1.25, 0.49+0.3},
                     animation_speed = 16/60,
                     usage = "explosion"
                 },
@@ -637,7 +649,7 @@ data:extend({
                     frame_count = 16,
                     frame_sequence = eHwbw_fs,
                     line_length = 4,
-                    shift = {1.25, 0.49},
+                    shift = {1.25, 0.49+0.3},
                     animation_speed = 16/60,
                     usage = "explosion",
                     draw_as_glow = true,

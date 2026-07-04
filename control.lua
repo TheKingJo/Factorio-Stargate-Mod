@@ -197,7 +197,13 @@ function OnBuilt(e)
 
         childs.baseEnt = rendering.draw_sprite{
             sprite = "kj_stargate_base_sprite_s",
-            target = util.vector2Add(pos, {x = 0, y = -1}),
+            target = util.vector2Add(pos, {x = 0, y = -1.9}),
+            surface = surface,
+            render_layer = "object",
+        }
+        childs.baseEntBckgrnd = rendering.draw_sprite{
+            sprite = "kj_stargate_base_sprite_s_background",
+            target = util.vector2Add(pos, {x = 0, y = -2.5}),
             surface = surface,
             render_layer = "object",
         }
