@@ -27,6 +27,7 @@ sgNames = {
     tpAreaSignaled = "kj_stargate_transferArea_signaled",
     colliderV = "kj_stargate_colliderVert",
     colliderHL = "kj_stargate_colliderHoriLong",
+    colliderHLL = "kj_stargate_colliderHoriLonger",
     colliderHB = "kj_stargate_colliderHoriBig",
     colliderHS = "kj_stargate_colliderHoriShort",
     colliderD = "kj_stargate_colliderDiag",
@@ -180,14 +181,14 @@ function OnBuilt(e)
             },
 
             colliderVL1 = surface.create_entity{
-                name = sgNames.colliderHL,
-                position = util.vector2Add(pos, {x = -1.5, y = 2}),
+                name = sgNames.colliderHLL,
+                position = util.vector2Add(pos, {x = -1.5, y = 1.5}),
                 direction = defines.direction.east,
             },
             colliderVL2 = surface.create_entity{
-                name = sgNames.colliderHL,
-                position = util.vector2Add(pos, {x = 1.5, y = 2}),
-                direction = defines.direction.east,
+                name = sgNames.colliderHLL,
+                position = util.vector2Add(pos, {x = 1.5, y = 1.5}),
+                direction = defines.direction.west,
             },
         }
 
@@ -208,11 +209,27 @@ function OnBuilt(e)
             render_layer = "object",
         }
 
+        local calcPosis = {}
+        for i = 1, -1, -2 do
+            for y = -2, 5, 1 do
+                table.insert(calcPosis, {position = util.vector2Add(pos, {-0.5 * i, y}), name = "kj_stargate_metalTile"})
+            end
+        end
+
+        local oldTiles = {}
+        for _, tile in pairs(calcPosis) do
+            tile = surface.get_tile(tile.position.x, tile.position.y)
+            table.insert(oldTiles, {name = tile.name, position = tile.position})
+        end
+
+        surface.set_tiles(calcPosis)
+
         local content = {
             manual = false,
             valid = true,
             active = false,
             childs = childs,
+            oldTiles = oldTiles,
             destination = nil,
             chevrons = chevrons,
             safeToTravel = false,
@@ -364,7 +381,7 @@ end
 function OnRemoved(e)
 	local ent = e.entity
     if not ent.valid then return end
-    game.print(ent.name.." destroyed")
+    --game.print(ent.name.." destroyed")
 
 	if ent.name == sgNames.tpArea or ent.name == sgNames.tpAreaSignaled then
         local sg = util.findInGlobal("stargate", ent)

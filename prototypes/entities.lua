@@ -1,3 +1,4 @@
+local tile_sounds = require("__base__/prototypes/tile/tile-sounds")
 local modname = "__kj_stargate__"
 local eHw_fs = {}
 local w_fs = {}
@@ -20,6 +21,10 @@ end
 for i=16, 2, -1 do
     table.insert(eHwbw_fs, i)
 end
+
+local metal = table.deepcopy(tile_sounds.walking.refined_concrete)
+metal.variations = sound_variations(modname.."/sounds/walk_metal", 4, 0.5)
+
 data:extend({
     {
         type = "tips-and-tricks-item",
@@ -414,8 +419,22 @@ data:extend({
         collision_box = {{-1.5, -0.3}, {1.5, 0.3}},
         selection_box = {{-3, -1.5}, {3, 3}},
         circuit_wire_max_distance = 9,
-        circuit_connector = {data.raw["assembling-machine"]["assembling-machine-1"].circuit_connector[1]},
-        factoriopedia_alternative = "kj_stargate_placement",
+        circuit_connector = {
+            {
+                sprites = nil,
+                points = {
+                    shadow = {
+                        green = {10.19, 1.27},
+                        red =   {10.19, 1.26},
+                    },
+                    wire = {
+                        green = {4.89, -4.3},
+                        red =   {4.89, -4.2},
+                    },
+                },
+            }
+        },
+        factoriopedia_alternative = "kj_stargate_signaled_placement",
         flags = {"placeable-neutral", "placeable-off-grid", "not-flammable"},
         map_color = {1, 1, 1, 1},
         max_health = 1,
@@ -540,6 +559,17 @@ data:extend({
         flags = {"placeable-neutral", "placeable-off-grid", "not-flammable", "building-direction-16-way"},
         map_color = {r = 0.55, g = 0.55, b = 0.55, a = 1},
         collision_box = {{-3, -0.225}, {3, 0.225}},
+        is_military_target  = false,
+    },
+    {
+        type = "simple-entity-with-force",
+        name = "kj_stargate_colliderHoriLonger",
+        hidden = true,
+        icon = modname.."/graphics/entities/stargate/icon.png",
+        icon_size = 128,
+        flags = {"placeable-neutral", "placeable-off-grid", "not-flammable", "building-direction-16-way"},
+        map_color = {r = 0.55, g = 0.55, b = 0.55, a = 1},
+        collision_box = {{-3.5, -0.5}, {3.5, 0.225}},
         is_military_target  = false,
     },
     {
@@ -1225,6 +1255,32 @@ data:extend({
         collision_mask = {layers={ground_tile=true}},
         map_color = {r = 0.55, g = 0.55, b = 0.55, a = 1},
         layer = 0,
+        walking_sound = tile_sounds.walking.refined_concrete,
+        driving_sound = tile_sounds.driving.concrete,
+        variants = {
+            main =
+            {
+                {
+                    picture = "__core__/graphics/empty.png",
+                    count = 1,
+                    size = 1
+                }
+            },
+            empty_transitions = true
+        },
+    },
+    {
+        type = "tile",
+        name = "kj_stargate_metalTile",
+        hidden = true,
+        allows_being_covered = false,
+        walking_speed_modifier = 1,
+        vehicle_friction_modifier = 1,
+        collision_mask = {layers={ground_tile=true}},
+        map_color = {r = 0.55, g = 0.55, b = 0.55, a = 1},
+        layer = 0,
+        walking_sound = metal,
+        driving_sound = nil,
         variants = {
             main =
             {
