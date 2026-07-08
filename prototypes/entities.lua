@@ -312,6 +312,12 @@ data:extend({
                     size = 704,
                     shift = {1.25, -1.5},
                     scale = 0.5,
+                    filename = modname.."/graphics/entities/stargate/gate_background.png",
+                },
+                {
+                    size = 704,
+                    shift = {1.25, -1.5},
+                    scale = 0.5,
                     filename = modname.."/graphics/entities/stargate/gate.png",
                 },
                 {
@@ -333,27 +339,33 @@ data:extend({
     {
         type = "simple-entity",
         name = "kj_stargate_signaled_placement",
-        icon = modname.."/graphics/entities/stargate/icon.png",
+        icon = modname.."/graphics/entities/stargate/s_icon.png",
         icon_size = 128,
-        collision_box = {{-3.9, -2.4}, {3.9, 2.4}},
-        selection_box = {{-4,   -2.5}, {4,   2.5}},
+        collision_box = {{-5, -3.5}, {5, 5}},
+        selection_box = {{-5, -3.5}, {5, 5}},
         drawing_box_vertical_extension = 3,
         minable = {mining_time = 1, result = "kj_stargate_signaled_placement"},
         map_color = {r = 0.55, g = 0.55, b = 0.55, a = 1},
         picture = {
             layers = {
                 {
-                    size = 704,
-                    shift = {1.25, -1.5},
+                    size = 832,
+                    shift = {0, -0.5},
                     scale = 0.5,
-                    filename = modname.."/graphics/entities/stargate/gate.png",
+                    filename = modname.."/graphics/entities/stargate/s_gate_background.png",
                 },
                 {
-                    size = 704,
-                    shift = {1.25, -1.5},
+                    size = 832,
+                    shift = {0, -0.5},
+                    scale = 0.5,
+                    filename = modname.."/graphics/entities/stargate/s_gate.png",
+                },
+                {
+                    size = 992,
+                    shift = {2.5, -0.5},
                     scale = 0.5,
                     draw_as_shadow = true,
-                    filename = modname.."/graphics/entities/stargate/gate_shadow.png",
+                    filename = modname.."/graphics/entities/stargate/s_gate_shadow.png",
                 },
             }
         },
@@ -396,11 +408,11 @@ data:extend({
         type = "container",
         name = "kj_stargate_transferArea_signaled",
         dying_explosion = "rocket-silo-explosion",
-        icon = modname.."/graphics/entities/stargate/icon.png",
+        icon = modname.."/graphics/entities/stargate/s_icon.png",
         icon_size = 128,
         collision_mask = {layers = {trigger_target = true}},
         collision_box = {{-1.5, -0.3}, {1.5, 0.3}},
-        selection_box = {{-4, -0.8}, {4, 3}},
+        selection_box = {{-3, -1.5}, {3, 3}},
         circuit_wire_max_distance = 9,
         circuit_connector = {data.raw["assembling-machine"]["assembling-machine-1"].circuit_connector[1]},
         factoriopedia_alternative = "kj_stargate_placement",
@@ -439,6 +451,18 @@ data:extend({
                 scale = 0.5,
                 draw_as_shadow = true,
                 filename = modname.."/graphics/entities/stargate/gate_shadow.png",
+            },
+        }
+    },
+    {
+        type = "sprite",
+        name = "kj_stargate_base_sprite_background",
+        layers = {
+            {
+                size = 704,
+                shift = {1.25, 1},
+                scale = 0.5,
+                filename = modname.."/graphics/entities/stargate/gate_background.png",
             },
         }
     },
@@ -668,6 +692,29 @@ data:extend({
         animations = {
             {
                 filename = modname.."/graphics/entities/stargate/woosh_glow.png",
+                blend_mode = "additive",
+                draw_as_glow = true,
+                size = 832,
+                scale = 0.5,
+                frame_count = 33,
+                line_length = 6,
+                frame_sequence = w_fs,
+                shift = {0, 2.5},
+                animation_speed = 15/60,
+                usage = "explosion"
+            }
+        },
+    },
+    {
+        type = "explosion",
+        name = "kj_stargate_woosh_glow_s",
+        flags = {"not-on-map", "placeable-off-grid"},
+        hidden = true,
+        subgroup = "explosions",
+        render_layer = "cargo-hatch",
+        animations = {
+            {
+                filename = modname.."/graphics/entities/stargate/s_woosh_glow.png",
                 blend_mode = "additive",
                 draw_as_glow = true,
                 size = 832,

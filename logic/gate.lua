@@ -237,7 +237,7 @@ function activateGate(gate)
         position = util.vector2Add(gate.entity.position, {x = 0, y = 0.8}),
     }
     gate.entity.surface.create_entity {
-        name = "kj_stargate_woosh_glow",
+        name = "kj_stargate_woosh_glow"..(gate.manual and "" or "_s"),
         position = util.vector2Add(gate.entity.position, {x = 0, y = 0.55}),
     }
 

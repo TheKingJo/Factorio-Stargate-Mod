@@ -290,6 +290,12 @@ function OnBuilt(e)
             surface = surface,
             render_layer = "object",
         }
+        childs.baseEntBckgrnd = rendering.draw_sprite{
+            sprite = "kj_stargate_base_sprite_background",
+            target = util.vector2Add(pos, {x = 0, y = -2.5}),
+            surface = surface,
+            render_layer = "object",
+        }
 
         local posis = {x = {-0.5, -1.5}, y = {0, 1, 2}}
         local calcPosis = {}
