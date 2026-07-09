@@ -145,6 +145,12 @@ function OnBuilt(e)
             animation_speed = 0,
         }
         local childs = {
+            energyDrain = surface.create_entity{
+                name = "kj_stargate_gate_s_energyDrain",
+                force = "neutral",
+                position = util.vector2Add(pos, {x = 0, y = -8}),
+            },
+
             colliderH11 = surface.create_entity{
                 name = sgNames.colliderHL,
                 position = util.vector2Add(pos, {x = 0, y = -2.275}),
@@ -191,6 +197,7 @@ function OnBuilt(e)
                 direction = defines.direction.west,
             },
         }
+        childs.energyDrain.power_usage = 10^7/60
 
         for _, child in pairs(childs) do
             child.destructible = false
@@ -466,7 +473,7 @@ function OnTick(e)
 
                 eH.gate.animation = rendering.draw_animation{
                     animation = "kj_stargate_eventHorizon",
-                    target = util.vector2Add(eH.gate.entity.position, {x = 0, y = -0.19}),
+                    target = util.vector2Add(eH.gate.entity.position, {x = 0, y = (eH.gate.manual and -0.19 or -0.215)}),
                     surface = eH.gate.entity.surface,
                     render_layer = "object",
                 }
@@ -552,6 +559,7 @@ function OnNthTickGates(e)
             if gate.manual == false and gate.active == false and gate.safeToTravel == false then
                 local signals = gate.entity.get_signals(1)
                 if signals ~= nil then
+                    if gate.childs.energyDrain and gate.childs.energyDrain.energy ~= 10^9 then return end
                     local address = ""
                     local index = 1
                     local successful = false
@@ -595,6 +603,8 @@ function OnNthTickGates(e)
                                 if address == ads then
                                     game.print("Address found")
                                     gate:Connect(findRandomGateOnSurface(surf))
+                                    gate.childs.energyDrain.energy = 0
+                                    gate.childs.energyDrain.electric_buffer_size = 10^7
                                 end
                             end
                         end

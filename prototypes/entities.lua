@@ -517,6 +517,28 @@ data:extend({
         }
     },
     {
+        type = "electric-energy-interface",
+        name = "kj_stargate_gate_s_energyDrain",
+        hidden = true,
+        icon = modname.."/graphics/entities/stargate/icon.png",
+        icon_size = 128,
+        selection_box = {{-3, -1.5}, {3, 3}},
+        collision_box = {{-3, -1.5}, {3, 3}},
+        flags = {"placeable-neutral", "placeable-off-grid", "not-flammable"},
+        map_color = {r = 0.55, g = 0.55, b = 0.55, a = 1},
+		collision_mask = {layers = {}},
+        is_military_target  = false,
+        gui_mode = "all",
+        energy_source = {
+            type = "electric",
+            usage_priority = "dynamic",
+            buffer_capacity = "1GJ",
+            drain = "10MW",
+            input_flow_limit = "100MW",
+            output_flow_limit = "0W",
+        },
+    },
+    {
         type = "simple-entity-with-force",
         name = "kj_stargate_ambientSound",
         hidden = true,

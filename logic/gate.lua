@@ -33,6 +33,9 @@ stargate = {
     Disconnect = function(self, override)
         local dest = self.destination
         if dest then
+            if self.childs.energyDrain then
+                self.childs.energyDrain.electric_buffer_size = 10^9
+            end
             deactivateGate(self, override)
             deactivateGate(dest, override)
 
@@ -196,11 +199,11 @@ function deactivateGate(gate, override)
         util.playSoundOnSurface(gate.entity.surface, gate.entity.position, "kj_stargate_close")
         gate.entity.surface.create_entity {
             name = "kj_stargate_eventHorizon_short",
-            position = util.vector2Add(gate.entity.position, {x = 0, y = 0.5}),
+            position = util.vector2Add(gate.entity.position, {x = 0, y = (gate.manual and 0.5 or 0.45)}),
         }
         gate.entity.surface.create_entity {
             name = "kj_stargate_eventHorizon_woosh_backward",
-            position = util.vector2Add(gate.entity.position, {x = 0, y = 0.5}),
+            position = util.vector2Add(gate.entity.position, {x = 0, y = (gate.manual and 0.5 or 0.45)}),
         }
         storage.tasks.delayedTurnOffs[gate.id] = {tick = game.tick + 105, gate = gate}
     end
@@ -230,7 +233,7 @@ function activateGate(gate)
 
     gate.entity.surface.create_entity {
         name = "kj_stargate_eventHorizon_woosh",
-        position = util.vector2Add(gate.entity.position, {x = 0, y = 0.5}),
+        position = util.vector2Add(gate.entity.position, {x = 0, y = (gate.manual and 0.5 or 0.45)}),
     }
     gate.entity.surface.create_entity {
         name = "kj_stargate_woosh",
