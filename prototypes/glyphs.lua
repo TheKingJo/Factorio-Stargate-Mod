@@ -17,6 +17,7 @@ for i, char in ipairs(chars) do
             localised_name = {"", {"virtual-signal-name.kj_sg_glyph"}, " ", tostring(i-1)},
             localised_description = {"", {"virtual-signal-description.kj_sg_glyph"}, tostring(i-1)},
             order = tostring(string.format("%03d", i-1)),
+            subgroup = "kj_dhd_glyphs",
         },
         {
             type = "sprite",
@@ -29,6 +30,26 @@ end
 
 data:extend({
     {
+        type = "item-group",
+        name = "kj_dhd_glyphs",
+        icon = modname.."/graphics/entities/dhd/icon.png",
+        icon_size = 128,
+        order = "y-dhd",
+    },
+    {
+        type = "item-subgroup",
+        name = "kj_dhd_glyphs",
+        group = "kj_dhd_glyphs",
+    },
+    {
+        type = "virtual-signal",
+        name = "kj_sg_glyph_connect",
+        icon = modname.."/graphics/glyphs/connect.png",
+        icon_size = 128,
+        order = "z-connect",
+        subgroup = "kj_dhd_glyphs",
+    },
+    {
         type = "virtual-signal",
         name = "kj_sg_glyph_poo_1",
         icon = modname.."/graphics/glyphs/0001.png",
@@ -36,6 +57,7 @@ data:extend({
         localised_name = {"", {"virtual-signal-name.kj_sg_glyph_poo"}, " 1"},
         localised_description = {"", {"virtual-signal-description.kj_sg_glyph_poo"}, " 1"},
         order = "poo-1",
+        subgroup = "kj_dhd_glyphs",
     },
     {
         type = "virtual-signal",
@@ -45,6 +67,7 @@ data:extend({
         localised_name = {"", {"virtual-signal-name.kj_sg_glyph_poo"}, " 2"},
         localised_description = {"", {"virtual-signal-description.kj_sg_glyph_poo"}, " 2"},
         order = "poo-1",
+        subgroup = "kj_dhd_glyphs",
     },
     {
         type = "virtual-signal",
@@ -54,6 +77,7 @@ data:extend({
         localised_name = {"", {"virtual-signal-name.kj_sg_glyph_poo"}, " 3"},
         localised_description = {"", {"virtual-signal-description.kj_sg_glyph_poo"}, " 3"},
         order = "poo-1",
+        subgroup = "kj_dhd_glyphs",
     },
     {
         type = "virtual-signal",
@@ -63,6 +87,7 @@ data:extend({
         localised_name = {"", {"virtual-signal-name.kj_sg_glyph_poo"}, " 4"},
         localised_description = {"", {"virtual-signal-description.kj_sg_glyph_poo"}, " 4"},
         order = "poo-1",
+        subgroup = "kj_dhd_glyphs",
     },
     {
         type = "virtual-signal",
@@ -72,6 +97,7 @@ data:extend({
         localised_name = {"", {"virtual-signal-name.kj_sg_glyph_poo"}, " 5"},
         localised_description = {"", {"virtual-signal-description.kj_sg_glyph_poo"}, " 5"},
         order = "poo-1",
+        subgroup = "kj_dhd_glyphs",
     },
 })
 data:extend({

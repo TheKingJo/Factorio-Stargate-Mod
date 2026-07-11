@@ -205,7 +205,15 @@ function deactivateGate(gate, override)
             name = "kj_stargate_eventHorizon_woosh_backward",
             position = util.vector2Add(gate.entity.position, {x = 0, y = (gate.manual and 0.5 or 0.45)}),
         }
-        storage.tasks.delayedTurnOffs[gate.id] = {tick = game.tick + 105, gate = gate}
+
+        --check for already existing turnoffs, so it doesn't get edged to eternity in case of an error
+        local tick = game.tick
+        if storage.tasks.delayedTurnOffs[gate.id] == nil then
+            tick = tick + 105
+        else
+            tick = math.min(tick + 105, storage.tasks.delayedTurnOffs[gate.id].tick)
+        end
+        storage.tasks.delayedTurnOffs[gate.id] = {tick = tick, gate = gate}
     end
 end
 

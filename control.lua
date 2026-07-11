@@ -556,52 +556,59 @@ function OnNthTickGates(e)
 
     for _, surface in pairs(surfaces) do
         for _, gate in pairs(surface) do
-            if gate.manual == false and gate.active == false and gate.safeToTravel == false then
-                local signals = gate.entity.get_signals(1)
-                if signals ~= nil then
+            if gate.manual == true then goto continue end
+            local signals = gate.entity.get_signals(1)
+            if signals == nil then goto continue end
+
+            if gate.active == false then
+                if gate.safeToTravel == false then
                     if gate.childs.energyDrain and gate.childs.energyDrain.energy ~= 10^9 then return end
                     local address = ""
-                    local index = 1
+                    local letterIndex = 1
                     local successful = false
+                    local disConnect = 0
                     local surfaceName = gate.entity.surface.name
 
                     table.sort(signals, function(a, b) --sort ascending
                         return a.count < b.count
                     end)
 
-                    for i, signal in ipairs(signals) do
-                        if signal.count == index then
-                            local glyph = signal.signal.name:match("^kj_sg_glyph_(.+)$")
+                    for _, signal in ipairs(signals) do
+                        local glyph = signal.signal.name:match("^kj_sg_glyph_(.+)$")
 
-                            if index == 7 then
-                                successful = true
-                            end
-
-                            if charLookup[glyph] ~= nil then
-                                if glyph ~= "poo_"..poo[surfaceName] then
+                        if charLookup[glyph] ~= nil then --signal is a glyph
+                            if letterIndex == signal.count then --glyph has correct count
+                                if glyph ~= "poo_"..poo[surfaceName] then --glyph is a letter, gets concat to address
                                     address = address..glyph
                                 else
-                                    local saas = glyph:match("_(%d+)$")
-                                    if tonumber(saas) ~= poo[surfaceName] then
-                                        successful = false
+                                    if letterIndex == 7 and tonumber(glyph:match("_(%d+)$")) == poo[surfaceName] then --is poo glyph same as surface
+                                        successful = true
                                     end
                                 end
-                            end
 
-                            index = index + 1
+                                letterIndex = letterIndex + 1
+                            else
+                                break --letter sequence broken, abort
+                            end
                         else
-                            index = #signals
-                            successful = false
+                            if glyph == "connect" then --signal is connection command
+                                if signal.count == 1 then
+                                    disConnect = 1
+                                else
+                                    disConnect = -1
+                                    break
+                                end
+                            end
                         end
                     end
 
                     game.print("Address: "..address)
 
-                    if successful == true then
+                    if successful == true and disConnect == 1 then
                         for surf, ads in pairs(storage.addresses) do
                             if surf ~= surfaceName then
                                 if address == ads then
-                                    game.print("Address found")
+                                    game.print("Address found: ".."")
                                     gate:Connect(findRandomGateOnSurface(surf))
                                     gate.childs.energyDrain.energy = 0
                                     gate.childs.energyDrain.electric_buffer_size = 10^7
@@ -610,7 +617,21 @@ function OnNthTickGates(e)
                         end
                     end
                 end
+            else
+                table.sort(signals, function(a, b) --sort ascending
+                    return a.count < b.count
+                end)
+
+                for _, signal in ipairs(signals) do
+                    if signal.count == -1 then
+                        if signal.signal.name:match("^kj_sg_glyph_(.+)$") == "connect" then --signal is connection command
+                            gate:Disconnect()
+                            break
+                        end
+                    end
+                end
             end
+            ::continue::
         end
     end
 end
