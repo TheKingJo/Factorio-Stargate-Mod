@@ -69,6 +69,7 @@ function initStorage()
         players = true,
         delayedSounds = true,
         delayedTurnOffs = true,
+        signaledGates = true,
     }
     for name, _ in pairs(names) do
         storage[name] = storage[name] or {}
@@ -232,6 +233,9 @@ function OnBuilt(e)
         surface.set_tiles(calcPosis)
 
         local content = {
+            destAddress = {},
+            destAddressLetters = {},
+
             manual = false,
             valid = true,
             active = false,
@@ -550,6 +554,60 @@ function OnNthTickPlayer(e)
     end
 end
 
+function OnNthTickSGates(e)
+    local signaledGates = storage.tasks.signaledGates
+    if not signaledGates then return end
+
+    --[[signaledGate = {
+        gate = nil, --gate ref
+        glyphs = {
+            {letter = "a", tick = game.tick+60},
+            {letter = "b", tick = game.tick+120},
+        },
+        pooID = "1"
+    }]]
+    for id, gate in pairs(signaledGates) do
+
+        if #gate.glyphs > 0 then
+            local glyph = gate.glyphs[1]
+            if game.tick >= glyph.tick then
+
+                    gate.gate.destAddressLetters = gate.gate.destAddressLetters or {}
+                    gate.gate.destAddress = gate.gate.destAddress or {}
+
+                gate.gate.destAddressLetters[glyph.letter] = true
+                table.insert(gate.gate.destAddress, glyph.letter)
+                table.remove(gate.glyphs, 1)
+                --play sound and activate lights and so
+                --also later add the rotation shiz
+            end
+        else
+            game.print("Address: "..gate.gate:GetDestAddress())
+            local success = false
+
+            if gate.pooID == poo[gate.gate.entity.surface.name] then --is poo glyph correct one (momentarily obsolete though)
+                for surf, address in pairs(storage.addresses) do
+                    if surf ~= gate.gate.entity.surface.name then --not on same surface
+                        if address == gate.gate:GetDestAddress() then
+                            game.print("Address found: "..surf)
+                            gate.gate:Connect(findRandomGateOnSurface(surf))
+                            gate.gate.childs.energyDrain.energy = 0
+                            gate.gate.childs.energyDrain.electric_buffer_size = 10^7
+                            success = true
+                        end
+                    end
+                end
+            end
+
+            gate.gate:ResetAddress()
+            signaledGates[id] = nil
+            if success == false then
+                --play fail sound und so + lichter etc
+            end
+        end
+    end
+end
+
 function OnNthTickGates(e)
     if not storage.stargate then return end
     local surfaces = storage.stargate
@@ -557,6 +615,7 @@ function OnNthTickGates(e)
     for _, surface in pairs(surfaces) do
         for _, gate in pairs(surface) do
             if gate.manual == true then goto continue end
+            if storage.tasks.signaledGates[gate.id] ~= nil then goto continue end
             local signals = gate.entity.get_signals(1)
             if signals == nil then goto continue end
 
@@ -564,9 +623,12 @@ function OnNthTickGates(e)
                 if gate.safeToTravel == false then
                     if gate.childs.energyDrain and gate.childs.energyDrain.energy ~= 10^9 then return end
                     local address = ""
+                    local addressLetters = {}
                     local letterIndex = 1
                     local successful = false
                     local disConnect = 0
+                    local tickOffset = 60
+                    local pooGlyphID = ""
                     local surfaceName = gate.entity.surface.name
 
                     table.sort(signals, function(a, b) --sort ascending
@@ -579,9 +641,11 @@ function OnNthTickGates(e)
                         if charLookup[glyph] ~= nil then --signal is a glyph
                             if letterIndex == signal.count then --glyph has correct count
                                 if glyph ~= "poo_"..poo[surfaceName] then --glyph is a letter, gets concat to address
+                                    table.insert(addressLetters, glyph)
                                     address = address..glyph
                                 else
                                     if letterIndex == 7 and tonumber(glyph:match("_(%d+)$")) == poo[surfaceName] then --is poo glyph same as surface
+                                        pooGlyphID = poo[surfaceName]
                                         successful = true
                                     end
                                 end
@@ -605,16 +669,26 @@ function OnNthTickGates(e)
                     game.print("Address: "..address)
 
                     if successful == true and disConnect == 1 then
-                        for surf, ads in pairs(storage.addresses) do
-                            if surf ~= surfaceName then
-                                if address == ads then
-                                    game.print("Address found: ".."")
-                                    gate:Connect(findRandomGateOnSurface(surf))
-                                    gate.childs.energyDrain.energy = 0
-                                    gate.childs.energyDrain.electric_buffer_size = 10^7
-                                end
-                            end
-                        end
+                        --for surf, ads in pairs(storage.addresses) do
+                            --if surf ~= surfaceName then
+                                --if ads == address then
+                                    local task = {gate = gate, glyphs = {}, pooID = pooGlyphID}
+                                    local offset = 60
+
+                                    for _, letter in ipairs(addressLetters) do
+                                        table.insert(task.glyphs, {
+                                            letter = letter, tick = game.tick + offset
+                                        })
+                                        offset = offset + tickOffset
+                                    end
+                                    storage.tasks.signaledGates[gate.id] = task
+                                    --game.print("Address found: "..surf)
+                                    --gate:Connect(findRandomGateOnSurface(surf))
+                                    --gate.childs.energyDrain.energy = 0
+                                    --gate.childs.energyDrain.electric_buffer_size = 10^7
+                                --end
+                            --end
+                        --end
                     end
                 end
             else
@@ -811,6 +885,7 @@ script.on_event(defines.events.on_entity_damaged , OnDamaged, {
 script.on_event(defines.events.on_tick, OnTick)
 script.on_nth_tick(60, OnNthTickTasks)
 script.on_nth_tick(10, OnNthTickGates)
+script.on_nth_tick(6, OnNthTickSGates)
 script.on_nth_tick(2, OnNthTickPlayer)
 
 script.on_event(defines.events.on_surface_created,

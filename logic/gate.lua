@@ -49,6 +49,21 @@ stargate = {
             self.chevrons.animation_offset = 0
         end
     end,
+
+    GetDestAddress = function(self)
+        if self.destAddress then
+            return table.concat(self.destAddress)
+        else
+            return nil
+        end
+    end,
+
+    ResetAddress = function(self)
+        if self.destAddress then
+            self.destAddress = {}
+            self.destAddressLetters = {}
+        end
+    end,
 }
 
 dhd = {
