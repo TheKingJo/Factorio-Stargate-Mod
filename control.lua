@@ -578,31 +578,35 @@ function OnNthTickSGates(e)
                 gate.gate.destAddressLetters[glyph.letter] = true
                 table.insert(gate.gate.destAddress, glyph.letter)
                 table.remove(gate.glyphs, 1)
-                --play sound and activate lights and so
-                --also later add the rotation shiz
+
+                gate.gate.chevrons.animation_offset = gate.gate.chevrons.animation_offset + 1
+                util.playSoundOnSurface(gate.gate.entity.surface, gate.gate.entity.position, util.randomSound("kj_stargate_chevron", 3))
+                --add the rotation shiz
             end
         else
-            game.print("Address: "..gate.gate:GetDestAddress())
+            game.print("Address dialing: "..gate.gate:GetDestAddress())
             local success = false
 
             if gate.pooID == poo[gate.gate.entity.surface.name] then --is poo glyph correct one (momentarily obsolete though)
                 for surf, address in pairs(storage.addresses) do
                     if surf ~= gate.gate.entity.surface.name then --not on same surface
-                        if address == gate.gate:GetDestAddress() then
+                        if address.."poo" == gate.gate:GetDestAddress() then
                             game.print("Address found: "..surf)
                             gate.gate:Connect(findRandomGateOnSurface(surf))
-                            gate.gate.childs.energyDrain.energy = 0
-                            gate.gate.childs.energyDrain.electric_buffer_size = 10^7
                             success = true
                         end
                     end
                 end
             end
 
+            gate.gate.childs.energyDrain.energy = 0
+            gate.gate.childs.energyDrain.electric_buffer_size = 10^7
             gate.gate:ResetAddress()
             signaledGates[id] = nil
+
             if success == false then
-                --play fail sound und so + lichter etc
+                gate.gate.chevrons.animation_offset = 0
+                util.playSoundOnSurface(gate.gate.entity.surface, gate.gate.entity.position, "kj_stargate_fail")
             end
         end
     end
@@ -646,6 +650,7 @@ function OnNthTickGates(e)
                                 else
                                     if letterIndex == 7 and tonumber(glyph:match("_(%d+)$")) == poo[surfaceName] then --is poo glyph same as surface
                                         pooGlyphID = poo[surfaceName]
+                                        table.insert(addressLetters, "poo")
                                         successful = true
                                     end
                                 end
@@ -665,8 +670,6 @@ function OnNthTickGates(e)
                             end
                         end
                     end
-
-                    game.print("Address: "..address)
 
                     if successful == true and disConnect == 1 then
                         --for surf, ads in pairs(storage.addresses) do
@@ -690,6 +693,7 @@ function OnNthTickGates(e)
                             --end
                         --end
                     end
+                    game.print("Address entered: "..address)
                 end
             else
                 table.sort(signals, function(a, b) --sort ascending
