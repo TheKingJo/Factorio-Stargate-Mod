@@ -23,6 +23,7 @@ sgNames = {
     placementSignaled = "kj_stargate_signaled_placement",
     base = "kj_stargate_base",
     sound = "kj_stargate_ambientSound",
+    rings = "kj_stargate_ring",
     tpArea = "kj_stargate_transferArea",
     tpAreaSignaled = "kj_stargate_transferArea_signaled",
     colliderV = "kj_stargate_colliderVert",
@@ -196,6 +197,12 @@ function OnBuilt(e)
                 name = sgNames.colliderHLL,
                 position = util.vector2Add(pos, {x = 1.5, y = 1.5}),
                 direction = defines.direction.west,
+            },
+
+            rings = surface.create_entity{
+                name = sgNames.rings,
+                position = util.vector2Add(pos, {x = 0, y = -1.85}),
+                force = "neutral",
             },
         }
         childs.energyDrain.power_usage = 10^7/60
@@ -579,11 +586,22 @@ function OnNthTickSGates(e)
                 table.insert(gate.gate.destAddress, glyph.letter)
                 table.remove(gate.glyphs, 1)
 
+
+                local direction = (#gate.gate.destAddress % 2) * 2
+                gate.gate.childs.rings.riding_state = {
+                    acceleration = defines.riding.acceleration.nothing,
+                    direction = direction,
+                }
+
                 gate.gate.chevrons.animation_offset = gate.gate.chevrons.animation_offset + 1
                 util.playSoundOnSurface(gate.gate.entity.surface, gate.gate.entity.position, util.randomSound("kj_stargate_chevron", 3))
                 --add the rotation shiz
             end
         else
+            gate.gate.childs.rings.riding_state = {
+                acceleration = defines.riding.acceleration.nothing,
+                direction = defines.riding.direction.straight,
+            }
             game.print("Address dialing: "..gate.gate:GetDestAddress())
             local success = false
 

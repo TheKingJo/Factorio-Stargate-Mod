@@ -27,6 +27,55 @@ metal.variations = sound_variations(modname.."/sounds/walk_metal", 4, 0.5)
 
 data:extend({
     {
+        type = "item-with-entity-data",
+        name = "kj_stargate_ring",
+        icon = modname.."/graphics/entities/stargate/icon.png",
+        icon_size = 128,
+        place_result = "kj_stargate_ring",
+        stack_size = 1
+    },
+    {
+        type = "car",
+        name = "kj_stargate_ring",
+        icon = modname.."/graphics/entities/stargate/icon.png",
+        icon_size = 128,
+        selection_box = {{-1,-1}, {1,1}},
+        flags = {"placeable-neutral", "placeable-off-grid", "not-flammable"},
+        minable = {mining_time = 0.5, result = "kj_stargate_ring"},
+		collision_mask = {layers = {}},
+        consumption = "100kW",
+        effectivity = 1,
+        energy_source = {
+            type = "void",
+        },
+        inventory_size = 0,
+        rotation_speed = 1/(4*60),
+        braking_force = 1,
+        energy_per_hit_point = 1,
+        friction_force = 1,
+        weight = 100,
+        allow_remote_driving = false,
+        tank_driving = true,
+        animation = {
+            layers = {
+                {
+                    size = 704,
+                    shift = {1.25, 0.5-0.2},
+                    direction_count = 117,
+                    apply_projection = false,
+                    frame_count = 1,
+                    line_length = 11,
+                    scale = 0.5,
+                    animation_speed = 1,
+                    max_advance = 1,
+                    filename = modname.."/graphics/entities/stargate/ring_anim.png",
+                },
+            },
+        },
+    },
+})
+data:extend({
+    {
         type = "tips-and-tricks-item",
         name = "kj_stargate",
         tag = "[item=kj_stargate_placement]",
