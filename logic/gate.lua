@@ -3,7 +3,7 @@ stargate = {
     end,
 
 	Connect = function(thisGate, otherGate)
-        if otherGate == nil then return end
+        if otherGate == nil then return nil end
         if otherGate.destination ~= nil then --other gate has connection
             if thisGate.dhd then
                 thisGate.dhd:ResetGlyphs()
@@ -28,6 +28,8 @@ stargate = {
 
             --game.print("Gates connected: "..thisGate.id.."|"..otherGate.id)
         end
+
+        return true
 	end,
 
     Disconnect = function(self, override)
@@ -289,6 +291,7 @@ end
 
 function findRandomGateOnSurface(surface)
     local gates = {}
+    if not storage.stargate[surface] then return nil end
     for _, gate in pairs(storage.stargate[surface]) do
         if gate.active == false then
             table.insert(gates, gate)

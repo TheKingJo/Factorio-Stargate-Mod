@@ -1,4 +1,6 @@
 local functions = {}
+local glyphIndex = {}
+ringGlyphDistances = {}
 local dhdSearchRadius = 15
 local opposite = {
     dhd = "stargate",
@@ -8,6 +10,49 @@ local oppositeEntity = {
     dhd = "stargate_transferArea",
     stargate = "dhd",
 }
+
+chevronChars = {}
+for i = string.byte("A"), string.byte("S") do
+    table.insert(chevronChars, string.char(i))
+end
+for i = string.byte("a"), string.byte("s") do
+    table.insert(chevronChars, string.char(i))
+end
+
+charLookup = {}
+for i, char in ipairs(chevronChars) do
+    charLookup[char] = i
+end
+for i = 1, 5, 1 do
+    charLookup["poo_"..i] = 1
+end
+
+
+local chars = {
+    "A","B","C","D","E","F","G","H","I","J","K","L","M","N","O","P","Q","R","S",
+    "a","b","c","d","e","f","g","h","i","j","k","l","m","n","o","p","q","r","s","poo"
+}
+local max = #chars -- 39
+
+for i, row in ipairs(chars) do
+    ringGlyphDistances[row] = {}
+    for j, col in ipairs(chars) do
+        local d = math.abs(i - j)
+        ringGlyphDistances[row][col] = math.min(d, max - d) -- 39 - d
+    end
+end
+--[[
+for _, v in pairs(chars) do
+    print("A:"..v.." "..ringGlyphDistances["A"][v])
+end
+for _, v in pairs(chars) do
+    print("h:"..v.." "..ringGlyphDistances["h"][v])
+end
+]]
+
+for i, glyph in ipairs(chars) do
+    glyphIndex[glyph] = i
+end
 
 function functions.getDistance(pos1, pos2)
 	return math.sqrt((pos2.x - pos1.x)^2 + (pos2.y - pos1.y)^2)
@@ -19,6 +64,20 @@ function functions.deleteFromITable(t, value)
             table.remove(t, i)
             return i
         end
+    end
+end
+
+function functions.getRingGlyphDistance(from, to)
+    local a = glyphIndex[from]
+    local b = glyphIndex[to]
+
+    local right = (b - a) % max
+    local left  = (a - b) % max
+
+    if right <= left then
+        return right, 2
+    else
+        return left, 1
     end
 end
 

@@ -49,7 +49,7 @@ data:extend({
             type = "void",
         },
         inventory_size = 0,
-        rotation_speed = 1/(4*60),
+        rotation_speed = 1/(6*60),
         braking_force = 1,
         energy_per_hit_point = 1,
         friction_force = 1,

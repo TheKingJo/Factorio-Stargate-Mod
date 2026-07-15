@@ -35,22 +35,6 @@ sgNames = {
 }
 dhdName = "kj_dhd"
 
-chevronChars = {}
-for i = string.byte("A"), string.byte("S") do
-    table.insert(chevronChars, string.char(i))
-end
-for i = string.byte("a"), string.byte("s") do
-    table.insert(chevronChars, string.char(i))
-end
-
-charLookup = {}
-for i, char in ipairs(chevronChars) do
-    charLookup[char] = i
-end
-for i = 1, 5, 1 do
-    charLookup["poo_"..i] = 1
-end
-
 
 function initStorage()
     local names = {
@@ -242,6 +226,7 @@ function OnBuilt(e)
         local content = {
             destAddress = {},
             destAddressLetters = {},
+            lastGlyph = "poo",
 
             manual = false,
             valid = true,
@@ -587,7 +572,7 @@ function OnNthTickSGates(e)
                 table.remove(gate.glyphs, 1)
 
 
-                local direction = (#gate.gate.destAddress % 2) * 2
+                local direction = (glyph.direction % 2) * 2 --(#gate.gate.destAddress % 2) * 2
                 gate.gate.childs.rings.riding_state = {
                     acceleration = defines.riding.acceleration.nothing,
                     direction = direction,
@@ -610,21 +595,23 @@ function OnNthTickSGates(e)
                     if surf ~= gate.gate.entity.surface.name then --not on same surface
                         if address.."poo" == gate.gate:GetDestAddress() then
                             game.print("Address found: "..surf)
-                            gate.gate:Connect(findRandomGateOnSurface(surf))
-                            success = true
+                            if gate.gate:Connect(findRandomGateOnSurface(surf)) then
+                                success = true
+                            end
                         end
                     end
                 end
             end
 
             gate.gate.childs.energyDrain.energy = 0
-            gate.gate.childs.energyDrain.electric_buffer_size = 10^7
             gate.gate:ResetAddress()
             signaledGates[id] = nil
 
             if success == false then
                 gate.gate.chevrons.animation_offset = 0
                 util.playSoundOnSurface(gate.gate.entity.surface, gate.gate.entity.position, "kj_stargate_fail")
+            else
+                gate.gate.childs.energyDrain.electric_buffer_size = 10^7
             end
         end
     end
@@ -694,13 +681,21 @@ function OnNthTickGates(e)
                             --if surf ~= surfaceName then
                                 --if ads == address then
                                     local task = {gate = gate, glyphs = {}, pooID = pooGlyphID}
-                                    local offset = 60
+                                    local prevLetter = gate.lastGlyph or "poo"
+                                    local offset = 0
 
                                     for _, letter in ipairs(addressLetters) do
+                                        local distance, dir = util.getRingGlyphDistance(prevLetter, letter)
+                                        --game.print("Distance: "..prevLetter.." "..letter.." "..ringGlyphDistances[prevLetter][letter])
+                                        game.print("Distance: "..prevLetter.." "..letter.." "..distance)
+                                        game.print("Time: "..offset)
+                                        game.print("Tick: "..game.tick + offset)
+                                        --offset = offset + 3*60*(ringGlyphDistances[prevLetter][letter] / 19)
+                                        offset = offset + 3*60*(distance / 19)
                                         table.insert(task.glyphs, {
-                                            letter = letter, tick = game.tick + offset
+                                            letter = letter, tick = game.tick + offset, direction = dir
                                         })
-                                        offset = offset + tickOffset
+                                        prevLetter = letter
                                     end
                                     storage.tasks.signaledGates[gate.id] = task
                                     --game.print("Address found: "..surf)
