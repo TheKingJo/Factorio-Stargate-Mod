@@ -21,11 +21,14 @@ poo = {
 sgNames = {
     placement = "kj_stargate_placement",
     placementSignaled = "kj_stargate_signaled_placement",
+
     base = "kj_stargate_base",
     sound = "kj_stargate_ambientSound",
+    lights = "kj_stargate_lamps",
     rings = "kj_stargate_ring",
     tpArea = "kj_stargate_transferArea",
     tpAreaSignaled = "kj_stargate_transferArea_signaled",
+
     colliderV = "kj_stargate_colliderVert",
     colliderHL = "kj_stargate_colliderHoriLong",
     colliderHLL = "kj_stargate_colliderHoriLonger",
@@ -187,6 +190,11 @@ function OnBuilt(e)
                 name = sgNames.rings,
                 position = util.vector2Add(pos, {x = 0, y = -1.85}),
                 force = "neutral",
+            },
+
+            lights = surface.create_entity{
+                name = sgNames.lights,
+                position = util.vector2Add(pos, {x = 0, y = -1.5}),
             },
         }
         childs.energyDrain.power_usage = 10^7/60
@@ -578,6 +586,7 @@ function OnNthTickSGates(e)
                     direction = direction,
                 }
 
+                gate.gate.lastGlyph = glyph.letter
                 gate.gate.chevrons.animation_offset = gate.gate.chevrons.animation_offset + 1
                 util.playSoundOnSurface(gate.gate.entity.surface, gate.gate.entity.position, util.randomSound("kj_stargate_chevron", 3))
                 --add the rotation shiz

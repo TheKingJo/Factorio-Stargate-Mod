@@ -45,9 +45,7 @@ data:extend({
 		collision_mask = {layers = {}},
         consumption = "100kW",
         effectivity = 1,
-        energy_source = {
-            type = "void",
-        },
+        energy_source = {type = "void"},
         inventory_size = 0,
         rotation_speed = 1/(6*60),
         braking_force = 1,
@@ -59,8 +57,8 @@ data:extend({
         animation = {
             layers = {
                 {
-                    size = 704,
-                    shift = {1.25, 0.5-0.2},
+                    size = 480,
+                    shift = {0, -0.5-1},
                     direction_count = 117,
                     apply_projection = false,
                     frame_count = 1,
@@ -604,6 +602,37 @@ data:extend({
             entity_to_sound_ratio = 1,
             sound = {
                 variations = sound_variations(modname.."/sounds/gate_puddle", 5)
+            }
+        },
+    },
+    {
+        type = "lamp",
+        name = "kj_stargate_lamps",
+        hidden = true,
+        icon = modname.."/graphics/entities/stargate/icon.png",
+        icon_size = 128,
+        flags = {"placeable-neutral", "placeable-off-grid", "not-flammable"},
+        collision_box = {{-3, -1.8}, {3, 2.7}},
+        selection_box = {{-1,-1}, {1,1}},
+		collision_mask = {layers = {}},
+        map_color = {r = 0.55, g = 0.55, b = 0.55, a = 1},
+        glow_render_mode = "additive",
+        is_military_target  = false,
+        energy_source = {
+            type = "electric",
+            usage_priority = "lamp"
+        },
+        energy_usage_per_tick = "10kW",
+        picture_on = {
+            layers = {
+                {
+                    size = 832,
+                    shift = {0, 1},
+                    scale = 0.5,
+                    filename = modname.."/graphics/entities/stargate/s_gate_light.png",
+                    blend_mode = "additive",
+                    draw_as_glow = true,
+                },
             }
         },
     },
