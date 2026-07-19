@@ -58,12 +58,18 @@ function functions.getSignalFromChar(input, assembled)
     assert(type(input) == "string", "Expected string")
 
     if #input == 1 then -- single char
-        return "[virtual-signal=kj_sg_glyph_"..input.."]"
+        return "[img=virtual-signal.kj_sg_glyph_"..input.."]"
     else
         local gChars = {}
+        local adr, poo = input:match("^(.-)(poo_%d)$")
+        adr = adr or input
+        poo = poo or nil
 
-        for c in input:gmatch(".") do
-            gChars[#gChars + 1] = "[img=virtual-signal.kj_sg_glyph_"..c.."]"
+        for c in adr:gmatch(".") do
+            table.insert(gChars, functions.getSignalFromChar(c))
+        end
+        if poo ~= nil then
+            table.insert(gChars, "[img=virtual-signal.kj_sg_glyph_"..poo.."]")
         end
 
         if assembled then

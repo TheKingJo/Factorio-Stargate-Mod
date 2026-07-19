@@ -216,7 +216,7 @@ data:extend({
         minable = {
             mining_time = 15,
             results = {
-                {type = "item", name = "kj_stargate_placement", amount = 1},
+                {type = "item", name = "kj_stargate", amount = 1},
             }
         },
         resistances = {
@@ -356,7 +356,13 @@ data:extend({
         collision_box = {{-3.9, -2.4}, {3.9, 2.4}},
         selection_box = {{-4,   -2.5}, {4,   2.5}},
         drawing_box_vertical_extension = 3,
-        minable = {mining_time = 1, result = "kj_stargate_placement"},
+        minable = {
+            mining_time = 5,
+            results = {
+                {type = "item", name = "kj_stargate", amount = 1},
+                {type = "item", name = "stone", amount = 500},
+            }
+        },
         map_color = {r = 0.55, g = 0.55, b = 0.55, a = 1},
         picture = {
             layers = {
@@ -396,7 +402,16 @@ data:extend({
         collision_box = {{-5, -3.5}, {5, 5}},
         selection_box = {{-5, -3.5}, {5, 5}},
         drawing_box_vertical_extension = 3,
-        minable = {mining_time = 1, result = "kj_stargate_signaled_placement"},
+        minable = {
+            mining_time = 5,
+            results = {
+                {type = "item", name = "kj_stargate", amount = 1},
+                {type = "item", name = "steel-plate", amount = 5},
+                {type = "item", name = "iron-stick",  amount = 10},
+                {type = "item", name = "iron-plate",  amount = 10},
+                {type = "item", name = "copper-cable",amount = 10},
+            }
+        },
         map_color = {r = 0.55, g = 0.55, b = 0.55, a = 1},
         picture = {
             layers = {
@@ -437,6 +452,13 @@ data:extend({
         collision_mask = {layers = {trigger_target = true}},
         collision_box = {{-1.5, -0.3}, {1.5, 0.3}},
         selection_box = {{-4, -0.8}, {4, 3}},
+        minable = {
+            mining_time = 5,
+            results = {
+                {type = "item", name = "kj_stargate", amount = 1},
+                {type = "item", name = "stone", amount = 500},
+            }
+        },
         factoriopedia_alternative = "kj_stargate_placement",
         flags = {"placeable-neutral", "placeable-off-grid", "not-flammable"},
         map_color = {1, 1, 1, 1},
@@ -453,7 +475,6 @@ data:extend({
                 percent  = 0,
             },
         },
-        minable = {mining_time = 1, result = "kj_stargate_placement"},
         selection_priority = 45,
     },
     {
@@ -465,20 +486,14 @@ data:extend({
         collision_mask = {layers = {trigger_target = true}},
         collision_box = {{-1.5, -0.3}, {1.5, 0.3}},
         selection_box = {{-3, -1.5}, {3, 3}},
-        circuit_wire_max_distance = 9,
-        circuit_connector = {
-            {
-                sprites = nil,
-                points = {
-                    shadow = {
-                        green = {10.19, 1.27},
-                        red =   {10.19, 1.26},
-                    },
-                    wire = {
-                        green = {4.89, -4.3},
-                        red =   {4.89, -4.2},
-                    },
-                },
+        minable = {
+            mining_time = 5,
+            results = {
+                {type = "item", name = "kj_stargate", amount = 1},
+                {type = "item", name = "steel-plate", amount = 5},
+                {type = "item", name = "iron-stick",  amount = 10},
+                {type = "item", name = "iron-plate",  amount = 10},
+                {type = "item", name = "copper-cable",amount = 10},
             }
         },
         factoriopedia_alternative = "kj_stargate_signaled_placement",
@@ -498,8 +513,23 @@ data:extend({
                 percent  = 0,
             },
         },
-        minable = {mining_time = 1, result = "kj_stargate_placement"},
         selection_priority = 45,
+        circuit_wire_max_distance = 9,
+        circuit_connector = {
+            {
+                sprites = nil,
+                points = {
+                    shadow = {
+                        green = {10.19, 1.27},
+                        red =   {10.19, 1.26},
+                    },
+                    wire = {
+                        green = {4.89, -4.3},
+                        red =   {4.89, -4.2},
+                    },
+                },
+            }
+        },
     },
     {
         type = "sprite",
@@ -567,7 +597,7 @@ data:extend({
         type = "electric-energy-interface",
         name = "kj_stargate_gate_s_energyDrain",
         hidden = true,
-        icon = modname.."/graphics/entities/stargate/icon.png",
+        icon = modname.."/graphics/entities/stargate/s_icon.png",
         icon_size = 128,
         selection_box = {{-3, -1.5}, {3, 3}},
         collision_box = {{-3, -1.5}, {3, 3}},
@@ -609,11 +639,11 @@ data:extend({
         type = "lamp",
         name = "kj_stargate_lamps",
         hidden = true,
-        icon = modname.."/graphics/entities/stargate/icon.png",
+        icon = modname.."/graphics/entities/stargate/s_gate_light_icon.png",
         icon_size = 128,
         flags = {"placeable-neutral", "placeable-off-grid", "not-flammable"},
-        collision_box = {{-3, -1.8}, {3, 2.7}},
-        selection_box = {{-1,-1}, {1,1}},
+        collision_box = {{-1.4, -0.8}, {1.4, 4.5}},
+        selection_box = {{-1.4, -0.8}, {1.4, 4.5}},
 		collision_mask = {layers = {}},
         map_color = {r = 0.55, g = 0.55, b = 0.55, a = 1},
         glow_render_mode = "additive",
@@ -627,7 +657,7 @@ data:extend({
             layers = {
                 {
                     size = 832,
-                    shift = {0, 1},
+                    shift = {0, -0.5},
                     scale = 0.5,
                     filename = modname.."/graphics/entities/stargate/s_gate_light.png",
                     blend_mode = "additive",

@@ -194,7 +194,7 @@ function OnBuilt(e)
 
             lights = surface.create_entity{
                 name = sgNames.lights,
-                position = util.vector2Add(pos, {x = 0, y = -1.5}),
+                position = util.vector2Add(pos, {x = 0, y = 0}),
             },
         }
         childs.energyDrain.power_usage = 10^7/60
@@ -596,7 +596,7 @@ function OnNthTickSGates(e)
                 acceleration = defines.riding.acceleration.nothing,
                 direction = defines.riding.direction.straight,
             }
-            game.print("Address dialing: "..gate.gate:GetDestAddress())
+            game.print("Address dialing: "..gate.gate:GetDestAddress().." "..util.getSignalFromChar(gate.gate:GetDestAddress().."_"..poo[gate.gate.entity.surface.name], true))
             local success = false
 
             if gate.pooID == poo[gate.gate.entity.surface.name] then --is poo glyph correct one (momentarily obsolete though)
@@ -697,7 +697,6 @@ function OnNthTickGates(e)
                                         local distance, dir = util.getRingGlyphDistance(prevLetter, letter)
                                         --game.print("Distance: "..prevLetter.." "..letter.." "..ringGlyphDistances[prevLetter][letter])
                                         game.print("Distance: "..prevLetter.." "..letter.." "..distance)
-                                        game.print("Time: "..offset)
                                         game.print("Tick: "..game.tick + offset)
                                         --offset = offset + 3*60*(ringGlyphDistances[prevLetter][letter] / 19)
                                         offset = offset + 3*60*(distance / 19)
@@ -715,7 +714,7 @@ function OnNthTickGates(e)
                             --end
                         --end
                     end
-                    game.print("Address entered: "..address..util.getSignalFromChar(address, true))
+                    game.print("Address entered: "..address.." "..util.getSignalFromChar(address, true))
                 end
             else
                 table.sort(signals, function(a, b) --sort ascending
@@ -815,7 +814,8 @@ function OnDamaged(e)
 
     local remnant = {
         kj_dhd = "medium-small-remnants",
-        kj_stargate_transferArea = "medium-remnants"
+        kj_stargate_transferArea = "medium-remnants",
+        kj_stargate_transferArea_signaled = "big-remnants"
     }
 
     entity.health = math.floor(e.final_health + 0.5)
@@ -889,6 +889,21 @@ function Chunk(e)
         end
     end
 end
+
+commands.add_command("printAddress", nil, function(command)
+    if command.player_index == nil then return end
+    local surface = command.parameter
+
+    if surface ~= nil then
+        if storage.addresses[surface] ~= nil then
+            game.print("Address of "..surface..": "..util.getSignalFromChar(storage.addresses[surface], true))
+        end
+    else
+        for surface, address in pairs(storage.addresses) do
+            game.print("Address of "..surface..": "..util.getSignalFromChar(address, true))
+        end
+    end
+end)
 
 script.on_event(defines.events.on_built_entity, OnBuilt)
 script.on_event(defines.events.on_robot_built_entity, OnBuilt)
