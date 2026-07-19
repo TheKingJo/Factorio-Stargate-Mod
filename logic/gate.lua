@@ -332,7 +332,7 @@ function generateAdress(surface)
     end
     local resultString = table.concat(result)
 
-    game.print("Adress: "..resultString)
+    game.print("Address: "..resultString..util.getSignalFromChar(resultString, true))
     return resultString
 end
 

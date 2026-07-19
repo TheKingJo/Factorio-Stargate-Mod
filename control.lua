@@ -715,7 +715,7 @@ function OnNthTickGates(e)
                             --end
                         --end
                     end
-                    game.print("Address entered: "..address)
+                    game.print("Address entered: "..address..util.getSignalFromChar(address, true))
                 end
             else
                 table.sort(signals, function(a, b) --sort ascending

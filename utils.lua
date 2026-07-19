@@ -54,6 +54,32 @@ for i, glyph in ipairs(chars) do
     glyphIndex[glyph] = i
 end
 
+function functions.getSignalFromChar(input, assembled)
+    assert(type(input) == "string", "Expected string")
+
+    if #input == 1 then -- single char
+        return "[virtual-signal=kj_sg_glyph_"..input.."]"
+    else
+        local gChars = {}
+
+        for c in input:gmatch(".") do
+            gChars[#gChars + 1] = "[img=virtual-signal.kj_sg_glyph_"..c.."]"
+        end
+
+        if assembled then
+            local export = ""
+
+            for _, c in ipairs(gChars) do
+                export = export..c
+            end
+
+            return export
+        else
+            return gChars
+        end
+    end
+end
+
 function functions.getDistance(pos1, pos2)
 	return math.sqrt((pos2.x - pos1.x)^2 + (pos2.y - pos1.y)^2)
 end
