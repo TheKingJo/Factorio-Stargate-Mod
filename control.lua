@@ -194,6 +194,7 @@ function OnBuilt(e)
 
             lights = surface.create_entity{
                 name = sgNames.lights,
+                force = "neutral",
                 position = util.vector2Add(pos, {x = 0, y = 0}),
             },
         }
@@ -307,7 +308,6 @@ function OnBuilt(e)
             },
         }
 
-        --tpArea.destructible = false
         for _, child in pairs(childs) do
             child.destructible = false
         end
@@ -567,6 +567,10 @@ function OnNthTickSGates(e)
         pooID = "1"
     }]]
     for id, gate in pairs(signaledGates) do
+        if not gate.gate.entity.valid then
+            signaledGates[id] = nil
+            goto continue
+        end
 
         if #gate.glyphs > 0 then
             local glyph = gate.glyphs[1]
@@ -617,12 +621,14 @@ function OnNthTickSGates(e)
             signaledGates[id] = nil
 
             if success == false then
+                gate.entity.minable_flag = true
                 gate.gate.chevrons.animation_offset = 0
                 util.playSoundOnSurface(gate.gate.entity.surface, gate.gate.entity.position, "kj_stargate_fail")
             else
                 gate.gate.childs.energyDrain.electric_buffer_size = 10^7
             end
         end
+        ::continue::
     end
 end
 
@@ -686,33 +692,22 @@ function OnNthTickGates(e)
                     end
 
                     if successful == true and disConnect == 1 then
-                        --for surf, ads in pairs(storage.addresses) do
-                            --if surf ~= surfaceName then
-                                --if ads == address then
-                                    local task = {gate = gate, glyphs = {}, pooID = pooGlyphID}
-                                    local prevLetter = gate.lastGlyph or "poo"
-                                    local offset = 0
+                        local task = {gate = gate, glyphs = {}, pooID = pooGlyphID}
+                        local prevLetter = gate.lastGlyph or "poo"
+                        local offset = 0
 
-                                    for _, letter in ipairs(addressLetters) do
-                                        local distance, dir = util.getRingGlyphDistance(prevLetter, letter)
-                                        --game.print("Distance: "..prevLetter.." "..letter.." "..ringGlyphDistances[prevLetter][letter])
-                                        game.print("Distance: "..prevLetter.." "..letter.." "..distance)
-                                        game.print("Tick: "..game.tick + offset)
-                                        --offset = offset + 3*60*(ringGlyphDistances[prevLetter][letter] / 19)
-                                        offset = offset + 3*60*(distance / 19)
-                                        table.insert(task.glyphs, {
-                                            letter = letter, tick = game.tick + offset, direction = dir
-                                        })
-                                        prevLetter = letter
-                                    end
-                                    storage.tasks.signaledGates[gate.id] = task
-                                    --game.print("Address found: "..surf)
-                                    --gate:Connect(findRandomGateOnSurface(surf))
-                                    --gate.childs.energyDrain.energy = 0
-                                    --gate.childs.energyDrain.electric_buffer_size = 10^7
-                                --end
-                            --end
-                        --end
+                        for _, letter in ipairs(addressLetters) do
+                            local distance, dir = util.getRingGlyphDistance(prevLetter, letter)
+                            game.print("Distance: "..prevLetter.." "..letter.." "..distance)
+                            game.print("Tick: "..game.tick + offset)
+                            offset = offset + 3*60*(distance / 19)
+                            table.insert(task.glyphs, {
+                                letter = letter, tick = game.tick + offset, direction = dir
+                            })
+                            prevLetter = letter
+                        end
+                        gate.entity.minable_flag = false
+                        storage.tasks.signaledGates[gate.id] = task
                     end
                     game.print("Address entered: "..address.." "..util.getSignalFromChar(address, true))
                 end
@@ -832,7 +827,6 @@ function OnDamaged(e)
                     position = entity.position,
                     force = "neutral",
                 }
-                --ent.destructible = false
                 ent.graphics_variation = math.random(1,4)
             else --physical damage overload is supposed to destroy the gate
                 entity.surface.create_entity{
@@ -875,14 +869,12 @@ function Chunk(e)
                 force = "neutral",
             }
             ent.graphics_variation = math.random(1,4)
-            --ent.destructible = false
             ent = surface.create_entity{
                 name = "kj_dhd_auto_gen",
                 position = pos,
                 force = "neutral",
             }
             ent.graphics_variation = math.random(1,4)
-            --ent.destructible = false
             game.print("Placed stargate and dhd at [gps="..pos.x..","..pos.y..","..surface.name.."]. Needed "..i.." attempts.")
         else
             game.print("Couldn't place stargate and dhd on "..surface.name.."! Starting area too crowded.")
