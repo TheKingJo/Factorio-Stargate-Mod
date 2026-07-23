@@ -26,6 +26,7 @@ sgNames = {
     sound = "kj_stargate_ambientSound",
     lights = "kj_stargate_lamps",
     rings = "kj_stargate_ring",
+    pole = "kj_stargate_pole_",
     tpArea = "kj_stargate_transferArea",
     tpAreaSignaled = "kj_stargate_transferArea_signaled",
 
@@ -134,10 +135,10 @@ function OnBuilt(e)
             animation_speed = 0,
         }
         local childs = {
-            energyDrain = surface.create_entity{
-                name = "kj_stargate_gate_s_energyDrain",
+            signalReceiver = surface.create_entity{
+                name = "kj_stargate_signal_receiver",
                 force = "neutral",
-                position = util.vector2Add(pos, {x = 0, y = -8}),
+                position = util.vector2Add(pos, {x = 0, y = 0}),
             },
 
             colliderH11 = surface.create_entity{
@@ -197,8 +198,24 @@ function OnBuilt(e)
                 force = "neutral",
                 position = util.vector2Add(pos, {x = 0, y = 0}),
             },
+
+            poleVisibleRight = surface.create_entity{
+                name = sgNames.pole.."visible_right",
+                force = "neutral",
+                position = util.vector2Add(pos, {x = 4.7, y = -0.528}),
+            },
+            poleVisibleLeft = surface.create_entity{
+                name = sgNames.pole.."visible_left",
+                force = "neutral",
+                position = util.vector2Add(pos, {x =-4.7, y = -0.527}),
+            },
+            poleVisibleMiddle = surface.create_entity{
+                name = sgNames.pole.."invisible",
+                force = "neutral",
+                position = util.vector2Add(pos, {x = 0, y = -0.9}),
+            },
         }
-        childs.energyDrain.power_usage = 10^7/60
+        tpArea.power_usage = 10^7/60
 
         for _, child in pairs(childs) do
             child.destructible = false
@@ -223,14 +240,27 @@ function OnBuilt(e)
                 table.insert(calcPosis, {position = util.vector2Add(pos, {-0.5 * i, y}), name = "kj_stargate_metalTile"})
             end
         end
-
         local oldTiles = {}
         for _, tile in pairs(calcPosis) do
             tile = surface.get_tile(tile.position.x, tile.position.y)
             table.insert(oldTiles, {name = tile.name, position = tile.position})
         end
-
         surface.set_tiles(calcPosis)
+
+        local wireConsR = childs.poleVisibleRight.get_wire_connectors(true)
+        local wireConsL = childs.poleVisibleLeft.get_wire_connectors(true)
+        local wireConsM = childs.poleVisibleMiddle.get_wire_connectors(true)
+        local wireConsSR = childs.signalReceiver.get_wire_connector(1, true)
+
+        for id, wireConnector in pairs(wireConsM) do
+            if wireConsL[id] then
+                wireConnector.connect_to(wireConsL[id], false, defines.wire_origin.script)
+            end
+            if wireConsR[id] then
+                wireConnector.connect_to(wireConsR[id], false, defines.wire_origin.script)
+            end
+        end
+        wireConsM[1].connect_to(wireConsSR)
 
         local content = {
             destAddress = {},
@@ -481,14 +511,14 @@ function OnTick(e)
                     surface = eH.gate.entity.surface,
                     render_layer = "object",
                 }
-                eH.gate.entity.surface.create_entity {
+                eH.gate.childs.dmg1 = eH.gate.entity.surface.create_entity {
                     name = "kj_stargate_woosh_dmg",
                     position = effectPos1,
                     force = "enemy",
                     target = effectPos1,
                     speed = 1,
                 }
-                eH.gate.entity.surface.create_entity {
+                eH.gate.childs.dmg2 = eH.gate.entity.surface.create_entity {
                     name = "kj_stargate_woosh_dmg",
                     position = effectPos2,
                     force = "enemy",
@@ -584,7 +614,7 @@ function OnNthTickSGates(e)
                 table.remove(gate.glyphs, 1)
 
 
-                local direction = (glyph.direction % 2) * 2 --(#gate.gate.destAddress % 2) * 2
+                local direction = (glyph.direction % 2) * 2 --2 / 0
                 gate.gate.childs.rings.riding_state = {
                     acceleration = defines.riding.acceleration.nothing,
                     direction = direction,
@@ -616,7 +646,7 @@ function OnNthTickSGates(e)
                 end
             end
 
-            gate.gate.childs.energyDrain.energy = 0
+            gate.gate.entity.energy = 0
             gate.gate:ResetAddress()
             signaledGates[id] = nil
 
@@ -625,7 +655,7 @@ function OnNthTickSGates(e)
                 gate.gate.chevrons.animation_offset = 0
                 util.playSoundOnSurface(gate.gate.entity.surface, gate.gate.entity.position, "kj_stargate_fail")
             else
-                gate.gate.childs.energyDrain.electric_buffer_size = 10^7
+                gate.gate.entity.electric_buffer_size = 10^7
             end
         end
         ::continue::
@@ -637,15 +667,16 @@ function OnNthTickGates(e)
     local surfaces = storage.stargate
 
     for _, surface in pairs(surfaces) do
-        for _, gate in pairs(surface) do
+        for id, gate in pairs(surface) do
             if gate.manual == true then goto continue end
-            if storage.tasks.signaledGates[gate.id] ~= nil then goto continue end
-            local signals = gate.entity.get_signals(1)
+            --if storage.tasks.signaledGates[gate.id] ~= nil then goto continue end
+            if not gate.childs.signalReceiver then surface[id] = nil return end
+            local signals = gate.childs.signalReceiver.get_signals(1)
             if signals == nil then goto continue end
 
-            if gate.active == false then
+            if gate.active == false and storage.tasks.signaledGates[gate.id] == nil then
                 if gate.safeToTravel == false then
-                    if gate.childs.energyDrain and gate.childs.energyDrain.energy ~= 10^9 then return end
+                    if gate.entity and gate.entity.energy ~= 10^9 then return end
                     local address = ""
                     local addressLetters = {}
                     local letterIndex = 1
@@ -720,6 +751,8 @@ function OnNthTickGates(e)
                     if signal.count == -1 then
                         if signal.signal.name:match("^kj_sg_glyph_(.+)$") == "connect" then --signal is connection command
                             gate:Disconnect()
+                            gate:Reset()
+                            storage.tasks.signaledGates[gate.id] = nil
                             break
                         end
                     end
@@ -799,7 +832,10 @@ function OnDamaged(e)
     local entityName = {
         kj_dhd = "dhd",
         kj_stargate_transferArea = "stargate",
-        kj_stargate_transferArea_signaled = "stargate"
+        kj_stargate_transferArea_signaled = "stargate",
+
+        kj_dhd_auto_gen = "stargate",
+        kj_stargate_auto_gen = "stargate",
     }
     if type ~= "explosion" and type ~= "physical" then return end
     if (entityName[entity.name] ~= nil) and e.source and e.source.name == "kj_woosh_cloud" then
@@ -834,6 +870,18 @@ function OnDamaged(e)
                     position = entity.position,
                 }
             end
+        end
+    end
+end
+
+function OnPlayerEnteredVehicle(e)
+    local ent = e.entity
+    if ent.name == "kj_stargate_ring" then
+        if ent.get_driver() then
+            ent.set_driver(nil)
+        end
+        if ent.get_passenger() then
+            ent.set_passenger(nil)
         end
     end
 end
@@ -906,6 +954,7 @@ script.on_configuration_changed(initStorage)
 script.on_event(defines.events.on_player_mined_entity, OnRemoved)
 script.on_event(defines.events.on_robot_mined_entity, OnRemoved)
 script.on_event(defines.events.on_entity_died, OnRemoved)
+script.on_event(defines.events.on_player_driving_changed_state, OnPlayerEnteredVehicle)
 
 script.on_event(defines.events.on_entity_damaged , OnDamaged, {
     {filter = "name", name = "kj_stargate_transferArea"},

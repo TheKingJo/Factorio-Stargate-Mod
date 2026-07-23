@@ -3,7 +3,7 @@ data:extend({
 		type = "recipe",
 		name = "kj_stargate_signaled_placement",
 		enabled = true,
-		energy_required = 0.1,
+		energy_required = 10,
 		ingredients = {
             {type = "item", name = "kj_stargate", amount = 1},
             {type = "item", name = "steel-plate", amount = 25},
@@ -18,7 +18,7 @@ data:extend({
 		type = "recipe",
 		name = "kj_stargate_placement",
 		enabled = true,
-		energy_required = 0.1,
+		energy_required = 5,
 		ingredients = {
             {type = "item", name = "kj_stargate", amount = 1},
             {type = "item", name = "stone", amount = 1000},

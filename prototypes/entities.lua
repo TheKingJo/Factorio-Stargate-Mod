@@ -478,7 +478,7 @@ data:extend({
         selection_priority = 45,
     },
     {
-        type = "container",
+        type = "electric-energy-interface",
         name = "kj_stargate_transferArea_signaled",
         dying_explosion = "rocket-silo-explosion",
         icon = modname.."/graphics/entities/stargate/s_icon.png",
@@ -500,7 +500,6 @@ data:extend({
         flags = {"placeable-neutral", "placeable-off-grid", "not-flammable"},
         map_color = {1, 1, 1, 1},
         max_health = 1,
-        inventory_size = 0,
         resistances = {
             {
                 type = "explosion",
@@ -514,21 +513,15 @@ data:extend({
             },
         },
         selection_priority = 45,
-        circuit_wire_max_distance = 9,
-        circuit_connector = {
-            {
-                sprites = nil,
-                points = {
-                    shadow = {
-                        green = {10.19, 1.27},
-                        red =   {10.19, 1.26},
-                    },
-                    wire = {
-                        green = {4.89, -4.3},
-                        red =   {4.89, -4.2},
-                    },
-                },
-            }
+        is_military_target  = false,
+        gui_mode = "all",
+        energy_source = {
+            type = "electric",
+            usage_priority = "dynamic",
+            buffer_capacity = "1GJ",
+            drain = "10MW",
+            input_flow_limit = "100MW",
+            output_flow_limit = "0W",
         },
     },
     {
@@ -594,25 +587,36 @@ data:extend({
         }
     },
     {
-        type = "electric-energy-interface",
-        name = "kj_stargate_gate_s_energyDrain",
+        type = "container",
+        name = "kj_stargate_signal_receiver",
         hidden = true,
         icon = modname.."/graphics/entities/stargate/s_icon.png",
         icon_size = 128,
-        selection_box = {{-3, -1.5}, {3, 3}},
-        collision_box = {{-3, -1.5}, {3, 3}},
+        collision_mask = {layers = {trigger_target = true}},
+        --collision_box = {{-0.5, -0.5}, {0.5, 0.5}},
+        --selection_box = {{-0.5, -0.5}, {0.5, 0.5}},
+        factoriopedia_alternative = "kj_stargate_signaled_placement",
         flags = {"placeable-neutral", "placeable-off-grid", "not-flammable"},
         map_color = {r = 0.55, g = 0.55, b = 0.55, a = 1},
-		collision_mask = {layers = {}},
-        is_military_target  = false,
-        gui_mode = "all",
-        energy_source = {
-            type = "electric",
-            usage_priority = "dynamic",
-            buffer_capacity = "1GJ",
-            drain = "10MW",
-            input_flow_limit = "100MW",
-            output_flow_limit = "0W",
+        max_health = 1,
+        inventory_size = 0,
+        selection_priority = 45,
+        circuit_wire_max_distance = 3,
+        draw_circuit_wires = false,
+        circuit_connector = {
+            {
+                sprites = nil,
+                points = {
+                    shadow = {
+                        green = {0, 0},
+                        red =   {0, 0},
+                    },
+                    wire = {
+                        green = {0, 0},
+                        red =   {0, 0},
+                    },
+                },
+            }
         },
     },
     {
@@ -642,8 +646,10 @@ data:extend({
         icon = modname.."/graphics/entities/stargate/s_gate_light_icon.png",
         icon_size = 128,
         flags = {"placeable-neutral", "placeable-off-grid", "not-flammable"},
+        selectable_in_game = false,
         collision_box = {{-1.4, -0.8}, {1.4, 4.4}},
         selection_box = {{-1.4, -0.8}, {1.4, 4.4}},
+        alert_icon_shift = {0, 1.8},
 		collision_mask = {layers = {}},
         map_color = {r = 0.55, g = 0.55, b = 0.55, a = 1},
         glow_render_mode = "additive",
@@ -667,6 +673,84 @@ data:extend({
         },
     },
 })
+
+--electric poles
+local pole1 = {
+    type = "electric-pole",
+    name = "kj_stargate_pole_visible_right",
+    hidden = true,
+    icon = modname.."/graphics/entities/stargate/icon.png",
+    icon_size = 128,
+    selection_box = {{-0.45, -0.32}, {0.45, 0.32}},
+    collision_box = {{-0.45, -0.32}, {0.45, 0.32}},
+    flags = {"placeable-neutral", "placeable-off-grid", "not-flammable"},
+    factoriopedia_alternative = "kj_stargate_signaled_placement",
+    localised_name = {"", {"entity-name.kj_stargate_pole"}},
+    localised_description = {"", {"entity-description.kj_stargate_pole"}},
+    supply_area_distance = 0.5,
+    auto_connect_up_to_n_wires = 1,
+    maximum_wire_distance = 5,
+    rewire_neighbours_when_destroying = false,
+    map_color = {r = 0.55, g = 0.55, b = 0.55, a = 1},
+    radius_visualisation_picture = data.raw["electric-pole"]["small-electric-pole"].radius_visualisation_picture,
+    connection_points = {
+        {
+            shadow = {
+                green = {5.4, 0.02},
+                copper= {5.4, 0.015},
+                red =   {5.4, 0.01},
+            },
+            wire = {
+                green = {0.2, -5.55},
+                copper= {0.2, -5.5},
+                red =   {0.2, -5.45},
+            },
+        },
+    },
+}
+local pole2 = table.deepcopy(pole1)
+pole2.name = "kj_stargate_pole_visible_left"
+pole2.connection_points = {
+    {
+        shadow = {
+            green = {5.4, 0.02},
+            copper= {5.4, 0.015},
+            red =   {5.4, 0.01},
+        },
+        wire = {
+            green = {-0.2, -5.55},
+            copper= {-0.2, -5.5},
+            red =   {-0.2, -5.45},
+        },
+    },
+}
+local pole3 = table.deepcopy(pole1)
+pole3.name = "kj_stargate_pole_invisible"
+pole3.selection_box = {{-3, -3}, {3, 3}}
+pole3.collision_box = pole3.selection_box
+pole3.collision_mask = {layers = {}}
+pole3.maximum_wire_distance = 5
+pole3.supply_area_distance = 3
+pole3.draw_circuit_wires = false
+pole3.draw_copper_wires = false
+pole3.auto_connect_up_to_n_wires = 0
+pole3.selectable_in_game = false
+pole3.connection_points = {
+    {
+        shadow = {
+            green = {0, 0},
+            copper= {0, 0},
+            red =   {0, 0},
+        },
+        wire = {
+            green = {0, 0},
+            copper= {0, 0},
+            red =   {0, 0},
+        },
+    },
+}
+
+data:extend({pole1, pole2, pole3})
 
 --colliders
 data:extend({

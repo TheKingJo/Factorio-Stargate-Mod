@@ -35,9 +35,7 @@ stargate = {
     Disconnect = function(self, override)
         local dest = self.destination
         if dest then
-            if self.childs.energyDrain then
-                self.childs.energyDrain.electric_buffer_size = 10^9
-            end
+            self.entity.electric_buffer_size = 10^9
             deactivateGate(self, override)
             deactivateGate(dest, override)
 
@@ -49,6 +47,14 @@ stargate = {
     Reset = function(self)
         if self.destination == nil then
             self.chevrons.animation_offset = 0
+        end
+        self:ResetAddress()
+
+        if self.childs.rings then
+            self.childs.rings.riding_state = {
+                acceleration = defines.riding.acceleration.nothing,
+                direction = 1,
+            }
         end
     end,
 
@@ -214,11 +220,11 @@ function deactivateGate(gate, override)
         storage.tasks.eventHorizons[gate.id] = nil
     else
         util.playSoundOnSurface(gate.entity.surface, gate.entity.position, "kj_stargate_close")
-        gate.entity.surface.create_entity {
+        gate.childs.eHShort = gate.entity.surface.create_entity {
             name = "kj_stargate_eventHorizon_short",
             position = util.vector2Add(gate.entity.position, {x = 0, y = (gate.manual and 0.5 or 0.45)}),
         }
-        gate.entity.surface.create_entity {
+        gate.childs.wooshBckw = gate.entity.surface.create_entity {
             name = "kj_stargate_eventHorizon_woosh_backward",
             position = util.vector2Add(gate.entity.position, {x = 0, y = (gate.manual and 0.5 or 0.45)}),
         }
@@ -256,37 +262,18 @@ function activateGate(gate)
 
     util.playSoundOnSurface(gate.entity.surface, gate.entity.position, "kj_stargate_open")
 
-    gate.entity.surface.create_entity {
+    gate.childs.eHwoosh = gate.entity.surface.create_entity {
         name = "kj_stargate_eventHorizon_woosh",
         position = util.vector2Add(gate.entity.position, {x = 0, y = (gate.manual and 0.5 or 0.45)}),
     }
-    gate.entity.surface.create_entity {
+    gate.childs.woosh = gate.entity.surface.create_entity {
         name = "kj_stargate_woosh",
         position = util.vector2Add(gate.entity.position, {x = 0, y = 0.8}),
     }
-    gate.entity.surface.create_entity {
+    gate.childs.wooshGlow = gate.entity.surface.create_entity {
         name = "kj_stargate_woosh_glow"..(gate.manual and "" or "_s"),
         position = util.vector2Add(gate.entity.position, {x = 0, y = 0.55}),
     }
-
-    --local effectPos1 = util.vector2Add(gate.entity.position, {x = 0, y = 2.5})
-    --local effectPos2 = util.vector2Add(gate.entity.position, {x = 0, y = 5.5})
-    --[[
-    local radius = 2.5
-    for x=-radius, radius, 1 do
-        for y=-radius, radius, 1 do
-            gate.entity.surface.create_entity {
-                name = "land-mine",
-                force = "player",
-                position = util.vector2Add(effectPos1, {x = x, y = y}),
-            }
-            gate.entity.surface.create_entity {
-                name = "land-mine",
-                force = "player",
-                position = util.vector2Add(effectPos2, {x = x, y = y}),
-            }
-        end
-    end]]
 end
 
 function findRandomGateOnSurface(surface)
@@ -343,7 +330,7 @@ function GateTransit(gate, player, vehicle)
         pos,
         gate.entity.surface
     )
-    if vehicle ~= nil then
+    if vehicle ~= nil and vehicle.name ~= "kj_stargate_ring" then
         local speed = vehicle.speed
         local collBox = vehicle.prototype.collision_box
         local extraDistance = (math.abs(collBox.left_top.y) + math.abs(collBox.right_bottom.y)) / 2

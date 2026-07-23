@@ -6,7 +6,7 @@ for _, dmgType in pairs(data.raw["damage-type"]) do
         decrease = 0,
         percent  = 100
     })
-    table.insert(data.raw["container"]["kj_stargate_transferArea_signaled"].resistances, {
+    table.insert(data.raw["electric-energy-interface"]["kj_stargate_transferArea_signaled"].resistances, {
         type = dmgType.name,
         decrease = 0,
         percent  = 100
