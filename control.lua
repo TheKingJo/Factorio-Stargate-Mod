@@ -276,7 +276,7 @@ function OnBuilt(e)
             chevrons = chevrons,
             safeToTravel = false,
         }
-        util.addToGlobal("stargate", tpArea, content)
+        util.addToGlobal("stargate", tpArea, content, true)
 
         ent.destroy()
     elseif ent.name == sgNames.placement then --manual stargate placed
@@ -426,7 +426,7 @@ function OnRemoved(e)
 
 	if ent.name == sgNames.tpArea or ent.name == sgNames.tpAreaSignaled then
         local sg = util.findInGlobal("stargate", ent)
-        if sg.oldTiles then
+        if sg and sg.oldTiles then
             for i = #sg.oldTiles, 1, -1 do
                 local tile = sg.oldTiles[i]
                 if ent.surface.get_tile(tile.position.x, tile.position.y).name == "nuclear-ground" then
@@ -606,8 +606,8 @@ function OnNthTickSGates(e)
             local glyph = gate.glyphs[1]
             if game.tick >= glyph.tick then
 
-                    gate.gate.destAddressLetters = gate.gate.destAddressLetters or {}
-                    gate.gate.destAddress = gate.gate.destAddress or {}
+                    --gate.gate.destAddressLetters = gate.gate.destAddressLetters or {}
+                    --gate.gate.destAddress = gate.gate.destAddress or {}
 
                 gate.gate.destAddressLetters[glyph.letter] = true
                 table.insert(gate.gate.destAddress, glyph.letter)
@@ -651,7 +651,7 @@ function OnNthTickSGates(e)
             signaledGates[id] = nil
 
             if success == false then
-                gate.entity.minable_flag = true
+                gate.gate.entity.minable_flag = true
                 gate.gate.chevrons.animation_offset = 0
                 util.playSoundOnSurface(gate.gate.entity.surface, gate.gate.entity.position, "kj_stargate_fail")
             else
@@ -669,20 +669,18 @@ function OnNthTickGates(e)
     for _, surface in pairs(surfaces) do
         for id, gate in pairs(surface) do
             if gate.manual == true then goto continue end
-            --if storage.tasks.signaledGates[gate.id] ~= nil then goto continue end
             if not gate.childs.signalReceiver then surface[id] = nil return end
-            local signals = gate.childs.signalReceiver.get_signals(1)
-            if signals == nil then goto continue end
+            local receiver = gate.childs.signalReceiver
+            local signals = receiver.get_signals(1)
 
             if gate.active == false and storage.tasks.signaledGates[gate.id] == nil then
-                if gate.safeToTravel == false then
+                if gate.safeToTravel == false and signals ~= nil then
                     if gate.entity and gate.entity.energy ~= 10^9 then return end
                     local address = ""
                     local addressLetters = {}
                     local letterIndex = 1
                     local successful = false
                     local disConnect = 0
-                    local tickOffset = 60
                     local pooGlyphID = ""
                     local surfaceName = gate.entity.surface.name
 
@@ -742,20 +740,27 @@ function OnNthTickGates(e)
                     end
                     game.print("Address entered: "..address.." "..util.getSignalFromChar(address, true))
                 end
-            else
-                table.sort(signals, function(a, b) --sort ascending
-                    return a.count < b.count
-                end)
+            else --gate is connected or dialing
+                local success = true
 
-                for _, signal in ipairs(signals) do
-                    if signal.count == -1 then
-                        if signal.signal.name:match("^kj_sg_glyph_(.+)$") == "connect" then --signal is connection command
-                            gate:Disconnect()
-                            gate:Reset()
-                            storage.tasks.signaledGates[gate.id] = nil
-                            break
+                if gate.active == false then
+                    if storage.tasks.signaledGates[gate.id] ~= nil then --gate is dialing
+                        local glyphs = storage.tasks.signaledGates[gate.id].glyphs
+                        local pooLookup = {[#glyphs] = "_"..storage.tasks.signaledGates[gate.id].pooID}
+                        for i, glyph in ipairs(glyphs) do
+                            if receiver.get_signal({type = "virtual", name = "kj_sg_glyph_"..glyph.letter..(pooLookup[i] or "")}, 1) ~= i + 7 - #glyphs then
+                                success = false
+                                util.playSoundOnSurface(gate.entity.surface, gate.entity.position, "kj_stargate_fail")
+                                break
+                            end
                         end
                     end
+                end
+
+                if success == false or receiver.get_signal({type = "virtual", name = "kj_sg_glyph_connect"}, 1) == -1 then
+                    gate:Disconnect()
+                    gate:Reset()
+                    storage.tasks.signaledGates[gate.id] = nil
                 end
             end
             ::continue::

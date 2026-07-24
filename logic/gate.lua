@@ -35,7 +35,9 @@ stargate = {
     Disconnect = function(self, override)
         local dest = self.destination
         if dest then
-            self.entity.electric_buffer_size = 10^9
+            if not self.manual then
+                self.entity.electric_buffer_size = 10^9
+            end
             deactivateGate(self, override)
             deactivateGate(dest, override)
 
@@ -325,10 +327,48 @@ end
 
 function GateTransit(gate, player, vehicle)
     local pos = util.vector2Add(gate.entity.position, sgOffset)
+    local surface = gate.entity.surface
     util.playSoundOnSurface(player.surface, player.position, "kj_stargate_enter")
+
+    local spaces = {
+        {
+            {{0, 0}, {0, 0}},
+            {{-2, -0.5}, {2, 1}},
+            {{-1, 1}, {1, 3}},
+            {{-4, 1}, {4, 3}},
+            3
+        },
+        {
+            {{0, 0}, {0, 0}},
+            {{-1, -0.5}, {1, 1}},
+            {{-1, 1}, {1, 5}},
+            {{-5, 0}, {5, 6}},
+            4
+        },
+    }
+    local teleportPosition
+    local type = 1
+    local i = 0
+    if not gate.manual then
+        type = 2
+    end
+
+    repeat
+        i = i + 1
+        teleportPosition = surface.find_non_colliding_position_in_box(player.character.name,
+            {util.vector2Add(pos, spaces[type][i][1]), util.vector2Add(pos, spaces[type][i][2])}, 0.01)
+    until teleportPosition ~= nil or i == 4
+
+    if teleportPosition == nil then
+        teleportPosition = surface.find_non_colliding_position(player.character.name, util.vector2Add(pos, {0, spaces[type][5]}), spaces[type][5] + 0.5, 0.01)
+    end
+    if teleportPosition == nil then
+        teleportPosition = pos
+    end
+
     player.teleport(
-        pos,
-        gate.entity.surface
+        teleportPosition,
+        surface
     )
     if vehicle ~= nil and vehicle.name ~= "kj_stargate_ring" then
         local speed = vehicle.speed
@@ -336,7 +376,7 @@ function GateTransit(gate, player, vehicle)
         local extraDistance = (math.abs(collBox.left_top.y) + math.abs(collBox.right_bottom.y)) / 2
         vehicle.teleport(
             util.vector2Add(pos, {x = 0, y = extraDistance + 0.25}),
-            gate.entity.surface
+            surface
         )
         --flip car in certain value ranges
         vehicle.orientation = (vehicle.orientation < 0.25 or vehicle.orientation > 0.75) and 0.5 or 0
@@ -362,11 +402,11 @@ function GateTransit(gate, player, vehicle)
 
     table.insert(storage.tasks.delayedSounds, {
         tick = game.tick + 5,
-        surface = gate.entity.surface,
+        surface = surface,
         position = gate.entity.position,
         sound = "kj_stargate_enter"
     })
-    --util.playSoundOnSurface(gate.entity.surface, gate.entity.position, "kj_stargate_enter")
+    --util.playSoundOnSurface(surface, gate.entity.position, "kj_stargate_enter")
 end
 
 function AssembleLettersInDHDGUI(root, dhdSurface, dhd)

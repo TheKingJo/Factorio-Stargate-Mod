@@ -285,21 +285,25 @@ end
 ---@param name string name of storage table
 ---@param entity LuaEntity the entity of the entry to be added
 ---@param addContent? table additional content to add to the storage entry
-function functions.addToGlobal(name, entity, addContent)
+function functions.addToGlobal(name, entity, addContent, override)
     local sName = entity.surface.name
     local id = entity.unit_number or ((storage[name.."id"] or 0) + 1)
     storage[name.."id"] = id
     storage[name][sName] = storage[name][sName] or {}
 
-    local shortestOppEnt = functions.findEntity(opposite[name], oppositeEntity[name], entity)
-    local shortestOppEntObj = functions.findInGlobal(opposite[name], shortestOppEnt)
-
     local content = {
         id = id,
         entity = entity,
         pos = entity.position,
-        [opposite[name]] = shortestOppEntObj,
     }
+
+    local shortestOppEnt, shortestOppEntObj
+    if override == nil then
+        shortestOppEnt = functions.findEntity(opposite[name], oppositeEntity[name], entity)
+        shortestOppEntObj = functions.findInGlobal(opposite[name], shortestOppEnt)
+        content[opposite[name]] = shortestOppEntObj
+    end
+
     if addContent then
         for k, v in pairs(addContent) do content[k] = v end
     end
@@ -335,7 +339,7 @@ function functions.removeFromGlobal(name, entity)
         local shortestEnt = functions.findEntity(name, oppositeEntity[opposite[name]], storObj[opposite[name]].entity, entity)
         local shortestEntObj = functions.findInGlobal(name, shortestEnt)
         storObj[opposite[name]][name] = shortestEntObj
-        storObj[opposite[name]]:Reset()
+        storObj[opposite[name]]:Reset() --dhd.stargate / stargate.dhd
 
         if shortestEntObj ~= nil then
             shortestEntObj[opposite[name]] = storObj[opposite[name]]
