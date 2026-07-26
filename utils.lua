@@ -1,6 +1,34 @@
+ringGlyphDistances = {}
+sgOffset = {x = 0, y = 1.3}
+poo = {
+    nauvis = 1,
+    gleba = 5,
+    aquilo = 2,
+    vulcanus = 4,
+    fulgora = 3,
+}
+sgNames = {
+    placement = "kj_stargate_placement",
+    placementSignaled = "kj_stargate_signaled_placement",
+
+    base = "kj_stargate_base",
+    sound = "kj_stargate_ambientSound",
+    lights = "kj_stargate_lamps",
+    rings = "kj_stargate_ring",
+    pole = "kj_stargate_pole_",
+    tpArea = "kj_stargate_transferArea",
+    tpAreaSignaled = "kj_stargate_transferArea_signaled",
+
+    colliderV = "kj_stargate_colliderVert",
+    colliderHL = "kj_stargate_colliderHoriLong",
+    colliderHLL = "kj_stargate_colliderHoriLonger",
+    colliderHB = "kj_stargate_colliderHoriBig",
+    colliderHS = "kj_stargate_colliderHoriShort",
+    colliderD = "kj_stargate_colliderDiag",
+}
+dhdName = "kj_dhd"
 local functions = {}
 local glyphIndex = {}
-ringGlyphDistances = {}
 local dhdSearchRadius = 15
 local opposite = {
     dhd = "stargate",
