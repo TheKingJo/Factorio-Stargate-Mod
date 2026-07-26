@@ -154,13 +154,14 @@ function OnNthTickSGateDialing(e)
         end
 
         if #gate.glyphs > 0 then
+
+            local drain = gate.gate.entity.electric_drain * 60 --in W aka 10 MW max
+            local limit = gate.gate.entity.power_usage * 60 --in W aka 100 MW
+            if drain < limit * 0.5 then return end --atm a bit useless to check since its draining its own capacitor so will likely be always true
+
             local glyph = gate.glyphs[1]
             if game.tick >= glyph.tick then
 
-                    --gate.gate.destAddressLetters = gate.gate.destAddressLetters or {}
-                    --gate.gate.destAddress = gate.gate.destAddress or {}
-
-                gate.gate.destAddressLetters[glyph.letter] = true
                 table.insert(gate.gate.destAddress, glyph.letter)
                 table.remove(gate.glyphs, 1)
 
@@ -181,33 +182,37 @@ function OnNthTickSGateDialing(e)
                 acceleration = defines.riding.acceleration.nothing,
                 direction = defines.riding.direction.straight,
             }
-            game.print("Address dialing: "..gate.gate:GetDestAddress().." "..util.getSignalFromChar(gate.gate:GetDestAddress().."_"..poo[gate.gate.entity.surface.name], true))
             local success = false
+            if gate.gate.entity.energy == 10^9 then
+                game.print("Address dialing: "..gate.gate:GetDestAddress().." "..util.getSignalFromChar(gate.gate:GetDestAddress().."_"..poo[gate.gate.entity.surface.name], true))
 
-            if gate.pooID == poo[gate.gate.entity.surface.name] then --is poo glyph correct one (momentarily obsolete though)
-                for surf, address in pairs(storage.addresses) do
-                    if surf ~= gate.gate.entity.surface.name then --not on same surface
-                        if address.."poo" == gate.gate:GetDestAddress() then
-                            game.print("Address found: "..surf)
-                            if gate.gate:Connect(findRandomGateOnSurface(surf)) then
-                                success = true
+                if gate.pooID == poo[gate.gate.entity.surface.name] then --is poo glyph correct one (momentarily obsolete though)
+                    for surf, address in pairs(storage.addresses) do
+                        if surf ~= gate.gate.entity.surface.name then --not on same surface
+                            if address.."poo" == gate.gate:GetDestAddress() then
+                                game.print("Address found: "..surf)
+                                if gate.gate:Connect(findRandomGateOnSurface(surf)) then
+                                    success = true
+                                end
                             end
                         end
                     end
                 end
+
+                gate.gate.entity.energy = 0
+            else
+                game.print("Not enough electricity")
             end
 
-            gate.gate.entity.energy = 0
-            gate.gate:ResetAddress()
-            signaledGates[id] = nil
-
-            if success == false then
+            if success == true then
+                gate.gate.entity.electric_buffer_size = 10^7
+            else
                 gate.gate.entity.minable_flag = true
                 gate.gate.chevrons.animation_offset = 0
                 util.playSoundOnSurface(gate.gate.entity.surface, gate.gate.entity.position, "kj_stargate_fail")
-            else
-                gate.gate.entity.electric_buffer_size = 10^7
             end
+            gate.gate:ResetAddress()
+            signaledGates[id] = nil
         end
         ::continue::
     end
@@ -231,7 +236,7 @@ function OnNthTickSGates(e)
 
             if gate.active == false and storage.tasks.signaledGates[gate.id] == nil then
                 if gate.safeToTravel == false and signals ~= nil then
-                    if gate.entity and gate.entity.energy ~= 10^9 then return end
+                    --if gate.entity and gate.entity.energy ~= 10^9 then return end
                     local address = ""
                     local addressLetters = {}
                     local letterIndex = 1
@@ -281,7 +286,7 @@ function OnNthTickSGates(e)
                         local prevLetter = gate.lastGlyph or "poo"
                         local offset = 0
 
-                        for _, letter in ipairs(addressLetters) do
+                        for i, letter in ipairs(addressLetters) do
                             local distance, dir = util.getRingGlyphDistance(prevLetter, letter)
                             game.print("Distance: "..prevLetter.." "..letter.." "..distance)
                             game.print("Tick: "..game.tick + offset)
@@ -290,6 +295,7 @@ function OnNthTickSGates(e)
                                 letter = letter, tick = game.tick + offset, direction = dir
                             })
                             prevLetter = letter
+                            gate.destAddressLetters[letter] = i
                         end
                         gate.entity.minable_flag = false
                         storage.tasks.signaledGates[gate.id] = task
@@ -301,10 +307,10 @@ function OnNthTickSGates(e)
 
                 if gate.active == false then
                     if storage.tasks.signaledGates[gate.id] ~= nil then --gate is dialing
-                        local glyphs = storage.tasks.signaledGates[gate.id].glyphs
-                        local pooLookup = {[#glyphs] = "_"..storage.tasks.signaledGates[gate.id].pooID}
-                        for i, glyph in ipairs(glyphs) do
-                            if receiver.get_signal({type = "virtual", name = "kj_sg_glyph_"..glyph.letter..(pooLookup[i] or "")}, 1) ~= i + 7 - #glyphs then
+                        --local glyphs = storage.tasks.signaledGates[gate.id].glyphs
+                        local pooLookup = {[7] = "_"..storage.tasks.signaledGates[gate.id].pooID}
+                        for letter, index in pairs(gate.destAddressLetters) do
+                            if receiver.get_signal({type = "virtual", name = "kj_sg_glyph_"..letter..(pooLookup[index] or "")}, 1) ~= index then
                                 success = false
                                 util.playSoundOnSurface(gate.entity.surface, gate.entity.position, "kj_stargate_fail")
                                 break
