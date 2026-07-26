@@ -1,3 +1,8 @@
+--forces teleported players to move down
+--forces teleported vehicles to move down
+--handles delayed (teleport) sounds
+--handles delayed eventhorihon animations and woosh dmg areas
+--handles delayed gate turnoffs
 function OnTick(e)
     local players = storage.tasks.players
     local vehicles = storage.tasks.vehicles
@@ -85,9 +90,11 @@ function OnTick(e)
     end
 end
 
+--2
+--checks if players are in transfer areas
+--first by distance, then by collision box overlap
 function OnNthTickPlayer(e)
     if not storage.stargate then return end
-    local deleteGate = {}
     for _, player in pairs(game.players) do
         if not storage.stargate[player.surface.name] then return end
 
@@ -118,17 +125,17 @@ function OnNthTickPlayer(e)
                     end
                 end
             else
-                deleteGate.sgSurface = gID
+                storage.stargate[player.surface.name][gID] = nil
             end
         end
     end
-
-    for v, k in ipairs(deleteGate) do
-        storage.stargate[v][k] = nil
-    end
 end
 
-function OnNthTickSGates(e)
+--6
+--handles the s gate dialing jobs
+  --first assigning each chevron, moving the rings
+  --then making the call once its done
+function OnNthTickSGateDialing(e)
     local signaledGates = storage.tasks.signaledGates
     if not signaledGates then return end
 
@@ -206,11 +213,16 @@ function OnNthTickSGates(e)
     end
 end
 
-function OnNthTickGates(e)
+--10
+--checks all s gates if they got signal input
+  --creating dial job
+  --canceling dial jobs
+  --checking if dial signal is still there during dialing
+  --TODO: checking if electricity is on during dialing
+function OnNthTickSGates(e)
     if not storage.stargate then return end
-    local surfaces = storage.stargate
 
-    for _, surface in pairs(surfaces) do
+    for _, surface in pairs(storage.stargate) do
         for id, gate in pairs(surface) do
             if gate.manual == true then goto continue end
             if not gate.childs.signalReceiver then surface[id] = nil return end
@@ -312,33 +324,29 @@ function OnNthTickGates(e)
     end
 end
 
+--60
+--tracks:
+--gate connection timeouts
+--open dhd interfaces afk timeouts
 function OnNthTickTasks(e)
     local gates = storage.tasks.activeGates
     local dhds = storage.tasks.busyDhds
-    local deleteGate = {}
-    local deleteDhd = {}
 
     if gates ~= nil then
         for id, gate in pairs(gates) do
             if game.tick > gate.tick then
                 gate.stargate:Disconnect()
-                table.insert(deleteGate, id)
+                storage.tasks.activeGates[id] = nil
             end
         end
-    end
-    for _, k in ipairs(deleteGate) do
-        storage.tasks.activeGates[k] = nil
     end
 
     if dhds ~= nil then
         for id, dhd in pairs(dhds) do
             if game.tick > dhd.tick then
                 dhd.dhd:Connect("deineMom")
-                table.insert(deleteDhd, id)
+                storage.tasks.busyDhds[id] = nil
             end
         end
-    end
-    for _, k in ipairs(deleteDhd) do
-        storage.tasks.busyDhds[k] = nil
     end
 end

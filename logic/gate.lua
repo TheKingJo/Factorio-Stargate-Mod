@@ -325,12 +325,8 @@ function generateAdress(surface)
     return resultString
 end
 
-function GateTransit(gate, player, vehicle)
-    local pos = util.vector2Add(gate.entity.position, sgOffset)
-    local surface = gate.entity.surface
-    util.playSoundOnSurface(player.surface, player.position, "kj_stargate_enter")
-
-    local spaces = {
+function FindFreeTeleportArea(gate, name, pos)
+    local teleportSpaces = {
         {
             {{0, 0}, {0, 0}},
             {{-2, -0.5}, {2, 1}},
@@ -346,28 +342,37 @@ function GateTransit(gate, player, vehicle)
             4
         },
     }
-    local teleportPosition
     local type = 1
-    local i = 0
+    local surface = gate.entity.surface
     if not gate.manual then
         type = 2
     end
+    local teleportPosition
+    local i = 0
 
     repeat
         i = i + 1
-        teleportPosition = surface.find_non_colliding_position_in_box(player.character.name,
-            {util.vector2Add(pos, spaces[type][i][1]), util.vector2Add(pos, spaces[type][i][2])}, 0.01)
+        teleportPosition = surface.find_non_colliding_position_in_box(name,
+            {util.vector2Add(pos, teleportSpaces[type][i][1]), util.vector2Add(pos, teleportSpaces[type][i][2])}, 0.01)
     until teleportPosition ~= nil or i == 4
 
     if teleportPosition == nil then
-        teleportPosition = surface.find_non_colliding_position(player.character.name, util.vector2Add(pos, {0, spaces[type][5]}), spaces[type][5] + 0.5, 0.01)
+        teleportPosition = surface.find_non_colliding_position(name, util.vector2Add(pos, {0, teleportSpaces[type][5]}), teleportSpaces[type][5] + 0.5, 0.01)
     end
     if teleportPosition == nil then
         teleportPosition = pos
     end
 
+    return teleportPosition
+end
+
+function GateTransit(gate, player, vehicle)
+    local pos = util.vector2Add(gate.entity.position, sgOffset)
+    local surface = gate.entity.surface
+    util.playSoundOnSurface(player.surface, player.position, "kj_stargate_enter")
+
     player.teleport(
-        teleportPosition,
+        FindFreeTeleportArea(gate, player.character.name, pos),
         surface
     )
     if vehicle ~= nil and vehicle.name ~= "kj_stargate_ring" then
@@ -375,7 +380,7 @@ function GateTransit(gate, player, vehicle)
         local collBox = vehicle.prototype.collision_box
         local extraDistance = (math.abs(collBox.left_top.y) + math.abs(collBox.right_bottom.y)) / 2
         vehicle.teleport(
-            util.vector2Add(pos, {x = 0, y = extraDistance + 0.25}),
+            FindFreeTeleportArea(gate, vehicle.name, util.vector2Add(pos, {x = 0, y = extraDistance + 0.25})),
             surface
         )
         --flip car in certain value ranges

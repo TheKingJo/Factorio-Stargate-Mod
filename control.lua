@@ -50,9 +50,9 @@ script.on_event(defines.events.on_entity_damaged , OnDamaged, {
 
 script.on_event(defines.events.on_tick, OnTick)
 script.on_nth_tick(60, OnNthTickTasks)
-script.on_nth_tick(10, OnNthTickGates)
-script.on_nth_tick(6, OnNthTickSGates)
-script.on_nth_tick(2, OnNthTickPlayer)
+script.on_nth_tick(10, OnNthTickSGates)
+script.on_nth_tick( 6, OnNthTickSGateDialing)
+script.on_nth_tick( 2, OnNthTickPlayer)
 
 script.on_event(defines.events.on_surface_created,
     function(event)
