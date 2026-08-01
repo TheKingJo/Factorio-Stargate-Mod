@@ -207,6 +207,10 @@ function OnNthTickSGateDialing(e)
             if success == true then
                 gate.gate.entity.electric_buffer_size = 10^7
             else
+                gate.gate.entity.surface.create_entity {
+                    name = "kj_stargate_electricFailure",
+                    position = util.vector2Add(gate.gate.entity.position, {x = 0, y = 1}),
+                }
                 gate.gate.entity.minable_flag = true
                 gate.gate.chevrons.animation_offset = 0
                 util.playSoundOnSurface(gate.gate.entity.surface, gate.gate.entity.position, "kj_stargate_fail")

@@ -822,6 +822,34 @@ data:extend({
 data:extend({
     {
         type = "explosion",
+        name = "kj_stargate_electricFailure",
+        flags = {"not-on-map", "placeable-off-grid"},
+        hidden = true,
+        subgroup = "explosions",
+        render_layer = "object",
+        sound = {
+            filename = modname.."/sounds/s_gate_electricFailure.ogg",
+            volume = 1,
+        },
+        animations = {
+            layers = {
+                {
+                    filename = modname.."/graphics/entities/stargate/s_gate_electricFailure.png",
+                    size = 832,
+                    shift = {0, 1.4},
+                    scale = 0.5,
+                    frame_count = 28,
+                    line_length = 7,
+                    animation_speed = 16/30,
+                    usage = "explosion",
+                    blend_mode = "additive",
+                    draw_as_glow = true,
+                },
+            },
+        },
+    },
+    {
+        type = "explosion",
         name = "kj_stargate_eventHorizon_short",
         flags = {"not-on-map", "placeable-off-grid"},
         hidden = true,
