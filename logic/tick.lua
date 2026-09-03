@@ -209,7 +209,7 @@ function OnNthTickSGateDialing(e)
             else
                 gate.gate.entity.surface.create_entity {
                     name = "kj_stargate_electricFailure",
-                    position = util.vector2Add(gate.gate.entity.position, {x = 0, y = 1}),
+                    position = util.vector2Add(gate.gate.entity.position, {x = 0, y = 0.925}),
                 }
                 gate.gate.entity.minable_flag = true
                 gate.gate.chevrons.animation_offset = 0
