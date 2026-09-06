@@ -41,11 +41,16 @@ script.on_event(defines.events.on_entity_died, OnRemoved)
 script.on_event(defines.events.on_player_driving_changed_state, OnPlayerEnteredVehicle)
 
 script.on_event(defines.events.on_entity_damaged , OnDamaged, {
-    {filter = "name", name = "kj_stargate_transferArea"},
-    {filter = "name", name = "kj_stargate_transferArea_signaled", mode = "or"},
+    {filter = "name", name = "kj_stargate_entity"},
+    {filter = "name", name = "kj_stargate_entity_signaled", mode = "or"},
+
     {filter = "name", name = "kj_dhd", mode = "or"},
+
     {filter = "name", name = "kj_stargate_auto_gen", mode = "or"},
     {filter = "name", name = "kj_dhd_auto_gen", mode = "or"},
+
+    {filter = "name", name = "kj_stargate_pole_visible_left", mode = "or"},
+    {filter = "name", name = "kj_stargate_pole_visible_right", mode = "or"},
 })
 
 script.on_event(defines.events.on_tick, OnTick)

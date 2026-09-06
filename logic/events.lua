@@ -6,8 +6,8 @@ function OnBuilt(e)
 	if ent.name == sgNames.placementSignaled then --signaled stargate placed
         local pos = ent.position
         local surface = ent.surface
-        local tpArea = surface.create_entity{
-            name = sgNames.tpAreaSignaled,
+        local entity = surface.create_entity{
+            name = sgNames.entitySignaled,
             force = "neutral",
             position = util.vector2Add(pos, {x = 0, y = -1.8}),
         }
@@ -19,6 +19,12 @@ function OnBuilt(e)
             animation_speed = 0,
         }
         local childs = {
+            tpArea = surface.create_entity{
+                name = sgNames.tpArea,
+                force = "neutral",
+                position = util.vector2Add(pos, {x = 0, y = -1.8}),
+            },
+
             signalReceiver = surface.create_entity{
                 name = "kj_stargate_signal_receiver",
                 force = "neutral",
@@ -83,27 +89,30 @@ function OnBuilt(e)
                 position = util.vector2Add(pos, {x = 0, y = 0}),
             },
 
-            poleVisibleRight = surface.create_entity{
-                name = sgNames.pole.."visible_right",
-                force = "neutral",
-                position = util.vector2Add(pos, {x = 4.7, y = -0.528}),
-            },
-            poleVisibleLeft = surface.create_entity{
-                name = sgNames.pole.."visible_left",
-                force = "neutral",
-                position = util.vector2Add(pos, {x =-4.7, y = -0.527}),
-            },
             poleVisibleMiddle = surface.create_entity{
                 name = sgNames.pole.."invisible",
                 force = "neutral",
                 position = util.vector2Add(pos, {x = 0, y = -0.9}),
             },
         }
-        tpArea.power_usage = 10^7/60
-
         for _, child in pairs(childs) do
             child.destructible = false
         end
+
+        entity.power_usage = 10^7/60
+
+        childs.poleVisibleRight = surface.create_entity{
+            name = sgNames.pole.."visible_right",
+            force = "neutral",
+            position = util.vector2Add(pos, {x = 4.7, y = -0.528}),
+        }
+        childs.poleVisibleLeft = surface.create_entity{
+            name = sgNames.pole.."visible_left",
+            force = "neutral",
+            position = util.vector2Add(pos, {x =-4.7, y = -0.527}),
+        }
+        storage.electricPoles[childs.poleVisibleRight.unit_number] = entity.unit_number
+        storage.electricPoles[childs.poleVisibleLeft.unit_number] = entity.unit_number
 
         childs.baseEnt = rendering.draw_sprite{
             sprite = "kj_stargate_base_sprite_s",
@@ -160,14 +169,14 @@ function OnBuilt(e)
             chevrons = chevrons,
             safeToTravel = false,
         }
-        util.addToGlobal("stargate", tpArea, content, true)
+        util.addToGlobal("stargate", entity, content, true)
 
         ent.destroy()
     elseif ent.name == sgNames.placement then --manual stargate placed
         local pos = ent.position
         local surface = ent.surface
-        local tpArea = surface.create_entity{
-            name = sgNames.tpArea,
+        local entity = surface.create_entity{
+            name = sgNames.entity,
             force = "neutral",
             position = util.vector2Add(pos, {x = 0, y = -1.8}),
         }
@@ -179,6 +188,12 @@ function OnBuilt(e)
             animation_speed = 0,
         }
         local childs = {
+            tpArea = surface.create_entity{
+                name = sgNames.tpArea,
+                force = "neutral",
+                position = util.vector2Add(pos, {x = 0, y = -1.8}),
+            },
+
             colliderV1 = surface.create_entity{
                 name = sgNames.colliderV,
                 position = util.vector2Add(pos, {x = -3.5, y = -1}),
@@ -273,7 +288,7 @@ function OnBuilt(e)
             chevrons = chevrons,
             safeToTravel = false,
         }
-        util.addToGlobal("stargate", tpArea, content)
+        util.addToGlobal("stargate", entity, content)
 
         ent.destroy()
     elseif ent.name == dhdName then --dhd placed
@@ -308,7 +323,7 @@ function OnRemoved(e)
     if not ent.valid then return end
     --game.print(ent.name.." destroyed")
 
-	if ent.name == sgNames.tpArea or ent.name == sgNames.tpAreaSignaled then
+	if ent.name == sgNames.entity or ent.name == sgNames.entitySignaled then
         local sg = util.findInGlobal("stargate", ent)
         if sg and sg.oldTiles then
             for i = #sg.oldTiles, 1, -1 do
@@ -365,18 +380,19 @@ function GuiOpened(e)
         player.opened = gui
     end
 
-    if e.entity and e.entity.name == sgNames.tpAreaSignaled then
+    if e.entity and e.entity.name == sgNames.entitySignaled then
         player.opened = nil
     end
 end
 
 function OnDamaged(e)
     local entity = e.entity
+    if not entity or entity and not entity.valid then return end
     local type = e.damage_type.name
     local entityName = {
         kj_dhd = "dhd",
-        kj_stargate_transferArea = "stargate",
-        kj_stargate_transferArea_signaled = "stargate",
+        kj_stargate_entity = "stargate",
+        kj_stargate_entity_signaled = "stargate",
 
         kj_dhd_auto_gen = "stargate",
         kj_stargate_auto_gen = "stargate",
@@ -389,30 +405,37 @@ function OnDamaged(e)
 
     local remnant = {
         kj_dhd = "medium-small-remnants",
-        kj_stargate_transferArea = "medium-remnants",
-        kj_stargate_transferArea_signaled = "big-remnants"
+        kj_stargate_entity = "medium-remnants",
+        kj_stargate_entity_signaled = "big-remnants"
     }
 
     entity.health = math.floor(e.final_health + 0.5)
     if entity.health <= 0.1 then
         if string.sub(entity.name, -8) ~= "auto_gen" then
-            local obj, _ = util.findInGlobal(entityName[entity.name], entity)
-            if entityName[entity.name] == "stargate" then
-                obj:Disconnect(true)
-            end
+            if string.sub(entity.name, 1, 24) == "kj_stargate_pole_visible" then
+                util.findIDInGlobal("stargate",
+                    entity.surface.name,
+                    storage.electricPoles[entity.unit_number]
+                ).entity.damage(100000, "neutral", type)
+            else
+                local obj, _ = util.findInGlobal(entityName[entity.name], entity)
+                if entityName[entity.name] == "stargate" then
+                    obj:Disconnect(true)
+                end
 
-            if type == "explosion" then --spawn a burried variant below
-                local ent = entity.surface.create_entity{
-                    name = "kj_"..entityName[entity.name].."_auto_gen",
-                    position = entity.position,
-                    force = "neutral",
-                }
-                ent.graphics_variation = math.random(1,4)
-            else --physical damage overload is supposed to destroy the gate
-                entity.surface.create_entity{
-                    name = remnant[entity.name],
-                    position = entity.position,
-                }
+                if type == "explosion" then --spawn a burried variant below
+                    local ent = entity.surface.create_entity{
+                        name = "kj_"..entityName[entity.name].."_auto_gen",
+                        position = entity.position,
+                        force = "neutral",
+                    }
+                    ent.graphics_variation = math.random(1,4)
+                else --physical damage overload is supposed to destroy the gate
+                    entity.surface.create_entity{
+                        name = remnant[entity.name],
+                        position = entity.position,
+                    }
+                end
             end
         end
     end

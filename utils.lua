@@ -16,8 +16,9 @@ sgNames = {
     lights = "kj_stargate_lamps",
     rings = "kj_stargate_ring",
     pole = "kj_stargate_pole_",
+    entity = "kj_stargate_entity",
+    entitySignaled = "kj_stargate_entity_signaled",
     tpArea = "kj_stargate_transferArea",
-    tpAreaSignaled = "kj_stargate_transferArea_signaled",
 
     colliderV = "kj_stargate_colliderVert",
     colliderHL = "kj_stargate_colliderHoriLong",
@@ -35,7 +36,7 @@ local opposite = {
     stargate = "dhd",
 }
 local oppositeEntity = {
-    dhd = "stargate_transferArea",
+    dhd = "stargate_entity",
     stargate = "dhd",
 }
 
@@ -377,8 +378,15 @@ function functions.removeFromGlobal(name, entity)
         returnValue = storObj[opposite[name]]
     end
 
-    if storObj.childs then
-        for _, ent in pairs(storObj.childs) do
+    local ch = storObj.childs
+    if ch then
+        if ch.poleVisibleRight then
+            storage.electricPoles[ch.poleVisibleRight.unit_number] = nil
+        end
+        if ch.poleVisibleLeft then
+            storage.electricPoles[ch.poleVisibleLeft.unit_number] = nil
+        end
+        for _, ent in pairs(ch) do
             ent.destroy()
         end
     end

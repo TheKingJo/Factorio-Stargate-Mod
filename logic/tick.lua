@@ -103,10 +103,10 @@ function OnNthTickPlayer(e)
                 if gate.safeToTravel == true and gate.destination then
                     local vehicle = player.physical_vehicle
                     if (vehicle and vehicle.prototype.type == "spider-vehicle") then return end
-                    if util.getDistance(player.physical_position, gate.entity.position) > 13 then return end
+                    if util.getDistance(player.physical_position, gate.childs.tpArea.position) > 13 then return end
 
                     if vehicle == nil then --player not in vehicle
-                        if player.character and util.boundingBoxesCollision(player.character.bounding_box, gate.entity.bounding_box) then
+                        if player.character and util.boundingBoxesCollision(player.character.bounding_box, gate.childs.tpArea.bounding_box) then
                             --game.print(e.tick.." - Player "..player.name.." entered gate on "..player.surface.name)
 
                             GateTransit(gate.destination, player, vehicle)
@@ -115,7 +115,7 @@ function OnNthTickPlayer(e)
                         if storage.illegalCars[vehicle.name] then return end
                         local iV = storage.ignoredVehicles and storage.ignoredVehicles[vehicle.unit_number]
                         if not iV or (iV and iV < game.tick) then
-                            if util.rotatedBoxInsideBoundingBox(vehicle.bounding_box, vehicle.orientation, gate.entity.bounding_box) == true then
+                            if util.rotatedBoxInsideBoundingBox(vehicle.bounding_box, vehicle.orientation, gate.childs.tpArea.bounding_box) == true then
                                 --game.print(e.tick.." - Player "..player.name.." entered gate on "..player.surface.name)
 
                                 GateTransit(gate.destination, player, vehicle)

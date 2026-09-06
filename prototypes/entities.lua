@@ -429,11 +429,23 @@ data:extend({
     {
         type = "simple-entity-with-owner",
         name = "kj_stargate_transferArea",
+        icon = modname.."/graphics/entities/stargate/icon.png",
+        icon_size = 128,
+		collision_mask = {layers = {}},
+        collision_box = {{-1.5, -0.3}, {1.5, 0.3}},
+        factoriopedia_alternative = "kj_stargate_placement",
+        flags = {"placeable-neutral", "placeable-off-grid", "not-flammable"},
+        map_color = {1, 1, 1, 1},
+        max_health = 1,
+    },
+    {
+        type = "simple-entity-with-owner",
+        name = "kj_stargate_entity", --originally kj_stargate_transferArea
         dying_explosion = "rocket-silo-explosion",
         icon = modname.."/graphics/entities/stargate/icon.png",
         icon_size = 128,
         collision_mask = {layers = {trigger_target = true}},
-        collision_box = {{-1.5, -0.3}, {1.5, 0.3}},
+        collision_box = {{-4, -0.8}, {4, 3}},
         selection_box = {{-4, -0.8}, {4, 3}},
         minable = {
             mining_time = 5,
@@ -462,12 +474,12 @@ data:extend({
     },
     {
         type = "electric-energy-interface",
-        name = "kj_stargate_transferArea_signaled",
+        name = "kj_stargate_entity_signaled", --originally kj_stargate_transferArea_signaled
         dying_explosion = "rocket-silo-explosion",
         icon = modname.."/graphics/entities/stargate/s_icon.png",
         icon_size = 128,
         collision_mask = {layers = {trigger_target = true}},
-        collision_box = {{-1.5, -0.3}, {1.5, 0.3}},
+        collision_box = {{-3, -1.5}, {3, 3}},
         selection_box = {{-3, -1.5}, {3, 3}},
         minable = {
             mining_time = 5,
@@ -666,6 +678,19 @@ local pole1 = {
     icon_size = 128,
     selection_box = {{-0.45, -0.32}, {0.45, 0.32}},
     collision_box = {{-0.45, -0.32}, {0.45, 0.32}},
+    max_health = 1,
+    resistances = {
+        {
+            type = "explosion",
+            decrease = 1000,
+            percent  = 0,
+        },
+        {
+            type = "physical",
+            decrease = 15000,
+            percent  = 0,
+        },
+    },
     flags = {"placeable-neutral", "placeable-off-grid", "not-flammable"},
     factoriopedia_alternative = "kj_stargate_signaled_placement",
     localised_name = {"", {"entity-name.kj_stargate_pole"}},

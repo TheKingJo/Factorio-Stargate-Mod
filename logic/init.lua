@@ -7,6 +7,7 @@ function initStorage()
         ignoredVehicles = true, --vehicles that were just teleported are ignored for some ticks so they dont teleport constantly back and forth
         autoGenGates = true,
         illegalCars = true,
+        electricPoles = true,
     }
     local tasks = {
         activeGates = true,
