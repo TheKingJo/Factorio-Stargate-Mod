@@ -28,7 +28,12 @@ function OnBuilt(e)
             signalReceiver = surface.create_entity{
                 name = "kj_stargate_signal_receiver",
                 force = "neutral",
-                position = util.vector2Add(pos, {x = 0, y = 0}),
+                position = util.vector2Add(pos, {x = -0.5, y = 0}),
+            },
+            signalSender = surface.create_entity{
+                name = "kj_stargate_signal_receiver",
+                force = "neutral",
+                position = util.vector2Add(pos, {x = 0.5, y = 0}),
             },
 
             colliderH11 = surface.create_entity{
@@ -144,6 +149,7 @@ function OnBuilt(e)
         local wireConsL = childs.poleVisibleLeft.get_wire_connectors(true)
         local wireConsM = childs.poleVisibleMiddle.get_wire_connectors(true)
         local wireConsSR = childs.signalReceiver.get_wire_connector(1, true)
+        local wireConsSS = childs.signalSender.get_wire_connector(2, true)
 
         for id, wireConnector in pairs(wireConsM) do
             if wireConsL[id] then
@@ -154,6 +160,8 @@ function OnBuilt(e)
             end
         end
         wireConsM[1].connect_to(wireConsSR)
+        wireConsM[2].connect_to(wireConsSS)
+        childs.signalSender.get_or_create_control_behavior()
 
         local content = {
             destAddress = {},

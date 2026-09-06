@@ -8,6 +8,19 @@ end
 local metal = table.deepcopy(tile_sounds.walking.refined_concrete)
 metal.variations = sound_variations(modname.."/sounds/walk_metal", 4, 0.5)
 
+local zeroWireConnection = {
+    shadow = {
+        green = {0, 0},
+        copper= {0, 0},
+        red =   {0, 0},
+    },
+    wire = {
+        green = {0, 0},
+        copper= {0, 0},
+        red =   {0, 0},
+    },
+}
+
 data:extend({
     {
         type = "item-with-entity-data",
@@ -582,36 +595,28 @@ data:extend({
         }
     },
     {
-        type = "container",
+        type = "constant-combinator",
         name = "kj_stargate_signal_receiver",
         hidden = true,
         icon = modname.."/graphics/entities/stargate/s_icon.png",
         icon_size = 128,
         collision_mask = {layers = {trigger_target = true}},
-        --collision_box = {{-0.5, -0.5}, {0.5, 0.5}},
-        --selection_box = {{-0.5, -0.5}, {0.5, 0.5}},
+        collision_box = {{-0.5, -0.5}, {0.5, 0.5}},
+        selection_box = {{-0.5, -0.5}, {0.5, 0.5}},
         factoriopedia_alternative = "kj_stargate_signaled_placement",
         flags = {"placeable-neutral", "placeable-off-grid", "not-flammable"},
         map_color = {r = 0.55, g = 0.55, b = 0.55, a = 1},
         max_health = 1,
-        inventory_size = 0,
         selection_priority = 45,
+
         circuit_wire_max_distance = 3,
+        activity_led_light_offsets = {{0,0},{0,0},{0,0},{0,0}},
         draw_circuit_wires = false,
-        circuit_connector = {
-            {
-                sprites = nil,
-                points = {
-                    shadow = {
-                        green = {0, 0},
-                        red =   {0, 0},
-                    },
-                    wire = {
-                        green = {0, 0},
-                        red =   {0, 0},
-                    },
-                },
-            }
+        circuit_wire_connection_points = {
+            zeroWireConnection,
+            zeroWireConnection,
+            zeroWireConnection,
+            zeroWireConnection
         },
     },
     {
@@ -743,20 +748,7 @@ pole3.draw_circuit_wires = false
 pole3.draw_copper_wires = false
 pole3.auto_connect_up_to_n_wires = 0
 pole3.selectable_in_game = false
-pole3.connection_points = {
-    {
-        shadow = {
-            green = {0, 0},
-            copper= {0, 0},
-            red =   {0, 0},
-        },
-        wire = {
-            green = {0, 0},
-            copper= {0, 0},
-            red =   {0, 0},
-        },
-    },
-}
+pole3.connection_points = {zeroWireConnection}
 
 data:extend({pole1, pole2, pole3})
 

@@ -206,6 +206,15 @@ function OnNthTickSGateDialing(e)
 
             if success == true then
                 gate.gate.entity.electric_buffer_size = 10^7
+                gate.gate.childs.signalSender.get_control_behavior().get_section(1).set_slot(1, {
+                    value = {
+                        type = "virtual",
+                        name = "kj_sg_glyph_connect",
+                        quality = "normal",
+                        comparator = "=",
+                    },
+                    min = 1,
+                })
             else
                 gate.gate.entity.surface.create_entity {
                     name = "kj_stargate_electricFailure",
