@@ -1,23 +1,6 @@
 local tile_sounds = require("__base__/prototypes/tile/tile-sounds")
 local modname = "__kj_stargate__"
-local eHw_fs = {}
-local w_fs = {}
 local eHwbw_fs = {}
-for i=1, 16*0.5, 1 do
-    table.insert(eHw_fs, 1)
-end
-for i=1, 15*1.5, 1 do
-    table.insert(w_fs, 1)
-end
-for i=1, 16*1.75, 1 do
-    table.insert(eHwbw_fs, 1)
-end
-for i=2, 16, 1 do
-    table.insert(eHw_fs, i)
-end
-for i=2, 33, 1 do
-    table.insert(w_fs, i)
-end
 for i=16, 2, -1 do
     table.insert(eHwbw_fs, i)
 end
@@ -889,6 +872,7 @@ data:extend({
         hidden = true,
         subgroup = "explosions",
         render_layer = "object",
+        delay = 8*60/16,
         animations = {
             layers = {
                 {
@@ -896,7 +880,6 @@ data:extend({
                     size = 704,
                     scale = 0.505,
                     frame_count = 16,
-                    frame_sequence = eHw_fs,
                     line_length = 4,
                     shift = {1.25, 0.49+0.3},
                     animation_speed = 16/60,
@@ -907,7 +890,6 @@ data:extend({
                     size = 704,
                     scale = 0.505,
                     frame_count = 16,
-                    frame_sequence = eHw_fs,
                     line_length = 4,
                     shift = {1.25, 0.49+0.3},
                     animation_speed = 16/60,
@@ -925,6 +907,7 @@ data:extend({
         hidden = true,
         subgroup = "explosions",
         render_layer = "object",
+        delay = 28*60/16,
         animations = {
             layers = {
                 {
@@ -961,6 +944,7 @@ data:extend({
         hidden = true,
         subgroup = "explosions",
         render_layer = "cargo-hatch",
+        delay = 22*60/15,
         animations = {
             {
                 filename = modname.."/graphics/entities/stargate/woosh_glow.png",
@@ -970,7 +954,6 @@ data:extend({
                 scale = 0.5,
                 frame_count = 33,
                 line_length = 6,
-                frame_sequence = w_fs,
                 shift = {0, 2.5},
                 animation_speed = 15/60,
                 usage = "explosion"
@@ -984,6 +967,7 @@ data:extend({
         hidden = true,
         subgroup = "explosions",
         render_layer = "cargo-hatch",
+        delay = 22*60/15,
         animations = {
             {
                 filename = modname.."/graphics/entities/stargate/s_woosh_glow.png",
@@ -993,7 +977,6 @@ data:extend({
                 scale = 0.5,
                 frame_count = 33,
                 line_length = 6,
-                frame_sequence = w_fs,
                 shift = {0, 2.5},
                 animation_speed = 15/60,
                 usage = "explosion"
@@ -1007,6 +990,7 @@ data:extend({
         hidden = true,
         subgroup = "explosions",
         render_layer = "projectile",
+        delay = 22*60/15,
         animations = {
             {
                 filename = modname.."/graphics/entities/stargate/woosh.png",
@@ -1015,7 +999,6 @@ data:extend({
                 scale = 0.5,
                 frame_count = 33,
                 line_length = 6,
-                frame_sequence = w_fs,
                 shift = {0, 2.5},
                 animation_speed = 15/60,
                 usage = "explosion"
