@@ -204,9 +204,10 @@ function OnNthTickSGateDialing(e)
                 game.print("Not enough electricity")
             end
 
+            local ssControl = gate.gate.childs.signalSender.get_control_behavior()
             if success == true then
                 gate.gate.entity.electric_buffer_size = 10^7
-                gate.gate.childs.signalSender.get_control_behavior().get_section(1).set_slot(1, {
+                ssControl.get_section(1).set_slot(1, {
                     value = {
                         type = "virtual",
                         name = "kj_sg_glyph_connect",
@@ -216,6 +217,15 @@ function OnNthTickSGateDialing(e)
                     min = 1,
                 })
             else
+                ssControl.get_section(1).set_slot(1, {
+                    value = {
+                        type = "virtual",
+                        name = "kj_sg_glyph_connect",
+                        quality = "normal",
+                        comparator = "=",
+                    },
+                    min = -1,
+                })
                 gate.gate.entity.surface.create_entity {
                     name = "kj_stargate_electricFailure",
                     position = util.vector2Add(gate.gate.entity.position, {x = 0, y = 0.925}),
@@ -332,6 +342,7 @@ function OnNthTickSGates(e)
                     end
                 end
 
+                --either address is false or abort signal was there
                 if success == false or receiver.get_signal({type = "virtual", name = "kj_sg_glyph_connect"}, 1) == -1 then
                     gate:Disconnect()
                     gate:Reset()

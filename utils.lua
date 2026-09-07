@@ -26,8 +26,9 @@ sgNames = {
     colliderHB = "kj_stargate_colliderHoriBig",
     colliderHS = "kj_stargate_colliderHoriShort",
     colliderD = "kj_stargate_colliderDiag",
+
+    dhdName = "kj_dhd"
 }
-dhdName = "kj_dhd"
 local functions = {}
 local glyphIndex = {}
 local dhdSearchRadius = 15
@@ -354,6 +355,61 @@ function functions.addToGlobal(name, entity, addContent, override)
     return storage[name][sName][id]
 end
 
+function functions.removeAllGates()
+    if not storage["stargate"] then return end
+    for sName, surface in pairs(storage["stargate"]) do
+        for id, gate in pairs(surface) do
+            local ch = gate.childs
+            if gate and gate.oldTiles then
+                for i = #gate.oldTiles, 1, -1 do
+                    local tile = gate.oldTiles[i]
+                    if ch.tpArea.surface.get_tile(tile.position.x, tile.position.y).name == "nuclear-ground" then
+                        table.remove(gate.oldTiles, i)
+                    end
+                end
+                ch.tpArea.surface.set_tiles(gate.oldTiles)
+            end
+
+            if ch then
+                if ch.poleVisibleRight then
+                    storage.electricPoles[ch.poleVisibleRight.unit_number] = nil
+                end
+                if ch.poleVisibleLeft then
+                    storage.electricPoles[ch.poleVisibleLeft.unit_number] = nil
+                end
+                for _, ent in pairs(ch) do
+                    ent.destroy()
+                end
+            end
+
+            if gate.chevrons then
+                gate.chevrons.destroy()
+            end
+
+            if gate.animation then
+                gate.animation.destroy()
+            end
+
+            if gate.buttonLight then
+                gate.buttonLight.destroy()
+            end
+
+            if gate.glyphs then
+                for _,glyph in pairs(gate.glyphs) do
+                    glyph.destroy()
+                end
+            end
+
+            if gate.entity and gate.entity.valid then gate.entity.destroy() end
+
+            storage.tasks.activeGates[id] = nil
+            storage.tasks.busyDhds[id] = nil
+
+            storage["stargate"][sName][id] = nil
+        end
+    end
+end
+
 ---@param name string name of storage table
 ---@param entity LuaEntity the entity of the entry to be deleted
 function functions.removeFromGlobal(name, entity)
@@ -405,7 +461,7 @@ function functions.removeFromGlobal(name, entity)
 
     if storObj.glyphs then
         for _,glyph in pairs(storObj.glyphs) do
-        glyph.destroy()
+            glyph.destroy()
         end
     end
 
@@ -455,6 +511,7 @@ function functions.setMetatablesInGlobal(name, mt)
 		end
 	end
 end
+
 function functions.randomSound(name, number)
     return name..math.random(1,number)
 end

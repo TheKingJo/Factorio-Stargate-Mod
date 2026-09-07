@@ -14,8 +14,9 @@ if script.active_mods["kj_vehicles"] then
 end
 --seed: 163867536
 
+--/printAddress surface?
 commands.add_command("printAddress", nil, function(command)
-    if command.player_index == nil then return end
+    --if command.player_index == nil then return end
     local surface = command.parameter
 
     if surface ~= nil then
@@ -27,6 +28,10 @@ commands.add_command("printAddress", nil, function(command)
             game.print("Address of "..surface..": "..util.getSignalFromChar(address, true))
         end
     end
+end)
+
+commands.add_command("deleteGates", nil, function()
+    util.removeAllGates()
 end)
 
 script.on_event(defines.events.on_built_entity, OnBuilt)

@@ -161,11 +161,19 @@ function OnBuilt(e)
         end
         wireConsM[1].connect_to(wireConsSR)
         wireConsM[2].connect_to(wireConsSS)
-        childs.signalSender.get_or_create_control_behavior()
+        local cb = childs.signalSender.get_or_create_control_behavior()
+        --TODO either make quality fixed requisite or make this feature optional
+        cb.add_section()--this address state
+        cb.add_section()--this address (common quality)
+        cb.add_section()--previous address (uncommon quality)
+        cb.add_section()--previous x2 address (rare quality)
+        cb.add_section()--previous x3 address (epic quality)
+        cb.add_section()--previous x4 address (legendary quality)
 
         local content = {
             destAddress = {},
             destAddressLetters = {},
+            recentAddresses = {},
             lastGlyph = "poo",
 
             manual = false,
@@ -299,7 +307,7 @@ function OnBuilt(e)
         util.addToGlobal("stargate", entity, content)
 
         ent.destroy()
-    elseif ent.name == dhdName then --dhd placed
+    elseif ent.name == sgNames.dhdName then --dhd placed
         ent.rotatable = false
         ent.force = "neutral"
 
@@ -345,7 +353,7 @@ function OnRemoved(e)
 
         util.removeFromGlobal("stargate", ent)
 
-    elseif ent.name == dhdName then
+    elseif ent.name == sgNames.dhdName then
         local dhd, _ = util.findInGlobal("dhd", ent)
         if dhd and dhd.stargate then
             dhd:Connect("deineMom")
@@ -364,7 +372,7 @@ end
 function GuiOpened(e)
     local player = game.players[e.player_index]
 
-    if e.entity and e.entity.name == dhdName then
+    if e.entity and e.entity.name == sgNames.dhdName then
         local dhd, dhdID = util.findInGlobal("dhd", e.entity)
         if dhd == nil or dhd.stargate == nil then
             player.opened = nil

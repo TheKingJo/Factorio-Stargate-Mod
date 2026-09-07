@@ -69,6 +69,13 @@ stargate = {
     end,
 
     ResetAddress = function(self)
+        table.insert(self.recentAddresses, 1, self.destAddress)
+        if #self.recentAddresses > 5 then
+            for i = 6, #self.recentAddresses, 1 do
+                table.remove(self.recentAddresses, i)
+            end
+        end
+        --TODO implement cc section establishing and shifting by quality and index yada yada
         if self.destAddress then
             self.destAddress = {}
             self.destAddressLetters = {}
