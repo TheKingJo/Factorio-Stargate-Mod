@@ -70,16 +70,69 @@ stargate = {
 
     ResetAddress = function(self)
         table.insert(self.recentAddresses, 1, self.destAddress)
+
         if #self.recentAddresses > 5 then
-            for i = 6, #self.recentAddresses, 1 do
+            for i = 6, #self.recentAddresses do
                 table.remove(self.recentAddresses, i)
             end
         end
+        self:RefreshRecentAddressesInSender()
         --TODO implement cc section establishing and shifting by quality and index yada yada
         if self.destAddress then
             self.destAddress = {}
             self.destAddressLetters = {}
         end
+    end,
+
+    RefreshRecentAddressesInSender = function(self)
+        local ssControl = self.childs.signalSender.get_control_behavior()
+        if ssControl.sections_count > 1 then
+            for i = ssControl.sections_count, 2, -1 do
+                ssControl.remove_section(i)
+                --game.print(ssControl.remove_section(i) and "" or " Cannot remove section "..i)
+            end
+        end
+        for i, address in ipairs(self.recentAddresses) do
+            local section = ssControl.add_section()
+            for j, char in ipairs(address) do
+                if char == "poo" then
+                    char = char.."_"..poo[self.entity.surface.name]
+                end
+                section.set_slot(j, {
+                    value = {
+                        type = "virtual",
+                        name = "kj_sg_glyph_"..char,
+                        quality = qualities[i],
+                        comparator = "=",
+                    },
+                    min = j,
+                })
+            end
+        end
+    end,
+
+    ResetSenderStatus = function(self)
+        self:SetSenderStatus()
+    end,
+
+    SetSenderStatus = function(self, status)
+        local ssControl = self.childs.signalSender.get_control_behavior()
+        local value = 0
+
+        if status == false then
+            value = -1
+        elseif status == true then
+            value = 1
+        end
+        ssControl.get_section(1).set_slot(1, {
+            value = {
+                type = "virtual",
+                name = "kj_sg_glyph_connect",
+                quality = "normal",
+                comparator = "=",
+            },
+            min = value,
+        })
     end,
 }
 

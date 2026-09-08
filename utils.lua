@@ -29,6 +29,13 @@ sgNames = {
 
     dhdName = "kj_dhd"
 }
+qualities = {
+    "normal",
+    "uncommon",
+    "rare",
+    "epic",
+    "legendary",
+}
 local functions = {}
 local glyphIndex = {}
 local dhdSearchRadius = 15
@@ -363,11 +370,11 @@ function functions.removeAllGates()
             if gate and gate.oldTiles then
                 for i = #gate.oldTiles, 1, -1 do
                     local tile = gate.oldTiles[i]
-                    if ch.tpArea.surface.get_tile(tile.position.x, tile.position.y).name == "nuclear-ground" then
+                    if ch.baseEnt.surface.get_tile(tile.position.x, tile.position.y).name == "nuclear-ground" then
                         table.remove(gate.oldTiles, i)
                     end
                 end
-                ch.tpArea.surface.set_tiles(gate.oldTiles)
+                ch.baseEnt.surface.set_tiles(gate.oldTiles)
             end
 
             if ch then

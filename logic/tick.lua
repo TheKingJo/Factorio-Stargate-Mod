@@ -154,7 +154,6 @@ function OnNthTickSGateDialing(e)
         end
 
         if #gate.glyphs > 0 then
-
             local drain = gate.gate.entity.electric_drain * 60 --in W aka 10 MW max
             local limit = gate.gate.entity.power_usage * 60 --in W aka 100 MW
             if drain < limit * 0.5 then return end --atm a bit useless to check since its draining its own capacitor so will likely be always true
@@ -165,7 +164,6 @@ function OnNthTickSGateDialing(e)
                 table.insert(gate.gate.destAddress, glyph.letter)
                 table.remove(gate.glyphs, 1)
 
-
                 local direction = (glyph.direction % 2) * 2 --2 / 0
                 gate.gate.childs.rings.riding_state = {
                     acceleration = defines.riding.acceleration.nothing,
@@ -175,7 +173,6 @@ function OnNthTickSGateDialing(e)
                 gate.gate.lastGlyph = glyph.letter
                 gate.gate.chevrons.animation_offset = gate.gate.chevrons.animation_offset + 1
                 util.playSoundOnSurface(gate.gate.entity.surface, gate.gate.entity.position, util.randomSound("kj_stargate_chevron", 3))
-                --add the rotation shiz
             end
         else
             gate.gate.childs.rings.riding_state = {
@@ -204,28 +201,11 @@ function OnNthTickSGateDialing(e)
                 game.print("Not enough electricity")
             end
 
-            local ssControl = gate.gate.childs.signalSender.get_control_behavior()
             if success == true then
+                gate.gate:SetSenderStatus(true)
                 gate.gate.entity.electric_buffer_size = 10^7
-                ssControl.get_section(1).set_slot(1, {
-                    value = {
-                        type = "virtual",
-                        name = "kj_sg_glyph_connect",
-                        quality = "normal",
-                        comparator = "=",
-                    },
-                    min = 1,
-                })
             else
-                ssControl.get_section(1).set_slot(1, {
-                    value = {
-                        type = "virtual",
-                        name = "kj_sg_glyph_connect",
-                        quality = "normal",
-                        comparator = "=",
-                    },
-                    min = -1,
-                })
+                gate.gate:SetSenderStatus(false)
                 gate.gate.entity.surface.create_entity {
                     name = "kj_stargate_electricFailure",
                     position = util.vector2Add(gate.gate.entity.position, {x = 0, y = 0.925}),
@@ -236,6 +216,7 @@ function OnNthTickSGateDialing(e)
             end
             gate.gate:ResetAddress()
             signaledGates[id] = nil
+            gate.gate.SenderLastTick = game.tick
         end
         ::continue::
     end
@@ -258,7 +239,7 @@ function OnNthTickSGates(e)
             local signals = receiver.get_signals(1)
 
             if gate.active == false and storage.tasks.signaledGates[gate.id] == nil then
-                if gate.safeToTravel == false and signals ~= nil then
+                if gate.safeToTravel == false and signals ~= nil and gate.SenderLastTick < game.tick then
                     --if gate.entity and gate.entity.energy ~= 10^9 then return end
                     local address = ""
                     local addressLetters = {}
@@ -322,6 +303,7 @@ function OnNthTickSGates(e)
                         end
                         gate.entity.minable_flag = false
                         storage.tasks.signaledGates[gate.id] = task
+                        gate:ResetSenderStatus()
                     end
                     game.print("Address entered: "..address.." "..util.getSignalFromChar(address, true))
                 end

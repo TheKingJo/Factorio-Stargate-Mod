@@ -161,14 +161,14 @@ function OnBuilt(e)
         end
         wireConsM[1].connect_to(wireConsSR)
         wireConsM[2].connect_to(wireConsSS)
-        local cb = childs.signalSender.get_or_create_control_behavior()
+        --local cb = childs.signalSender.get_or_create_control_behavior()
         --TODO either make quality fixed requisite or make this feature optional
-        cb.add_section()--this address state
-        cb.add_section()--this address (common quality)
-        cb.add_section()--previous address (uncommon quality)
-        cb.add_section()--previous x2 address (rare quality)
-        cb.add_section()--previous x3 address (epic quality)
-        cb.add_section()--previous x4 address (legendary quality)
+        --cb.add_section()--this address state
+        --cb.add_section()--this address (common quality)
+        --cb.add_section()--previous address (uncommon quality)
+        --cb.add_section()--previous x2 address (rare quality)
+        --cb.add_section()--previous x3 address (epic quality)
+        --cb.add_section()--previous x4 address (legendary quality)
 
         local content = {
             destAddress = {},
