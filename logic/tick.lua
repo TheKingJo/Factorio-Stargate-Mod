@@ -1,7 +1,7 @@
 --forces teleported players to move down
 --forces teleported vehicles to move down
 --handles delayed (teleport) sounds
---handles delayed eventhorihon animations and woosh dmg areas
+--handles delayed eventhorizon animations and woosh dmg areas
 --handles delayed gate turnoffs
 function OnTick(e)
     local players = storage.tasks.players
@@ -51,12 +51,12 @@ function OnTick(e)
     if eventHorizons ~= nil then
         for id, eH in pairs(eventHorizons) do
             if game.tick > eH.tick then
-                local effectPos1 = util.vector2Add(eH.gate.entity.position, {x = 0, y = 2.5})
-                local effectPos2 = util.vector2Add(eH.gate.entity.position, {x = 0, y = 5.5})
+                local effectPos1 = util.vector2Add(eH.gate.pos, {x = 0, y = entOffY.eff1})
+                local effectPos2 = util.vector2Add(eH.gate.pos, {x = 0, y = entOffY.eff2})
 
                 eH.gate.animation = rendering.draw_animation{
                     animation = "kj_stargate_eventHorizon",
-                    target = util.vector2Add(eH.gate.entity.position, {x = 0, y = (eH.gate.manual and -0.19 or -0.215)}),
+                    target = util.vector2Add(eH.gate.pos, {x = 0, y = (eH.gate.manual and -0.19 or -0.215)}),
                     surface = eH.gate.entity.surface,
                     render_layer = "object",
                 }
@@ -160,9 +160,14 @@ function OnNthTickSGateDialing(e)
 
             local glyph = gate.glyphs[1]
             if game.tick >= glyph.tick then
-
-                table.insert(gate.gate.destAddress, glyph.letter)
-                table.remove(gate.glyphs, 1)
+                --game.print("tick: "..math.floor(game.tick))
+                if glyph.letter then
+                    game.print("Locked Chevron "..glyph.letter)
+                    table.insert(gate.gate.destAddress, glyph.letter)
+                    gate.gate.lastGlyph = glyph.letter
+                    gate.gate.chevrons.animation_offset = gate.gate.chevrons.animation_offset + 1
+                    util.playSoundOnSurface(gate.gate.entity.surface, gate.gate.pos, util.randomSound("kj_stargate_chevron", 3))
+                end
 
                 local direction = (glyph.direction % 2) * 2 --2 / 0
                 gate.gate.childs.rings.riding_state = {
@@ -170,9 +175,7 @@ function OnNthTickSGateDialing(e)
                     direction = direction,
                 }
 
-                gate.gate.lastGlyph = glyph.letter
-                gate.gate.chevrons.animation_offset = gate.gate.chevrons.animation_offset + 1
-                util.playSoundOnSurface(gate.gate.entity.surface, gate.gate.entity.position, util.randomSound("kj_stargate_chevron", 3))
+                table.remove(gate.glyphs, 1)
             end
         else
             gate.gate.childs.rings.riding_state = {
@@ -197,8 +200,13 @@ function OnNthTickSGateDialing(e)
                 end
 
                 gate.gate.entity.energy = 0
+                gate.gate:SetEnergyStatus()
             else
                 game.print("Not enough electricity")
+                gate.gate.entity.surface.create_entity {
+                    name = "kj_stargate_electricFailure",
+                    position = util.vector2Add(gate.gate.pos, {x = 0, y = entOffY.eF}),
+                }
             end
 
             if success == true then
@@ -206,17 +214,13 @@ function OnNthTickSGateDialing(e)
                 gate.gate.entity.electric_buffer_size = 10^7
             else
                 gate.gate:SetSenderStatus(false)
-                gate.gate.entity.surface.create_entity {
-                    name = "kj_stargate_electricFailure",
-                    position = util.vector2Add(gate.gate.entity.position, {x = 0, y = 0.925}),
-                }
                 gate.gate.entity.minable_flag = true
                 gate.gate.chevrons.animation_offset = 0
-                util.playSoundOnSurface(gate.gate.entity.surface, gate.gate.entity.position, "kj_stargate_fail")
+                util.playSoundOnSurface(gate.gate.entity.surface, gate.gate.pos, "kj_stargate_fail")
             end
             gate.gate:ResetAddress()
             signaledGates[id] = nil
-            gate.gate.SenderLastTick = game.tick
+            gate.gate.senderLastTick = game.tick
         end
         ::continue::
     end
@@ -232,14 +236,15 @@ function OnNthTickSGates(e)
     if not storage.stargate then return end
 
     for _, surface in pairs(storage.stargate) do
-        for id, gate in pairs(surface) do
+        for _, gate in pairs(surface) do
             if gate.manual == true then goto continue end
-            if not gate.childs.signalReceiver then surface[id] = nil return end
+            --if not gate.childs.signalReceiver then surface[id] = nil return end
+            gate:SetEnergyStatus()
             local receiver = gate.childs.signalReceiver
             local signals = receiver.get_signals(1)
 
-            if gate.active == false and storage.tasks.signaledGates[gate.id] == nil then
-                if gate.safeToTravel == false and signals ~= nil and gate.SenderLastTick < game.tick then
+            if gate.active == false and storage.tasks.signaledGates[gate.id] == nil then --gate is inactive and also not dialing
+                if gate.safeToTravel == false and signals ~= nil and game.tick > (gate.senderLastTick or 0) then
                     --if gate.entity and gate.entity.energy ~= 10^9 then return end
                     local address = ""
                     local addressLetters = {}
@@ -290,17 +295,21 @@ function OnNthTickSGates(e)
                         local prevLetter = gate.lastGlyph or "poo"
                         local offset = 0
 
+                        table.insert(task.glyphs, {tick = 0, direction = 0})
+                        game.print("Tick: "..game.tick)
                         for i, letter in ipairs(addressLetters) do
                             local distance, dir = util.getRingGlyphDistance(prevLetter, letter)
-                            game.print("Distance: "..prevLetter.." "..letter.." "..distance)
-                            game.print("Tick: "..game.tick + offset)
-                            offset = offset + 3*60*(distance / 19)
+                            localOffset = math.floor(3*60*(distance / 19)) --3s per half cycle
+                            offset = offset + localOffset
+                            game.print("Distance: "..prevLetter.." -> "..letter.." - "..distance.." around "..direction[dir].." with offset "..localOffset)
                             table.insert(task.glyphs, {
-                                letter = letter, tick = game.tick + offset, direction = dir
+                                letter = letter, tick = game.tick + offset, direction = 0
                             })
+                            task.glyphs[i].direction = dir
                             prevLetter = letter
                             gate.destAddressLetters[letter] = i
                         end
+
                         gate.entity.minable_flag = false
                         storage.tasks.signaledGates[gate.id] = task
                         gate:ResetSenderStatus()
@@ -312,12 +321,10 @@ function OnNthTickSGates(e)
 
                 if gate.active == false then
                     if storage.tasks.signaledGates[gate.id] ~= nil then --gate is dialing
-                        --local glyphs = storage.tasks.signaledGates[gate.id].glyphs
                         local pooLookup = {[7] = "_"..storage.tasks.signaledGates[gate.id].pooID}
                         for letter, index in pairs(gate.destAddressLetters) do
                             if receiver.get_signal({type = "virtual", name = "kj_sg_glyph_"..letter..(pooLookup[index] or "")}, 1) ~= index then
                                 success = false
-                                util.playSoundOnSurface(gate.entity.surface, gate.entity.position, "kj_stargate_fail")
                                 break
                             end
                         end
@@ -326,6 +333,9 @@ function OnNthTickSGates(e)
 
                 --either address is false or abort signal was there
                 if success == false or receiver.get_signal({type = "virtual", name = "kj_sg_glyph_connect"}, 1) == -1 then
+                    util.playSoundOnSurface(gate.entity.surface, gate.pos, "kj_stargate_fail")
+                    gate.entity.minable_flag = true
+
                     gate:Disconnect()
                     gate:Reset()
                     storage.tasks.signaledGates[gate.id] = nil

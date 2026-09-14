@@ -1,5 +1,4 @@
 ringGlyphDistances = {}
-sgOffset = {x = 0, y = 1.3}
 poo = {
     nauvis = 1,
     gleba = 5,
@@ -35,6 +34,21 @@ qualities = {
     "rare",
     "epic",
     "legendary",
+}
+entOffY = {
+    entS = -1.8-0.33,
+    ent = -1.8-0.33,
+    w = 0.8,
+    wg = 0.55,
+    sg = 1.3,
+    eff1 = 2.5,
+    eff2 = 5.5,
+    eF = 0.925,
+}
+direction = {
+    "left",
+    "straight",
+    "right",
 }
 local functions = {}
 local glyphIndex = {}
@@ -331,7 +345,7 @@ function functions.addToGlobal(name, entity, addContent, override)
     local content = {
         id = id,
         entity = entity,
-        pos = entity.position,
+        pos = util.vector2Add(entity.position, {x = 0, y = 0.33}),
     }
 
     local shortestOppEnt, shortestOppEntObj

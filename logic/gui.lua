@@ -73,7 +73,7 @@ function handlers.letter_click(event)
             if char == "connect" then
                 if gate.active == false then
                     --game.print("Trying to establish connection")
-                    util.playSoundOnSurface(gate.entity.surface, gate.entity.position, "kj_stargate_dhdc")
+                    util.playSoundOnSurface(gate.entity.surface, gate.pos, "kj_stargate_dhdc")
                     dhd:Connect(dhdSurface)
                 else
                     dhd:Disconnect()
@@ -84,7 +84,7 @@ function handlers.letter_click(event)
                 if element.toggled == false then --clicked letter button
                     if #dhd.address < 7 then
                         element.toggled = not element.toggled
-                        util.playSoundOnSurface(gate.entity.surface, gate.entity.position, util.randomSound("kj_stargate_dhd", 7))
+                        util.playSoundOnSurface(gate.entity.surface, gate.pos, util.randomSound("kj_stargate_dhd", 7))
                         dhd.glyphs[(#dhd.address or 0) + 1].animation_offset = charLookup[char]
                         dhd.addressLetters[char] = true
                         table.insert(dhd.address, char)
@@ -99,13 +99,13 @@ function handlers.letter_click(event)
                     end
                     dhd.glyphs[index].destroy()--prüfen ob existiert, und wenn nicht GUI schließen
                     element.toggled = not element.toggled
-                    util.playSoundOnSurface(gate.entity.surface, gate.entity.position, util.randomSound("kj_stargate_dhd", 7))
+                    util.playSoundOnSurface(gate.entity.surface, gate.pos, util.randomSound("kj_stargate_dhd", 7))
                     dhd.addressLetters[char] = nil
                     table.remove(dhd.glyphs, index)
                     table.insert(dhd.glyphs, rendering.draw_animation{
                         animation = "kj_stargate_dhd_"..dhd.entity.direction,
                         animation_speed = 0,
-                        target = dhd.entity.position,
+                        target = dhd.pos,
                         surface = dhd.entity.surface,
                         render_layer = "object",
                     })

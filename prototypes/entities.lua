@@ -43,7 +43,7 @@ data:extend({
         effectivity = 1,
         energy_source = {type = "void"},
         inventory_size = 0,
-        rotation_speed = 1/(6*60),
+        rotation_speed = 1/(6*60), --6s per cycle
         braking_force = 1,
         energy_per_hit_point = 1,
         friction_force = 1,
@@ -457,8 +457,8 @@ data:extend({
         dying_explosion = "rocket-silo-explosion",
         icon = modname.."/graphics/entities/stargate/icon.png",
         icon_size = 128,
-        collision_mask = {layers = {trigger_target = true}},
-        collision_box = {{-4, -0.8}, {4, 3}},
+        --collision_mask = {layers = {trigger_target = true}},
+        --collision_box = {{-4, -0.8}, {4, 3}},
         selection_box = {{-4, -0.8}, {4, 3}},
         minable = {
             mining_time = 5,
@@ -491,8 +491,8 @@ data:extend({
         dying_explosion = "rocket-silo-explosion",
         icon = modname.."/graphics/entities/stargate/s_icon.png",
         icon_size = 128,
-        collision_mask = {layers = {trigger_target = true}},
-        collision_box = {{-3, -1.5}, {3, 3}},
+        --collision_mask = {layers = {trigger_target = true}},
+        --collision_box = {{-3, -1.5}, {3, 3}},
         selection_box = {{-3, -1.5}, {3, 3}},
         minable = {
             mining_time = 5,
@@ -600,7 +600,6 @@ data:extend({
         hidden = true,
         icon = modname.."/graphics/entities/stargate/s_icon.png",
         icon_size = 128,
-        collision_mask = {layers = {trigger_target = true}},
         collision_box = {{-0.5, -0.5}, {0.5, 0.5}},
         selection_box = {{-0.5, -0.5}, {0.5, 0.5}},
         factoriopedia_alternative = "kj_stargate_signaled_placement",

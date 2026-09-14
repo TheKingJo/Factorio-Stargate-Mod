@@ -9,7 +9,7 @@ function OnBuilt(e)
         local entity = surface.create_entity{
             name = sgNames.entitySignaled,
             force = "neutral",
-            position = util.vector2Add(pos, {x = 0, y = -1.8}),
+            position = util.vector2Add(pos, {x = 0, y = entOffY.entS}),
         }
         local chevrons = rendering.draw_animation{
             animation = "kj_stargate_chevrons_s",
@@ -194,7 +194,7 @@ function OnBuilt(e)
         local entity = surface.create_entity{
             name = sgNames.entity,
             force = "neutral",
-            position = util.vector2Add(pos, {x = 0, y = -1.8}),
+            position = util.vector2Add(pos, {x = 0, y = entOffY.ent}),
         }
         local chevrons = rendering.draw_animation{
             animation = "kj_stargate_chevrons",
@@ -363,7 +363,7 @@ function OnRemoved(e)
         if stargate ~= nil and stargate.active == true then --cutting connection ?
             --stargate.active = false
             --stargate.destination = nil
-            --util.playSoundOnSurface(ent.surface, stargate.entity.position, "kj_stargate_close")
+            --util.playSoundOnSurface(ent.surface, stargate.pos, "kj_stargate_close")
             --if stargate.animation then stargate.animation.destroy() end
         end
     end
@@ -442,14 +442,14 @@ function OnDamaged(e)
                 if type == "explosion" then --spawn a burried variant below
                     local ent = entity.surface.create_entity{
                         name = "kj_"..entityName[entity.name].."_auto_gen",
-                        position = entity.position,
+                        position = obj.pos,
                         force = "neutral",
                     }
                     ent.graphics_variation = math.random(1,4)
                 else --physical damage overload is supposed to destroy the gate
                     entity.surface.create_entity{
                         name = remnant[entity.name],
-                        position = entity.position,
+                        position = obj.pos,
                     }
                 end
             end

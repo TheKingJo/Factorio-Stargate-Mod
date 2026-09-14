@@ -9,7 +9,7 @@ stargate = {
                 thisGate.dhd:ResetGlyphs()
                 thisGate.dhd:CloseGUIs()
             end
-            util.playSoundOnSurface(thisGate.entity.surface, thisGate.entity.position, "kj_stargate_fail")
+            util.playSoundOnSurface(thisGate.entity.surface, thisGate.pos, "kj_stargate_fail")
         else
             if thisGate.destination ~= nil then
                 thisGate:Disconnect()
@@ -115,6 +115,19 @@ stargate = {
         self:SetSenderStatus()
     end,
 
+    SetEnergyStatus = function(self)
+        local ssControl = self.childs.signalSender.get_control_behavior()
+        ssControl.get_section(1).set_slot(2, {
+            value = {
+                type = "virtual",
+                name = "signal-lightning",
+                quality = "normal",
+                comparator = "=",
+            },
+            min = 100 * self.entity.energy / self.entity.electric_buffer_size,
+        })
+    end,
+
     SetSenderStatus = function(self, status)
         local ssControl = self.childs.signalSender.get_control_behavior()
         local value = 0
@@ -142,11 +155,11 @@ dhd = {
             animation = "kj_stargate_dhd_"..self.entity.direction,
             animation_speed = 40/60,
             time_to_live = 60,
-            target = self.entity.position,
+            target = self.pos,
             surface = self.entity.surface,
             render_layer = "object",
         }
-        util.playSoundOnSurface(self.entity.surface, self.entity.position, "kj_stargate_dhd_connect", 1)
+        util.playSoundOnSurface(self.entity.surface, self.pos, "kj_stargate_dhd_connect", 1)
         if self.stargate.destination and self.stargate.active then
             self:SetButtonLight(true)
             self:FetchAddress(self.stargate.destination)
@@ -158,7 +171,7 @@ dhd = {
         if status == true then
             self.buttonLight = rendering.draw_sprite{
                 sprite = "kj_stargate_dhd_button_"..self.entity.direction,
-                target = self.entity.position,
+                target = self.pos,
                 surface = self.entity.surface,
                 render_layer = "object",
             }
@@ -221,9 +234,9 @@ dhd = {
                 if self.stargate.destination == nil then
                     self.stargate.chevrons.animation_offset = 0
                 end
-                util.playSoundOnSurface(self.stargate.entity.surface, self.stargate.entity.position, "kj_stargate_fail")
+                util.playSoundOnSurface(self.stargate.entity.surface, self.stargate.pos, "kj_stargate_fail")
             else
-                util.playSoundOnSurface(self.entity.surface, self.entity.position, "kj_stargate_fail")
+                util.playSoundOnSurface(self.entity.surface, self.pos, "kj_stargate_fail")
             end
             --game.print("no gate with that address. emptying ram")
             self:ResetGlyphs()
@@ -281,14 +294,14 @@ function deactivateGate(gate, override)
         gate.destination = nil
         storage.tasks.eventHorizons[gate.id] = nil
     else
-        util.playSoundOnSurface(gate.entity.surface, gate.entity.position, "kj_stargate_close")
+        util.playSoundOnSurface(gate.entity.surface, gate.pos, "kj_stargate_close")
         gate.childs.eHShort = gate.entity.surface.create_entity {
             name = "kj_stargate_eventHorizon_short",
-            position = util.vector2Add(gate.entity.position, {x = 0, y = (gate.manual and 0.5 or 0.45)}),
+            position = util.vector2Add(gate.pos, {x = 0, y = (gate.manual and 0.5 or 0.45)}),
         }
         gate.childs.wooshBckw = gate.entity.surface.create_entity {
             name = "kj_stargate_eventHorizon_woosh_backward",
-            position = util.vector2Add(gate.entity.position, {x = 0, y = (gate.manual and 0.5 or 0.45)}),
+            position = util.vector2Add(gate.pos, {x = 0, y = (gate.manual and 0.5 or 0.45)}),
         }
 
         --check for already existing turnoffs, so it doesn't get edged to eternity in case of an error
@@ -314,7 +327,7 @@ function activateGate(gate)
     gate.active = true
     gate.childs.soundEnt = gate.entity.surface.create_entity{
         name = sgNames.sound,
-        position = gate.entity.position,
+        position = gate.pos,
     }
     gate.childs.soundEnt.destructible = false
     gate.entity.minable_flag = false
@@ -322,19 +335,19 @@ function activateGate(gate)
 
     storage.tasks.eventHorizons[gate.id] = {tick = game.tick + 1.5*60-5, gate = gate}
 
-    util.playSoundOnSurface(gate.entity.surface, gate.entity.position, "kj_stargate_open")
+    util.playSoundOnSurface(gate.entity.surface, gate.pos, "kj_stargate_open")
 
     gate.childs.eHwoosh = gate.entity.surface.create_entity {
         name = "kj_stargate_eventHorizon_woosh",
-        position = util.vector2Add(gate.entity.position, {x = 0, y = (gate.manual and 0.5 or 0.45)}),
+        position = util.vector2Add(gate.pos, {x = 0, y = (gate.manual and 0.5 or 0.45)}),
     }
     gate.childs.woosh = gate.entity.surface.create_entity {
         name = "kj_stargate_woosh",
-        position = util.vector2Add(gate.entity.position, {x = 0, y = 0.8}),
+        position = util.vector2Add(gate.pos, {x = 0, y = entOffY.w}),
     }
     gate.childs.wooshGlow = gate.entity.surface.create_entity {
         name = "kj_stargate_woosh_glow"..(gate.manual and "" or "_s"),
-        position = util.vector2Add(gate.entity.position, {x = 0, y = 0.55}),
+        position = util.vector2Add(gate.pos, {x = 0, y = entOffY.wg}),
     }
 end
 
@@ -427,7 +440,7 @@ function FindFreeTeleportArea(gate, name, pos)
 end
 
 function GateTransit(gate, player, vehicle)
-    local pos = util.vector2Add(gate.entity.position, sgOffset)
+    local pos = util.vector2Add(gate.pos, {x = 0, y = entOffY.sg})
     local surface = gate.entity.surface
     util.playSoundOnSurface(player.surface, player.position, "kj_stargate_enter")
 
@@ -468,10 +481,9 @@ function GateTransit(gate, player, vehicle)
     table.insert(storage.tasks.delayedSounds, {
         tick = game.tick + 5,
         surface = surface,
-        position = gate.entity.position,
+        position = gate.pos,
         sound = "kj_stargate_enter"
     })
-    --util.playSoundOnSurface(surface, gate.entity.position, "kj_stargate_enter")
 end
 
 function AssembleLettersInDHDGUI(root, dhdSurface, dhd)
