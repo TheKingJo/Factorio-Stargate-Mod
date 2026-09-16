@@ -1,4 +1,4 @@
-ringGlyphDistances = {}
+--ringGlyphDistances = {}
 poo = {
     nauvis = 1,
     gleba = 5,
@@ -50,6 +50,10 @@ direction = {
     "straight",
     "right",
 }
+strToBool = {
+    ["true"] = true,
+    ["false"] = false,
+}
 local functions = {}
 local glyphIndex = {}
 local dhdSearchRadius = 15
@@ -78,13 +82,13 @@ for i = 1, 5, 1 do
     charLookup["poo_"..i] = 1
 end
 
-
-local chars = {
-    "A","B","C","D","E","F","G","H","I","J","K","L","M","N","O","P","Q","R","S",
-    "a","b","c","d","e","f","g","h","i","j","k","l","m","n","o","p","q","r","s","poo"
+chars = {
+"poo","A","B","C","D","E","F","G","H","I","J","K","L","M","N","O","P","Q","R","S",
+      "a","b","c","d","e","f","g","h","i","j","k","l","m","n","o","p","q","r","s"
 }
 local max = #chars -- 39
 
+--[[
 for i, row in ipairs(chars) do
     ringGlyphDistances[row] = {}
     for j, col in ipairs(chars) do
@@ -92,7 +96,6 @@ for i, row in ipairs(chars) do
         ringGlyphDistances[row][col] = math.min(d, max - d) -- 39 - d
     end
 end
---[[
 for _, v in pairs(chars) do
     print("A:"..v.." "..ringGlyphDistances["A"][v])
 end
@@ -158,9 +161,11 @@ function functions.getRingGlyphDistance(from, to)
     local left  = (a - b) % max
 
     if right <= left then
-        return right, 2
+        game.print(b.."-"..a.."="..right..": forward (left)")
+        return right, 0
     else
-        return left, 1
+        game.print(a.."-"..b.."="..left..": backward (right)")
+        return left, 2
     end
 end
 

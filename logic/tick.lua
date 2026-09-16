@@ -169,10 +169,9 @@ function OnNthTickSGateDialing(e)
                     util.playSoundOnSurface(gate.gate.entity.surface, gate.gate.pos, util.randomSound("kj_stargate_chevron", 3))
                 end
 
-                local direction = (glyph.direction % 2) * 2 --2 / 0
                 gate.gate.childs.rings.riding_state = {
                     acceleration = defines.riding.acceleration.nothing,
-                    direction = direction,
+                    direction = glyph.direction,
                 }
 
                 table.remove(gate.glyphs, 1)
@@ -218,7 +217,7 @@ function OnNthTickSGateDialing(e)
                 gate.gate.chevrons.animation_offset = 0
                 util.playSoundOnSurface(gate.gate.entity.surface, gate.gate.pos, "kj_stargate_fail")
             end
-            gate.gate:ResetAddress()
+            gate.gate:Reset()
             signaledGates[id] = nil
             gate.gate.senderLastTick = game.tick
         end
@@ -301,7 +300,7 @@ function OnNthTickSGates(e)
                             local distance, dir = util.getRingGlyphDistance(prevLetter, letter)
                             localOffset = math.floor(3*60*(distance / 19)) --3s per half cycle
                             offset = offset + localOffset
-                            game.print("Distance: "..prevLetter.." -> "..letter.." - "..distance.." around "..direction[dir].." with offset "..localOffset)
+                            game.print("Distance: "..prevLetter.." -> "..letter.." - "..distance.." around "..direction[dir+1].." with offset "..localOffset)
                             table.insert(task.glyphs, {
                                 letter = letter, tick = game.tick + offset, direction = 0
                             })
@@ -348,17 +347,19 @@ end
 
 --60
 --tracks:
---gate connection timeouts
---open dhd interfaces afk timeouts
+---gate connection timeouts
+---open dhd interfaces afk timeouts
 function OnNthTickTasks(e)
     local gates = storage.tasks.activeGates
     local dhds = storage.tasks.busyDhds
 
-    if gates ~= nil then
-        for id, gate in pairs(gates) do
-            if game.tick > gate.tick then
-                gate.stargate:Disconnect()
-                storage.tasks.activeGates[id] = nil
+    if not storage.infCon then
+        if gates ~= nil then
+            for id, gate in pairs(gates) do
+                if game.tick > gate.tick then
+                    gate.stargate:Disconnect()
+                    storage.tasks.activeGates[id] = nil
+                end
             end
         end
     end

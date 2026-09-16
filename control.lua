@@ -34,6 +34,27 @@ commands.add_command("deleteGates", nil, function()
     util.removeAllGates()
 end)
 
+commands.add_command("infCon", nil, function(command)
+    local state = strToBool[command.parameter]
+    if state == nil then
+        state = false
+    end
+    storage.infCon = state
+    game.print("Infinite connections: "..tostring(state))
+end)
+
+commands.add_command("rotate", nil, function(command)
+    local rotation = tonumber(command.parameter)
+    for _, surface in pairs(storage.stargate) do
+        for _, gate in pairs(surface) do
+            if gate.manual == false then
+                gate.childs.rings.orientation = 1 - (rotation / 39)
+            end
+        end
+    end
+    game.print("Rings rotated to: "..tostring(rotation / 39))
+end)
+
 script.on_event(defines.events.on_built_entity, OnBuilt)
 script.on_event(defines.events.on_robot_built_entity, OnBuilt)
 

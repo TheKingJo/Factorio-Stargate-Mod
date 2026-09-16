@@ -51,12 +51,31 @@ stargate = {
             self.chevrons.animation_offset = 0
         end
         self:ResetAddress()
+        self:SnapRingToSlot()
+        self:SetLastGlyphByRingPos()
 
         if self.childs.rings then
             self.childs.rings.riding_state = {
                 acceleration = defines.riding.acceleration.nothing,
                 direction = 1,
             }
+        end
+    end,
+
+    SnapRingToSlot = function(self)
+        local rings = self.childs.rings
+        if rings then
+            rings.orientation = math.floor(rings.orientation * 39) / 39
+            game.print("Snapped to "..rings.orientation)
+        end
+    end,
+
+    SetLastGlyphByRingPos = function(self)
+        local rings = self.childs.rings
+        if rings then
+            --gate.lastGlyph or "poo"
+            self.lastGlyph = chars[(math.floor(1 - rings.orientation * 39 + 0.5 - 1) % 39) + 1] or "poo"
+            game.print("Last Glyph: "..self.lastGlyph)
         end
     end,
 
@@ -77,7 +96,6 @@ stargate = {
             end
         end
         self:RefreshRecentAddressesInSender()
-        --TODO implement cc section establishing and shifting by quality and index yada yada
         if self.destAddress then
             self.destAddress = {}
             self.destAddressLetters = {}
