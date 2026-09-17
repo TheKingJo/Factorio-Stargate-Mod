@@ -43,7 +43,7 @@ entOffY = {
     sg = 1.3,
     eff1 = 2.5,
     eff2 = 5.5,
-    eF = 0.925,
+    eF = 1.925,
 }
 direction = {
     "left",

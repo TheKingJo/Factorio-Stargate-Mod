@@ -835,7 +835,7 @@ data:extend({
                 {
                     filename = modname.."/graphics/entities/stargate/s_gate_electricFailure.png",
                     size = 832,
-                    shift = {0, 1.4},
+                    shift = {0, 0.4},
                     scale = 0.5,
                     frame_count = 28,
                     line_length = 7,

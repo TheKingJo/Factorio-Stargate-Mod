@@ -390,27 +390,40 @@ function addAddressToGlobal(surface, address)
     storage.addresses[surface.name] = storage.addresses[surface.name] or address
 end
 
+function checkForAddressInGlobal(add)
+    for _, address in pairs(storage.addresses) do
+        if address == add then
+            return true
+        end
+    end
+
+    return false
+end
+
 function generateAdress(surface)
     --setting up rng
     local mapSeed = surface.map_gen_settings.seed
-    local hash = util.hash_fnv1a(mapSeed..surface.name)
-    local generator = game.create_random_generator(hash)
-    game.print(surface.name.. " - Game Seed: "..mapSeed.." - Custom Seed: "..hash)
+    local hash, resultString = "", ""
+    local generator
+    local result, used = {}, {}
 
-    local result = {}
-    local used = {}
+    repeat
+        hash = util.hash_fnv1a(mapSeed..surface.name..hash)
+        generator = game.create_random_generator(hash)
+        game.print(surface.name.. " - Game Seed: "..mapSeed.." - Custom Seed: "..hash)
 
-    for i = 1, 6 do
-        local char
-        repeat
-            local index = generator(1, #chevronChars)
-            char = chevronChars[index]
-        until not used[char]
+        for i = 1, 6 do
+            local char
+            repeat
+                local index = generator(1, #chevronChars)
+                char = chevronChars[index]
+            until not used[char]
 
-        result[i] = char
-        used[char] = true
-    end
-    local resultString = table.concat(result)
+            result[i] = char
+            used[char] = true
+        end
+        resultString = table.concat(result)
+    until checkForAddressInGlobal(resultString) == false
 
     game.print("Address: "..resultString..util.getSignalFromChar(resultString, true))
     return resultString
