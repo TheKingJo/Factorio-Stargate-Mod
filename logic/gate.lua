@@ -65,6 +65,7 @@ stargate = {
     SnapRingToSlot = function(self)
         local rings = self.childs.rings
         if rings then
+            game.print("Orientation "..rings.orientation)
             rings.orientation = math.floor(rings.orientation * 39) / 39
             game.print("Snapped to "..rings.orientation)
         end
@@ -88,14 +89,6 @@ stargate = {
     end,
 
     ResetAddress = function(self)
-        table.insert(self.recentAddresses, 1, self.destAddress)
-
-        if #self.recentAddresses > 5 then
-            for i = 6, #self.recentAddresses do
-                table.remove(self.recentAddresses, i)
-            end
-        end
-        self:RefreshRecentAddressesInSender()
         if self.destAddress then
             self.destAddress = {}
             self.destAddressLetters = {}
@@ -104,12 +97,20 @@ stargate = {
 
     RefreshRecentAddressesInSender = function(self)
         local ssControl = self.childs.signalSender.get_control_behavior()
+        table.insert(self.recentAddresses, 1, self.destAddress)
+
+        if #self.recentAddresses > 5 then
+            for i = 6, #self.recentAddresses do
+                table.remove(self.recentAddresses, i)
+            end
+        end
         if ssControl.sections_count > 1 then
             for i = ssControl.sections_count, 2, -1 do
                 ssControl.remove_section(i)
                 --game.print(ssControl.remove_section(i) and "" or " Cannot remove section "..i)
             end
         end
+
         for i, address in ipairs(self.recentAddresses) do
             local section = ssControl.add_section()
             for j, char in ipairs(address) do

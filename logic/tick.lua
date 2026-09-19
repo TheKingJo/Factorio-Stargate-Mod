@@ -217,6 +217,7 @@ function OnNthTickSGateDialing(e)
                 gate.gate.chevrons.animation_offset = 0
                 util.playSoundOnSurface(gate.gate.entity.surface, gate.gate.pos, "kj_stargate_fail")
             end
+            gate.gate:RefreshRecentAddressesInSender()
             gate.gate:Reset()
             signaledGates[id] = nil
             gate.gate.senderLastTick = game.tick
@@ -302,7 +303,7 @@ function OnNthTickSGates(e)
                             offset = offset + localOffset
                             game.print("Distance: "..prevLetter.." -> "..letter.." - "..distance.." around "..direction[dir+1].." with offset "..localOffset)
                             table.insert(task.glyphs, {
-                                letter = letter, tick = game.tick + offset, direction = 0
+                                letter = letter, tick = game.tick + offset, direction = 2
                             })
                             task.glyphs[i].direction = dir
                             prevLetter = letter

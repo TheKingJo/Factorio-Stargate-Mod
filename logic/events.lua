@@ -28,12 +28,12 @@ function OnBuilt(e)
             signalReceiver = surface.create_entity{
                 name = "kj_stargate_signal_receiver",
                 force = "neutral",
-                position = util.vector2Add(pos, {x = -0.5, y = 0}),
+                position = util.vector2Add(pos, {x = -1.5, y = 0}),
             },
             signalSender = surface.create_entity{
                 name = "kj_stargate_signal_receiver",
                 force = "neutral",
-                position = util.vector2Add(pos, {x = 0.5, y = 0}),
+                position = util.vector2Add(pos, {x = 1.5, y = 0}),
             },
 
             colliderH11 = surface.create_entity{
