@@ -162,8 +162,9 @@ function OnNthTickSGateDialing(e)
             if game.tick >= glyph.tick then
                 --game.print("tick: "..math.floor(game.tick))
                 if glyph.letter then
-                    game.print("Locked Chevron "..glyph.letter)
+                    --game.print("Locked Chevron "..glyph.letter)
                     table.insert(gate.gate.destAddress, glyph.letter)
+                    gate.gate:SetRotationFromGlyph(glyph.letter)
                     gate.gate.lastGlyph = glyph.letter
                     gate.gate.chevrons.animation_offset = gate.gate.chevrons.animation_offset + 1
                     util.playSoundOnSurface(gate.gate.entity.surface, gate.gate.pos, util.randomSound("kj_stargate_chevron", 3))

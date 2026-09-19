@@ -62,20 +62,25 @@ stargate = {
         end
     end,
 
+    SetRotationFromGlyph = function(self, glyph)
+        self.childs.rings.orientation = util.orientationFromGlyph(glyph)
+        game.print("Orientation from "..glyph..": "..self.childs.rings.orientation)
+    end,
+
+    --snap do glyph frames so it doesnt stop in transition frames
     SnapRingToSlot = function(self)
         local rings = self.childs.rings
         if rings then
-            game.print("Orientation "..rings.orientation)
-            rings.orientation = math.floor(rings.orientation * 39) / 39
-            game.print("Snapped to "..rings.orientation)
+            --game.print(util.glyphFromOrientation(rings.orientation).." - Orientation "..rings.orientation)
+            rings.orientation = util.orientationFromGlyph(util.glyphFromOrientation(rings.orientation))--math.floor(rings.orientation * 39) / 39
+            --game.print(util.glyphFromOrientation(rings.orientation).." - Snapped to "..rings.orientation)
         end
     end,
 
     SetLastGlyphByRingPos = function(self)
         local rings = self.childs.rings
         if rings then
-            --gate.lastGlyph or "poo"
-            self.lastGlyph = chars[(math.floor(1 - rings.orientation * 39 + 0.5 - 1) % 39) + 1] or "poo"
+            self.lastGlyph = util.glyphFromOrientation(rings.orientation)
             game.print("Last Glyph: "..self.lastGlyph)
         end
     end,

@@ -55,7 +55,6 @@ strToBool = {
     ["false"] = false,
 }
 local functions = {}
-local glyphIndex = {}
 local dhdSearchRadius = 15
 local opposite = {
     dhd = "stargate",
@@ -66,6 +65,7 @@ local oppositeEntity = {
     stargate = "dhd",
 }
 
+--full list of chevrons without poos - order is trivial
 chevronChars = {}
 for i = string.byte("A"), string.byte("S") do
     table.insert(chevronChars, string.char(i))
@@ -74,6 +74,7 @@ for i = string.byte("a"), string.byte("s") do
     table.insert(chevronChars, string.char(i))
 end
 
+--full list of chevrons - order = animation_offset for dhd
 charLookup = {}
 for i, char in ipairs(chevronChars) do
     charLookup[char] = i
@@ -82,30 +83,24 @@ for i = 1, 5, 1 do
     charLookup["poo_"..i] = 1
 end
 
-chars = {
+--full list of chevrons with 1 poo - order = ring chevron order
+ringChars = {
 "poo","A","B","C","D","E","F","G","H","I","J","K","L","M","N","O","P","Q","R","S",
       "a","b","c","d","e","f","g","h","i","j","k","l","m","n","o","p","q","r","s"
 }
-local max = #chars -- 39
+local max = #ringChars -- 39
 
---[[
-for i, row in ipairs(chars) do
-    ringGlyphDistances[row] = {}
-    for j, col in ipairs(chars) do
-        local d = math.abs(i - j)
-        ringGlyphDistances[row][col] = math.min(d, max - d) -- 39 - d
-    end
+ringCharPos = {}
+for i, char in ipairs(ringChars) do
+    ringCharPos[char] = i
 end
-for _, v in pairs(chars) do
-    print("A:"..v.." "..ringGlyphDistances["A"][v])
-end
-for _, v in pairs(chars) do
-    print("h:"..v.." "..ringGlyphDistances["h"][v])
-end
-]]
 
-for i, glyph in ipairs(chars) do
-    glyphIndex[glyph] = i
+function functions.glyphFromOrientation(orientation)
+    return ringChars[(math.floor((1 - orientation) * 39 + 0.5) % 39) + 1] or "poo"
+end
+
+function functions.orientationFromGlyph(glyph)
+    return 1 - ((ringCharPos[glyph] - 1) / 39)
 end
 
 function functions.getSignalFromChar(input, assembled)
@@ -154,8 +149,8 @@ function functions.deleteFromITable(t, value)
 end
 
 function functions.getRingGlyphDistance(from, to)
-    local a = glyphIndex[from]
-    local b = glyphIndex[to]
+    local a = ringCharPos[from]
+    local b = ringCharPos[to]
 
     local right = (b - a) % max
     local left  = (a - b) % max

@@ -44,15 +44,20 @@ commands.add_command("infCon", nil, function(command)
 end)
 
 commands.add_command("rotate", nil, function(command)
-    local rotation = tonumber(command.parameter)
+    local rotation = command.parameter
+    if rotation == nil then return end
+    if type(tonumber(rotation)) == "number" then
+        rotation = ringChars[tonumber(rotation)]
+    end
     for _, surface in pairs(storage.stargate) do
         for _, gate in pairs(surface) do
             if gate.manual == false then
-                gate.childs.rings.orientation = 1 - (rotation / 39)
+                gate.childs.rings.orientation = util.orientationFromGlyph(rotation)
+                gate.lastGlyph = util.glyphFromOrientation(gate.childs.rings.orientation)
             end
         end
     end
-    game.print("Rings rotated to: "..tostring(rotation / 39))
+    game.print("Rings rotated to: "..rotation)
 end)
 
 script.on_event(defines.events.on_built_entity, OnBuilt)
@@ -82,7 +87,7 @@ script.on_event(defines.events.on_entity_damaged , OnDamaged, {
 script.on_event(defines.events.on_tick, OnTick)
 script.on_nth_tick(60, OnNthTickTasks)
 script.on_nth_tick(10, OnNthTickSGates)
-script.on_nth_tick( 6, OnNthTickSGateDialing)
+script.on_nth_tick( 4, OnNthTickSGateDialing)
 script.on_nth_tick( 2, OnNthTickPlayer)
 
 script.on_event(defines.events.on_surface_created,
