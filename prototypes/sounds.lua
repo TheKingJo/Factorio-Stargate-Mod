@@ -1,4 +1,12 @@
 local modname = "__kj_stargate__"
+
+for _,instrument in pairs(data.raw["programmable-speaker"]["programmable-speaker"].instruments) do
+	if instrument.name == "alarms" then
+		table.insert(instrument.notes, {name = "kj_sg_alarm",  sound = {filename = modname.."/sounds/alarm.ogg"}})
+		table.insert(instrument.notes, {name = "kj_sg_code9",  sound = {filename = modname.."/sounds/code9.ogg"}})
+	end
+end
+
 data:extend({
 	{
 		type = "sound",
