@@ -99,6 +99,12 @@ function OnBuilt(e)
                 force = "neutral",
                 position = util.vector2Add(pos, {x = 0, y = -0.9}),
             },
+
+            ringSound = surface.create_entity{
+                name = sgNames.ringSound,
+                force = "neutral",
+                position = util.vector2Add(pos, {x = 0, y = 3}),
+            },
         }
         for _, child in pairs(childs) do
             child.destructible = false
@@ -121,13 +127,13 @@ function OnBuilt(e)
 
         childs.baseEnt = rendering.draw_sprite{
             sprite = "kj_stargate_base_sprite_s",
-            target = util.vector2Add(pos, {x = 0, y = -1.9}),
+            target = util.vector2Add(pos, {x = 0, y = entOffY.base}),
             surface = surface,
             render_layer = "object",
         }
         childs.baseEntBckgrnd = rendering.draw_sprite{
             sprite = "kj_stargate_base_sprite_s_background",
-            target = util.vector2Add(pos, {x = 0, y = -2.5}),
+            target = util.vector2Add(pos, {x = 0, y = entOffY.baseBck}),
             surface = surface,
             render_layer = "object",
         }

@@ -18,6 +18,7 @@ sgNames = {
     entity = "kj_stargate_entity",
     entitySignaled = "kj_stargate_entity_signaled",
     tpArea = "kj_stargate_transferArea",
+    ringSound = "kj_stargate_ringSound",
 
     colliderV = "kj_stargate_colliderVert",
     colliderHL = "kj_stargate_colliderHoriLong",
@@ -36,6 +37,8 @@ qualities = {
     "legendary",
 }
 entOffY = {
+    base = -1.9,
+    baseBck = -2.5,
     entS = -1.8-0.33,
     ent = -1.8-0.33,
     w = 0.8,

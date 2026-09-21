@@ -20,7 +20,47 @@ local zeroWireConnection = {
         red =   {0, 0},
     },
 }
+data:extend({
+    {
+        type = "power-switch",
+        name = "kj_stargate_ringSound",
+        icon = modname.."/graphics/entities/stargate/icon.png",
+        icon_size = 128,
+        flags = {"placeable-player", "placeable-neutral", "player-creation"},
+        max_health = 1,
+		collision_mask = {layers = {}},
+        selection_box = {{-0.5, -0.5}, {0.5, 0.5}},
 
+        overlay_start_delay = 0,
+        circuit_wire_connection_point = zeroWireConnection,
+        left_wire_connection_point = zeroWireConnection,
+        right_wire_connection_point = zeroWireConnection,
+
+        working_sound =
+        {
+            main_sounds =
+            {
+                {
+                    sound = {
+                        filename = modname.."/sounds/s_gate_spinHold.ogg",
+                        volume = 0.8,
+                        aggregation = {max_count = 2, remove = true, count_already_playing = true}
+                    },
+                    fade_in_ticks = 10,
+                },
+            },
+            activate_sound = {
+                filename = modname.."/sounds/s_gate_spinUp.ogg",
+                aggregation = {max_count = 2, remove = true, count_already_playing = true}
+            },
+            deactivate_sound = {
+                filename = modname.."/sounds/s_gate_spinDown.ogg",
+                aggregation = {max_count = 2, remove = true, count_already_playing = true}
+            },
+            max_sounds_per_prototype = 1
+        },
+    },
+})
 data:extend({
     {
         type = "item-with-entity-data",
@@ -50,6 +90,7 @@ data:extend({
         weight = 100,
         allow_remote_driving = false,
         tank_driving = true,
+        is_military_target  = false,
         animation = {
             layers = {
                 {
@@ -819,6 +860,58 @@ data:extend({
 })
 
 data:extend({
+    {
+        type = "explosion",
+        name = "kj_stargate_chevron_s_anim",
+        flags = {"not-on-map", "placeable-off-grid"},
+        hidden = true,
+        subgroup = "explosions",
+        render_layer = "object",
+        delay = 0.613*60,
+        sound = {
+            variations = sound_variations(modname.."/sounds/chevron_open", 3, 1),
+        },
+        animations = {
+            layers = {
+                {
+                    filename = modname.."/graphics/entities/stargate/s_chevron_anim.png",
+                    size = 64,
+                    shift = {0, -4.212},--08
+                    scale = 0.5,
+                    frame_count = 16,
+                    frame_sequence = {1,2,3,4,5,5,5,5,5,5,5,5,5,14,15,1},
+                    line_length = 4,
+                    animation_speed = 15/60,
+                    usage = "explosion"
+                },
+                {
+                    filename = modname.."/graphics/entities/stargate/s_chevron_anim_light.png",
+                    size = 64,
+                    shift = {0, -4.212},
+                    scale = 0.5,
+                    frame_count = 16,
+                    frame_sequence = {1,2,3,4,5,5,5,5,5,5,5,5,5,14,15,1},
+                    line_length = 4,
+                    animation_speed = 15/60,
+                    usage = "explosion",
+                    blend_mode = "additive",
+                    draw_as_glow = true,
+                },
+            },
+        },
+    },
+    {
+        type = "explosion",
+        name = "kj_stargate_chevron_s_anim_sound2",
+        flags = {"not-on-map", "placeable-off-grid"},
+        hidden = true,
+        subgroup = "explosions",
+        delay = 0.613*60 + 0.773*60,
+        sound = {
+            variations = sound_variations(modname.."/sounds/chevron_shut", 3, 1),
+        },
+        animations = util.empty_animation(1),
+    },
     {
         type = "explosion",
         name = "kj_stargate_electricFailure",

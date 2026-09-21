@@ -153,10 +153,11 @@ function OnNthTickSGateDialing(e)
             goto continue
         end
 
+        local childs = gate.gate.childs
         if #gate.glyphs > 0 then
-            local drain = gate.gate.entity.electric_drain * 60 --in W aka 10 MW max
-            local limit = gate.gate.entity.power_usage * 60 --in W aka 100 MW
-            if drain < limit * 0.5 then return end --atm a bit useless to check since its draining its own capacitor so will likely be always true
+            --local drain = gate.gate.entity.electric_drain * 60 --in W aka 10 MW max
+            --local limit = gate.gate.entity.power_usage * 60 --in W aka 100 MW
+            --if drain < limit * 0.5 then return end --atm a bit useless to check since its draining its own capacitor so will likely be always true
 
             local glyph = gate.glyphs[1]
             if game.tick >= glyph.tick then
@@ -167,18 +168,27 @@ function OnNthTickSGateDialing(e)
                     gate.gate:SetRotationFromGlyph(glyph.letter)
                     gate.gate.lastGlyph = glyph.letter
                     gate.gate.chevrons.animation_offset = gate.gate.chevrons.animation_offset + 1
-                    util.playSoundOnSurface(gate.gate.entity.surface, gate.gate.pos, util.randomSound("kj_stargate_chevron", 3))
-                end
 
-                gate.gate.childs.rings.riding_state = {
+                    gate.gate.entity.surface.create_entity {
+                        name = "kj_stargate_chevron_s_anim",
+                        position = util.vector2Add(gate.gate.pos, {x = 0, y = 1.5}),
+                    }
+                    gate.gate.entity.surface.create_entity {
+                        name = "kj_stargate_chevron_s_anim_sound2",
+                        position = util.vector2Add(gate.gate.pos, {x = 0, y = 1.5}),
+                    }
+                end
+                childs.ringSound.power_switch_state = not childs.ringSound.power_switch_state
+
+                childs.rings.riding_state = {
                     acceleration = defines.riding.acceleration.nothing,
-                    direction = glyph.direction,
+                    direction = glyph.direction or 1,
                 }
 
                 table.remove(gate.glyphs, 1)
             end
         else
-            gate.gate.childs.rings.riding_state = {
+            childs.rings.riding_state = {
                 acceleration = defines.riding.acceleration.nothing,
                 direction = defines.riding.direction.straight,
             }
@@ -296,19 +306,23 @@ function OnNthTickSGates(e)
                         local prevLetter = gate.lastGlyph or "poo"
                         local offset = 0
 
-                        table.insert(task.glyphs, {tick = 0, direction = 0})
+                        --table.insert(task.glyphs, {tick = 0})
                         game.print("Tick: "..game.tick)
                         for i, letter in ipairs(addressLetters) do
+                            table.insert(task.glyphs, {tick = game.tick + offset})
+
                             local distance, dir = util.getRingGlyphDistance(prevLetter, letter)
                             localOffset = math.floor(3*60*(distance / 19)) --3s per half cycle
                             offset = offset + localOffset
+
                             game.print("Distance: "..prevLetter.." -> "..letter.." - "..distance.." around "..direction[dir+1].." with offset "..localOffset)
-                            table.insert(task.glyphs, {
-                                letter = letter, tick = game.tick + offset, direction = 2
-                            })
-                            task.glyphs[i].direction = dir
+                            table.insert(task.glyphs, {letter = letter, tick = game.tick + offset})
+
+                            task.glyphs[#task.glyphs - 1].direction = dir
                             prevLetter = letter
                             gate.destAddressLetters[letter] = i
+
+                            offset = offset + 120 --offset for the stop sound and animation
                         end
 
                         gate.entity.minable_flag = false
@@ -332,9 +346,13 @@ function OnNthTickSGates(e)
                     end
                 end
 
+                --signal changed while dialing
+                if success == false then
+                    util.playSoundOnSurface(gate.entity.surface, gate.pos, "kj_stargate_s_fail")
+                end
                 --either address is false or abort signal was there
                 if success == false or receiver.get_signal({type = "virtual", name = "kj_sg_glyph_connect"}, 1) == -1 then
-                    util.playSoundOnSurface(gate.entity.surface, gate.pos, "kj_stargate_fail")
+                    gate.childs.ringSound.power_switch_state = false
                     gate.entity.minable_flag = true
 
                     gate:Disconnect()
