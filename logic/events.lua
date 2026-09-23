@@ -3,9 +3,13 @@ function OnBuilt(e)
     if not ent.valid then return end
     --game.print("Placed "..ent.name)
 
-	if ent.name == sgNames.placementSignaled then --signaled stargate placed
+	if ent.name == sgNames.placementSignaled or ent.name == sgNames.placementSignaledIris then --signaled stargate placed / iris
+        local iris = false
         local pos = ent.position
         local surface = ent.surface
+        if ent.name == sgNames.placementSignaledIris then
+            iris = true
+        end
         local entity = surface.create_entity{
             name = sgNames.entitySignaled,
             force = "neutral",
@@ -39,47 +43,57 @@ function OnBuilt(e)
             colliderH11 = surface.create_entity{
                 name = sgNames.colliderHL,
                 position = util.vector2Add(pos, {x = 0, y = -2.275}),
+                force = "neutral",
             },
             colliderH12 = surface.create_entity{
                 name = sgNames.colliderHL,
                 position = util.vector2Add(pos, {x = 0, y = -2.275-0.75}),
+                force = "neutral",
             },
 
             colliderVB1 = surface.create_entity{
                 name = sgNames.colliderV,
                 position = util.vector2Add(pos, {x = -2.75, y = -0.5}),
+                force = "neutral",
             },
             colliderVB2 = surface.create_entity{
                 name = sgNames.colliderV,
                 position = util.vector2Add(pos, {x = 2.75, y = -0.5}),
+                force = "neutral",
             },
             colliderVB3 = surface.create_entity{
                 name = sgNames.colliderV,
                 position = util.vector2Add(pos, {x = -1.75-0.025, y = -0.5}),
+                force = "neutral",
             },
             colliderVB4 = surface.create_entity{
                 name = sgNames.colliderV,
                 position = util.vector2Add(pos, {x = 1.75+0.025, y = -0.5}),
+                force = "neutral",
             },
 
             colliderH21 = surface.create_entity{
                 name = sgNames.colliderHB,
                 position = util.vector2Add(pos, {x = -3.5, y = -1}),
+                force = "neutral",
             },
             colliderH22 = surface.create_entity{
                 name = sgNames.colliderHB,
                 position = util.vector2Add(pos, {x = 3.5, y = -1}),
+                force = "neutral",
             },
 
             colliderVL1 = surface.create_entity{
                 name = sgNames.colliderHLL,
                 position = util.vector2Add(pos, {x = -1.5, y = 1.5}),
                 direction = defines.direction.east,
+                force = "neutral",
             },
             colliderVL2 = surface.create_entity{
                 name = sgNames.colliderHLL,
                 position = util.vector2Add(pos, {x = 1.5, y = 1.5}),
                 direction = defines.direction.west,
+                force = "neutral",
             },
 
             rings = surface.create_entity{
@@ -106,6 +120,13 @@ function OnBuilt(e)
                 position = util.vector2Add(pos, {x = 0, y = 3}),
             },
         }
+        if iris == true then
+            childs.iris = surface.create_entity{
+                name = sgNames.iris,
+                force = "neutral",
+                position = util.vector2Add(pos, {x = 0, y = -2}),
+            }
+        end
         for _, child in pairs(childs) do
             child.destructible = false
         end
@@ -156,6 +177,10 @@ function OnBuilt(e)
         local wireConsM = childs.poleVisibleMiddle.get_wire_connectors(true)
         local wireConsSR = childs.signalReceiver.get_wire_connector(1, true)
         local wireConsSS = childs.signalSender.get_wire_connector(2, true)
+        if iris == true then
+            wireConsIR = childs.iris.get_wire_connector(1, true)
+            wireConsR[1].connect_to(wireConsIR)
+        end
 
         for id, wireConnector in pairs(wireConsM) do
             if wireConsL[id] then

@@ -101,25 +101,27 @@ function OnNthTickPlayer(e)
         for gID, gate in pairs(storage.stargate[player.surface.name]) do
             if gate.valid == true and gate.entity and gate.entity.valid then
                 if gate.safeToTravel == true and gate.destination then
-                    local vehicle = player.physical_vehicle
-                    if (vehicle and vehicle.prototype.type == "spider-vehicle") then return end
-                    if util.getDistance(player.physical_position, gate.childs.tpArea.position) > 13 then return end
+                    if not gate.childs.iris or (gate.childs.iris and gate.childs.iris.power_switch_state == false) then
+                        local vehicle = player.physical_vehicle
+                        if (vehicle and vehicle.prototype.type == "spider-vehicle") then return end
+                        if util.getDistance(player.physical_position, gate.childs.tpArea.position) > 13 then return end
 
-                    if vehicle == nil then --player not in vehicle
-                        if player.character and util.boundingBoxesCollision(player.character.bounding_box, gate.childs.tpArea.bounding_box) then
-                            --game.print(e.tick.." - Player "..player.name.." entered gate on "..player.surface.name)
-
-                            GateTransit(gate.destination, player, vehicle)
-                        end
-                    else --player in vehicle
-                        if storage.illegalCars[vehicle.name] then return end
-                        local iV = storage.ignoredVehicles and storage.ignoredVehicles[vehicle.unit_number]
-                        if not iV or (iV and iV < game.tick) then
-                            if util.rotatedBoxInsideBoundingBox(vehicle.bounding_box, vehicle.orientation, gate.childs.tpArea.bounding_box) == true then
+                        if vehicle == nil then --player not in vehicle
+                            if player.character and util.boundingBoxesCollision(player.character.bounding_box, gate.childs.tpArea.bounding_box) then
                                 --game.print(e.tick.." - Player "..player.name.." entered gate on "..player.surface.name)
 
                                 GateTransit(gate.destination, player, vehicle)
-                                iV = nil
+                            end
+                        else --player in vehicle
+                            if storage.illegalCars[vehicle.name] then return end
+                            local iV = storage.ignoredVehicles and storage.ignoredVehicles[vehicle.unit_number]
+                            if not iV or (iV and iV < game.tick) then
+                                if util.rotatedBoxInsideBoundingBox(vehicle.bounding_box, vehicle.orientation, gate.childs.tpArea.bounding_box) == true then
+                                    --game.print(e.tick.." - Player "..player.name.." entered gate on "..player.surface.name)
+
+                                    GateTransit(gate.destination, player, vehicle)
+                                    iV = nil
+                                end
                             end
                         end
                     end

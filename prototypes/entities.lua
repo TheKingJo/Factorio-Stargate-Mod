@@ -26,7 +26,7 @@ data:extend({
         name = "kj_stargate_ringSound",
         icon = modname.."/graphics/entities/stargate/icon.png",
         icon_size = 128,
-        flags = {"placeable-player", "placeable-neutral", "player-creation"},
+        flags = {"placeable-player", "placeable-neutral", "player-creation", "placeable-off-grid",},
         max_health = 1,
 		collision_mask = {layers = {}},
         selection_box = {{-0.5, -0.5}, {0.5, 0.5}},
@@ -36,10 +36,8 @@ data:extend({
         left_wire_connection_point = zeroWireConnection,
         right_wire_connection_point = zeroWireConnection,
 
-        working_sound =
-        {
-            main_sounds =
-            {
+        working_sound = {
+            main_sounds = {
                 {
                     sound = {
                         filename = modname.."/sounds/s_gate_spinHold.ogg",
@@ -55,6 +53,68 @@ data:extend({
             },
             deactivate_sound = {
                 filename = modname.."/sounds/s_gate_spinDown.ogg",
+                aggregation = {max_count = 2, remove = true, count_already_playing = true}
+            },
+            max_sounds_per_prototype = 1
+        },
+    },
+    {
+        type = "power-switch",
+        name = "kj_stargate_iris",
+        icon = modname.."/graphics/entities/stargate/iris_icon.png",
+        icon_size = 128,
+        flags = {"placeable-player", "placeable-neutral", "player-creation", "placeable-off-grid",},
+        max_health = 1,
+		collision_mask = {layers = {}},
+        --selection_box = {{4.6, 0.2}, {4.9, 0.7}}, --switch box
+        selection_box = {{-2.5, -3.5}, {2.5, 0.5}},
+        selection_priority = 50,
+        draw_circuit_wires = true,
+        draw_copper_wires = false,
+        wire_max_distance = 10,
+
+        overlay_start_delay = 0,
+        circuit_wire_connection_point =  {
+            shadow = {
+                green = {10.1, 1.45},
+                copper= {10.1, 1.5},
+                red =   {10.1, 1.55},
+            },
+            wire = {
+                green = {4.9, -4.05},
+                copper= {4.9, -4},
+                red =   {4.9, -3.95},
+            },
+        },
+        left_wire_connection_point = zeroWireConnection,
+        right_wire_connection_point = zeroWireConnection,
+
+        power_on_animation = {
+            layers = {
+                {
+                    filename = modname.."/graphics/entities/stargate/iris.png",
+                    animation_speed = 15/60,
+                    line_length = 5,
+                    width = 480,
+                    height = 480,
+                    frame_count = 45,
+                    shift = {0, -1.325},
+                    scale = 0.505,
+                    run_mode = "backward",
+                },
+            }
+        },
+        working_sound =
+        {
+            main_sounds = {sound = {filename = "__core__/sound/silence-1sec.ogg"}},
+            activate_sound = {
+                filename = modname.."/sounds/iris_close.ogg",
+                volume = 0.7,
+                aggregation = {max_count = 2, remove = true, count_already_playing = true}
+            },
+            deactivate_sound = {
+                filename = modname.."/sounds/iris_open.ogg",
+                volume = 0.7,
                 aggregation = {max_count = 2, remove = true, count_already_playing = true}
             },
             max_sounds_per_prototype = 1
@@ -84,6 +144,7 @@ data:extend({
         energy_source = {type = "void"},
         inventory_size = 0,
         rotation_speed = 1/(6*60), --6s per cycle
+        selection_priority = 47,
         braking_force = 1,
         energy_per_hit_point = 1,
         friction_force = 1,
@@ -457,6 +518,64 @@ data:extend({
                     shift = {0, -0.5},
                     scale = 0.5,
                     filename = modname.."/graphics/entities/stargate/s_gate_background.png",
+                },
+                {
+                    size = 832,
+                    shift = {0, -0.5},
+                    scale = 0.5,
+                    filename = modname.."/graphics/entities/stargate/s_gate.png",
+                },
+                {
+                    size = 992,
+                    shift = {2.5, -0.5},
+                    scale = 0.5,
+                    draw_as_shadow = true,
+                    filename = modname.."/graphics/entities/stargate/s_gate_shadow.png",
+                },
+            }
+        },
+        surface_conditions = {
+            {
+                property = "gravity",
+                min = 0.1,
+            }
+        },
+    },
+    {
+        type = "simple-entity",
+        name = "kj_stargate_signaled_iris_placement",
+        icon = modname.."/graphics/entities/stargate/s_gate_iris_icon.png",
+        icon_size = 128,
+        collision_box = {{-5, -3.5}, {5, 5}},
+        selection_box = {{-5, -3.5}, {5, 5}},
+        drawing_box_vertical_extension = 3,
+        minable = {
+            mining_time = 5,
+            results = {
+                {type = "item", name = "kj_stargate_iris",  amount = 1},
+                {type = "item", name = "kj_stargate", amount = 1},
+                {type = "item", name = "steel-plate", amount = 25},
+                {type = "item", name = "iron-stick",  amount = 50},
+                {type = "item", name = "iron-plate",  amount = 50},
+                {type = "item", name = "copper-cable",amount = 50},
+                {type = "item", name = "small-lamp",  amount = 10},
+            }
+        },
+        map_color = {r = 0.55, g = 0.55, b = 0.55, a = 1},
+        picture = {
+            layers = {
+                {
+                    size = 832,
+                    shift = {0, -0.5},
+                    scale = 0.5,
+                    filename = modname.."/graphics/entities/stargate/s_gate_background.png",
+                },
+                {
+                    width = 480,
+                    height = 480,
+                    shift = {0, -3.3},
+                    scale = 0.505,
+                    filename = modname.."/graphics/entities/stargate/iris.png",
                 },
                 {
                     size = 832,
@@ -859,6 +978,7 @@ data:extend({
     },
 })
 
+--explosion / animation
 data:extend({
     {
         type = "explosion",
@@ -1211,6 +1331,8 @@ data:extend({
         }
     },
 })
+
+--dmg
 data:extend({
     {
         type = "projectile",
@@ -1284,6 +1406,7 @@ for name, _ in pairs(data.raw["damage-type"]) do
     end
 end
 
+--dhd
 data:extend({
     {
         type = "recipe-category",
@@ -1617,8 +1740,10 @@ data:extend({
             },
         }
     },
+})
 
-
+--tiles
+data:extend({
     {
         type = "tile",
         name = "kj_stargate_slowDownTile",

@@ -365,14 +365,16 @@ function activateGate(gate)
         name = "kj_stargate_eventHorizon_woosh",
         position = util.vector2Add(gate.pos, {x = 0, y = (gate.manual and 0.5 or 0.45)}),
     }
-    gate.childs.woosh = gate.entity.surface.create_entity {
-        name = "kj_stargate_woosh",
-        position = util.vector2Add(gate.pos, {x = 0, y = entOffY.w}),
-    }
-    gate.childs.wooshGlow = gate.entity.surface.create_entity {
-        name = "kj_stargate_woosh_glow"..(gate.manual and "" or "_s"),
-        position = util.vector2Add(gate.pos, {x = 0, y = entOffY.wg}),
-    }
+    if not gate.childs.iris or (gate.childs.iris and gate.childs.iris.power_switch_state == false) then
+        gate.childs.woosh = gate.entity.surface.create_entity {
+            name = "kj_stargate_woosh",
+            position = util.vector2Add(gate.pos, {x = 0, y = entOffY.w}),
+        }
+        gate.childs.wooshGlow = gate.entity.surface.create_entity {
+            name = "kj_stargate_woosh_glow"..(gate.manual and "" or "_s"),
+            position = util.vector2Add(gate.pos, {x = 0, y = entOffY.wg}),
+        }
+    end
 end
 
 function findRandomGateOnSurface(surface)

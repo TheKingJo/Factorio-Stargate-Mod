@@ -9,6 +9,7 @@ poo = {
 sgNames = {
     placement = "kj_stargate_placement",
     placementSignaled = "kj_stargate_signaled_placement",
+    placementSignaledIris = "kj_stargate_signaled_iris_placement",
 
     base = "kj_stargate_base",
     sound = "kj_stargate_ambientSound",
@@ -19,6 +20,7 @@ sgNames = {
     entitySignaled = "kj_stargate_entity_signaled",
     tpArea = "kj_stargate_transferArea",
     ringSound = "kj_stargate_ringSound",
+    iris = "kj_stargate_iris",
 
     colliderV = "kj_stargate_colliderVert",
     colliderHL = "kj_stargate_colliderHoriLong",
