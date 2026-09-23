@@ -131,7 +131,7 @@ function OnNthTickPlayer(e)
     end
 end
 
---6
+--4
 --handles the s gate dialing jobs
   --first assigning each chevron, moving the rings
   --then making the call once its done
@@ -164,15 +164,17 @@ function OnNthTickSGateDialing(e)
                 --game.print("tick: "..math.floor(game.tick))
                 if glyph.letter then
                     --game.print("Locked Chevron "..glyph.letter)
+                    local temp = "2"
                     table.insert(task.gate.destAddress, glyph.letter)
                     task.gate:SetRotationFromGlyph(glyph.letter)
                     task.gate.lastGlyph = glyph.letter
                     if #task.glyphs > 1 then
                         task.gate.chevrons.animation_offset = task.gate.chevrons.animation_offset + 1
+                        temp = ""
                     end
 
                     task.gate.sAnim1 = task.gate.entity.surface.create_entity {
-                        name = "kj_stargate_chevron_s_anim",
+                        name = "kj_stargate_chevron_s_anim"..temp,
                         position = util.vector2Add(task.gate.pos, {x = 0, y = 1.5}),
                     }
                     task.gate.sAnim2 = task.gate.entity.surface.create_entity {

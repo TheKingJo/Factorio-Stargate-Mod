@@ -902,11 +902,51 @@ data:extend({
     },
     {
         type = "explosion",
+        name = "kj_stargate_chevron_s_anim2",
+        flags = {"not-on-map", "placeable-off-grid"},
+        hidden = true,
+        subgroup = "explosions",
+        render_layer = "object",
+        delay = 37, -- =0.6333333*60,
+        sound = {
+            variations = sound_variations(modname.."/sounds/chevron_open", 3, 1),
+        },
+        animations = {
+            layers = {
+                {
+                    filename = modname.."/graphics/entities/stargate/s_chevron_anim.png",
+                    size = 64,
+                    shift = {0, -4.212},--08
+                    scale = 0.5,
+                    frame_count = 16,
+                    frame_sequence = {1,2,3,4,5,5,5,5,5,5,5,5,5,14,15,1,1,1,1,1,1},
+                    line_length = 4,
+                    animation_speed = 15/60,
+                    usage = "explosion"
+                },
+                {
+                    filename = modname.."/graphics/entities/stargate/s_chevron_anim_light.png",
+                    size = 64,
+                    shift = {0, -4.212},
+                    scale = 0.5,
+                    frame_count = 20,
+                    frame_sequence = {1,2,3,4,5,5,5,5,5,5,5,5,17,18,19,20,20,20,20,20,20},
+                    line_length = 4,
+                    animation_speed = 15/60,
+                    usage = "explosion",
+                    blend_mode = "additive",
+                    draw_as_glow = true,
+                },
+            },
+        },
+    },
+    {
+        type = "explosion",
         name = "kj_stargate_chevron_s_anim_sound2",
         flags = {"not-on-map", "placeable-off-grid"},
         hidden = true,
         subgroup = "explosions",
-        delay = 0.613*60 + 0.773*60,
+        delay = 37 + 0.773*60,
         sound = {
             variations = sound_variations(modname.."/sounds/chevron_shut", 3, 1),
         },
