@@ -172,6 +172,49 @@ function OnBuilt(e)
             surface = surface,
             render_layer = "object",
         }
+        local smokes = {}
+        smokes.smokeL1 = rendering.draw_animation{
+            animation = "kj_stargate_s_smoke",
+            target = util.vector2Add(pos, {x = -2.3, y = -4}),
+            surface = surface,
+            render_layer = "cargo-hatch",
+            orientation = 0.3,
+            animation_speed = 1.033,
+            visible = false,
+        }
+        smokes.smokeR1 = rendering.draw_animation{
+            animation = "kj_stargate_s_smoke",
+            target = util.vector2Add(pos, {x = 2.5, y = -3.8}),
+            surface = surface,
+            render_layer = "cargo-hatch",
+            orientation = 0.6,
+            animation_speed = 0.966,
+            visible = false,
+        }
+        smokes.smokeL2 = rendering.draw_animation{
+            animation = "kj_stargate_s_smoke",
+            target = util.vector2Add(pos, {x = -3.4, y = -2.3}),
+            surface = surface,
+            render_layer = "cargo-hatch",
+            orientation = 0.1,
+            animation_speed = 0.86,
+            x_scale = 1.3,
+            y_scale = 1.3,
+            tint = {1,1,1,0.4},
+            visible = false,
+        }
+        smokes.smokeR2 = rendering.draw_animation{
+            animation = "kj_stargate_s_smoke",
+            target = util.vector2Add(pos, {x = 3.15, y = -2.15}),
+            surface = surface,
+            render_layer = "cargo-hatch",
+            orientation = 0.8,
+            animation_speed = 0.75,
+            x_scale = 1.5,
+            y_scale = 1.5,
+            tint = {1,1,1,0.3},
+            visible = false,
+        }
 
         local calcPosis = {}
         for i = 1, -1, -2 do
@@ -206,14 +249,7 @@ function OnBuilt(e)
         end
         wireConsM[1].connect_to(wireConsSR)
         wireConsM[2].connect_to(wireConsSS)
-        --local cb = childs.signalSender.get_or_create_control_behavior()
         --TODO either make quality fixed requisite or make this feature optional
-        --cb.add_section()--this address state
-        --cb.add_section()--this address (common quality)
-        --cb.add_section()--previous address (uncommon quality)
-        --cb.add_section()--previous x2 address (rare quality)
-        --cb.add_section()--previous x3 address (epic quality)
-        --cb.add_section()--previous x4 address (legendary quality)
 
         local content = {
             destAddress = {},
@@ -225,6 +261,7 @@ function OnBuilt(e)
             valid = true,
             active = false,
             childs = childs,
+            smokes = smokes,
             oldTiles = oldTiles,
             destination = nil,
             chevrons = chevrons,
@@ -396,6 +433,12 @@ function OnRemoved(e)
             ent.surface.set_tiles(sg.oldTiles)
         end
 
+        if sg.childs.iris then
+            local player = game.get_player(e.player_index)
+            if player and player.valid then
+                player.insert({name = "kj_stargate_iris", count = 1})
+            end
+        end
         util.removeFromGlobal("stargate", ent)
 
     elseif ent.name == sgNames.dhdName then

@@ -28,6 +28,7 @@ data:extend({
         icon_size = 128,
         flags = {"placeable-player", "placeable-neutral", "player-creation", "placeable-off-grid",},
         max_health = 1,
+        hidden = true,
 		collision_mask = {layers = {}},
         selection_box = {{-0.5, -0.5}, {0.5, 0.5}},
 
@@ -137,6 +138,7 @@ data:extend({
         icon = modname.."/graphics/entities/stargate/icon.png",
         icon_size = 128,
         selection_box = {{-1,-1}, {1,1}},
+        hidden = true,
         flags = {"placeable-neutral", "placeable-off-grid", "not-flammable"},
         minable = {mining_time = 0.5, result = "kj_stargate_ring"},
 		collision_mask = {layers = {}},
@@ -515,10 +517,7 @@ data:extend({
             mining_time = 5,
             results = {
                 {type = "item", name = "kj_stargate", amount = 1},
-                {type = "item", name = "steel-plate", amount = 5},
-                {type = "item", name = "iron-stick",  amount = 10},
-                {type = "item", name = "iron-plate",  amount = 10},
-                {type = "item", name = "copper-cable",amount = 10},
+                {type = "item", name = "scrap", amount = 100},
             }
         },
         map_color = {r = 0.55, g = 0.55, b = 0.55, a = 1},
@@ -565,11 +564,7 @@ data:extend({
             results = {
                 {type = "item", name = "kj_stargate_iris",  amount = 1},
                 {type = "item", name = "kj_stargate", amount = 1},
-                {type = "item", name = "steel-plate", amount = 25},
-                {type = "item", name = "iron-stick",  amount = 50},
-                {type = "item", name = "iron-plate",  amount = 50},
-                {type = "item", name = "copper-cable",amount = 50},
-                {type = "item", name = "small-lamp",  amount = 10},
+                {type = "item", name = "scrap", amount = 100},
             }
         },
         map_color = {r = 0.55, g = 0.55, b = 0.55, a = 1},
@@ -669,10 +664,7 @@ data:extend({
             mining_time = 5,
             results = {
                 {type = "item", name = "kj_stargate", amount = 1},
-                {type = "item", name = "steel-plate", amount = 5},
-                {type = "item", name = "iron-stick",  amount = 10},
-                {type = "item", name = "iron-plate",  amount = 10},
-                {type = "item", name = "copper-cable",amount = 10},
+                {type = "item", name = "scrap", amount = 100},
             }
         },
         factoriopedia_alternative = "kj_stargate_signaled_placement",
@@ -1284,6 +1276,23 @@ data:extend({
                 usage = "explosion"
             },
         },
+    },
+    {
+        type = "animation",
+        name = "kj_stargate_s_smoke",
+        layers = {
+            {
+                filename = "__base__/graphics/entity/rocket-silo/steam-1.png",
+                frame_count = 64,
+                line_length = 8,
+                width = 136,
+                height = 178,
+                animation_speed = 0.3,
+                --shift = util.by_pixel(3.0, 93.0),
+                blend_mode = "additive-soft",
+                scale = 0.5,
+            },
+        }
     },
     {
         type = "animation",

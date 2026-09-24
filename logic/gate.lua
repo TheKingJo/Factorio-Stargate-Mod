@@ -53,6 +53,7 @@ stargate = {
         self:ResetAddress()
         self:SnapRingToSlot()
         self:SetLastGlyphByRingPos()
+        self:TurnSmokes(false)
 
         if self.childs.rings then
             self.childs.rings.riding_state = {
@@ -170,6 +171,14 @@ stargate = {
             },
             min = value,
         })
+    end,
+
+    TurnSmokes = function(self, status)
+        if self.smokes then
+            for _, smoke in pairs(self.smokes) do
+                smoke.visible = status
+            end
+        end
     end,
 }
 

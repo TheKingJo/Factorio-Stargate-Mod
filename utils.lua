@@ -430,6 +430,12 @@ function functions.removeAllGates()
                 end
             end
 
+            if gate.smokes then
+                for _, smk in pairs(gate.smokes) do
+                    smk.destroy()
+                end
+            end
+
             if gate.chevrons then
                 gate.chevrons.destroy()
             end
@@ -492,6 +498,12 @@ function functions.removeFromGlobal(name, entity)
         end
         for _, ent in pairs(ch) do
             ent.destroy()
+        end
+    end
+
+    if storObj.smokes then
+        for _, smk in pairs(storObj.smokes) do
+            smk.destroy()
         end
     end
 

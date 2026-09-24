@@ -336,6 +336,7 @@ function OnNthTickSGates(e)
 
                         gate.entity.minable_flag = false
                         storage.tasks.signaledGates[gate.id] = task
+                        gate:TurnSmokes(true)
                         gate:ResetSenderStatus()
                     end
                     game.print("Address entered: "..address.." "..util.getSignalFromChar(address, true))
