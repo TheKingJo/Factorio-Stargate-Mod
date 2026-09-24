@@ -1,3 +1,17 @@
+function OnCorpsed(e)
+    if #storage.corpses == 0 then return end
+	game.print("corpsed")
+    if settings.global["kj_stargate_realistic_death"].value == true then
+        for _, corpse in pairs(storage.corpses) do
+            if e.tick == corpse.tick and e.prototype.name == corpse.name then
+                for _, corpseEntity in pairs(e.corpses) do
+                    corpseEntity.destroy()
+                end
+            end
+        end
+    end
+end
+
 function OnBuilt(e)
 	local ent = e.entity
     if not ent.valid then return end
@@ -397,6 +411,10 @@ function OnRemoved(e)
             --util.playSoundOnSurface(ent.surface, stargate.pos, "kj_stargate_close")
             --if stargate.animation then stargate.animation.destroy() end
         end
+    elseif e.cause and e.cause.name == sgNames.iris then
+        if settings.global["kj_stargate_realistic_death"].value == true then
+            table.insert(storage.corpses, {tick = e.tick, name = ent.name})
+        end
     end
 end
 
@@ -435,54 +453,62 @@ end
 function OnDamaged(e)
     local entity = e.entity
     if not entity or entity and not entity.valid then return end
-    local type = e.damage_type.name
-    local entityName = {
-        kj_dhd = "dhd",
-        kj_stargate_entity = "stargate",
-        kj_stargate_entity_signaled = "stargate",
+    if onDamagedEntities[entity.name] ~= nil then --managing (final) destruction of gate entities 
+        local type = e.damage_type.name
+        local entityName = {
+            kj_dhd = "dhd",
+            kj_stargate_entity = "stargate",
+            kj_stargate_entity_signaled = "stargate",
 
-        kj_dhd_auto_gen = "stargate",
-        kj_stargate_auto_gen = "stargate",
-    }
-    if type ~= "explosion" and type ~= "physical" then return end
-    if (entityName[entity.name] ~= nil) and e.source and e.source.name == "kj_woosh_cloud" then
-        entity.health = entity.max_health
-        return
-    end
+            kj_dhd_auto_gen = "stargate",
+            kj_stargate_auto_gen = "stargate",
+        }
+        if type ~= "explosion" and type ~= "physical" then return end
+        if (entityName[entity.name] ~= nil) and e.source and e.source.name == "kj_woosh_cloud" then
+            entity.health = entity.max_health
+            return
+        end
 
-    local remnant = {
-        kj_dhd = "medium-small-remnants",
-        kj_stargate_entity = "medium-remnants",
-        kj_stargate_entity_signaled = "big-remnants"
-    }
+        local remnant = {
+            kj_dhd = "medium-small-remnants",
+            kj_stargate_entity = "medium-remnants",
+            kj_stargate_entity_signaled = "big-remnants"
+        }
 
-    entity.health = math.floor(e.final_health + 0.5)
-    if entity.health <= 0.1 then
-        if string.sub(entity.name, -8) ~= "auto_gen" then
-            if string.sub(entity.name, 1, 24) == "kj_stargate_pole_visible" then
-                util.findIDInGlobal("stargate",
-                    entity.surface.name,
-                    storage.electricPoles[entity.unit_number]
-                ).entity.damage(100000, "neutral", type)
-            else
-                local obj, _ = util.findInGlobal(entityName[entity.name], entity)
-                if entityName[entity.name] == "stargate" then
-                    obj:Disconnect(true)
+        entity.health = math.floor(e.final_health + 0.5)
+        if entity.health <= 0.1 then
+            if string.sub(entity.name, -8) ~= "auto_gen" then
+                if string.sub(entity.name, 1, 24) == "kj_stargate_pole_visible" then
+                    util.findIDInGlobal("stargate",
+                        entity.surface.name,
+                        storage.electricPoles[entity.unit_number]
+                    ).entity.damage(100000, "neutral", type)
+                else
+                    local obj, _ = util.findInGlobal(entityName[entity.name], entity)
+                    if entityName[entity.name] == "stargate" then
+                        obj:Disconnect(true)
+                    end
+
+                    if type == "explosion" then --spawn a burried variant below
+                        local ent = entity.surface.create_entity{
+                            name = "kj_"..entityName[entity.name].."_auto_gen",
+                            position = obj.pos,
+                            force = "neutral",
+                        }
+                        ent.graphics_variation = math.random(1,4)
+                    else --physical damage overload is supposed to destroy the gate
+                        entity.surface.create_entity{
+                            name = remnant[entity.name],
+                            position = obj.pos,
+                        }
+                    end
                 end
-
-                if type == "explosion" then --spawn a burried variant below
-                    local ent = entity.surface.create_entity{
-                        name = "kj_"..entityName[entity.name].."_auto_gen",
-                        position = obj.pos,
-                        force = "neutral",
-                    }
-                    ent.graphics_variation = math.random(1,4)
-                else --physical damage overload is supposed to destroy the gate
-                    entity.surface.create_entity{
-                        name = remnant[entity.name],
-                        position = obj.pos,
-                    }
-                end
+            end
+        end
+    else --managing permanent death by woosh cloud
+        if e.source and e.source.name == "kj_woosh_cloud" and entity.health <= 0 then
+            if settings.global["kj_stargate_realistic_death"].value == true then
+                table.insert(storage.corpses, {tick = e.tick, name = entity.name})
             end
         end
     end

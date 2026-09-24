@@ -68,6 +68,7 @@ data:extend({
 		collision_mask = {layers = {}},
         --selection_box = {{4.6, 0.2}, {4.9, 0.7}}, --switch box
         selection_box = {{-2.5, -3.5}, {2.5, 0.5}},
+        map_color = {r = 0.55, g = 0.55, b = 0.55, a = 1},
         selection_priority = 50,
         draw_circuit_wires = true,
         draw_copper_wires = false,
@@ -152,6 +153,16 @@ data:extend({
         allow_remote_driving = false,
         tank_driving = true,
         is_military_target  = false,
+        minimap_representation = {
+            filename = modname.."/graphics/entities/stargate/gate_front.png",
+            size = 128,
+            scale = 0.35,
+        },
+        selected_minimap_representation = {
+            filename = modname.."/graphics/entities/stargate/gate_front.png",
+            size = 128,
+            scale = 0.35,
+        },
         animation = {
             layers = {
                 {
@@ -629,7 +640,7 @@ data:extend({
         },
         factoriopedia_alternative = "kj_stargate_placement",
         flags = {"placeable-neutral", "placeable-off-grid", "not-flammable"},
-        map_color = {1, 1, 1, 1},
+        map_color = {r = 0.55, g = 0.55, b = 0.55, a = 1},
         max_health = 1,
         resistances = {
             {
@@ -666,7 +677,7 @@ data:extend({
         },
         factoriopedia_alternative = "kj_stargate_signaled_placement",
         flags = {"placeable-neutral", "placeable-off-grid", "not-flammable"},
-        map_color = {1, 1, 1, 1},
+        map_color = {r = 0.55, g = 0.55, b = 0.55, a = 1},
         max_health = 1,
         resistances = {
             {

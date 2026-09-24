@@ -59,6 +59,18 @@ strToBool = {
     ["true"] = true,
     ["false"] = false,
 }
+onDamagedEntities = {
+    kj_stargate_entity = true,
+    kj_stargate_entity_signaled = true,
+
+    kj_dhd = true,
+
+    kj_stargate_auto_gen = true,
+    kj_dhd_auto_gen = true,
+
+    kj_stargate_pole_visible_left = true,
+    kj_stargate_pole_visible_right = true,
+}
 local functions = {}
 local dhdSearchRadius = 15
 local opposite = {

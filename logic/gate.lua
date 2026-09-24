@@ -523,6 +523,10 @@ function GateTransit(gate, player, vehicle)
         position = gate.pos,
         sound = "kj_stargate_enter"
     })
+    if gate.childs.iris ~= nil and gate.childs.iris.power_switch_state == true then
+        player.character.die("neutral", gate.childs.iris)
+        if vehicle ~= nil then vehicle.die("neutral", gate.childs.iris) end
+    end
 end
 
 function AssembleLettersInDHDGUI(root, dhdSurface, dhd)

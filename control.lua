@@ -63,26 +63,19 @@ end)
 script.on_event(defines.events.on_built_entity, OnBuilt)
 script.on_event(defines.events.on_robot_built_entity, OnBuilt)
 
+
 script.on_load(OnLoad)
 script.on_configuration_changed(initStorage)
 
 script.on_event(defines.events.on_player_mined_entity, OnRemoved)
 script.on_event(defines.events.on_robot_mined_entity, OnRemoved)
 script.on_event(defines.events.on_entity_died, OnRemoved)
+
+script.on_event(defines.events.on_post_entity_died, OnCorpsed)
+
 script.on_event(defines.events.on_player_driving_changed_state, OnPlayerEnteredVehicle)
 
-script.on_event(defines.events.on_entity_damaged , OnDamaged, {
-    {filter = "name", name = "kj_stargate_entity"},
-    {filter = "name", name = "kj_stargate_entity_signaled", mode = "or"},
-
-    {filter = "name", name = "kj_dhd", mode = "or"},
-
-    {filter = "name", name = "kj_stargate_auto_gen", mode = "or"},
-    {filter = "name", name = "kj_dhd_auto_gen", mode = "or"},
-
-    {filter = "name", name = "kj_stargate_pole_visible_left", mode = "or"},
-    {filter = "name", name = "kj_stargate_pole_visible_right", mode = "or"},
-})
+script.on_event(defines.events.on_entity_damaged , OnDamaged)
 
 script.on_event(defines.events.on_tick, OnTick)
 script.on_nth_tick(60, OnNthTickTasks)
