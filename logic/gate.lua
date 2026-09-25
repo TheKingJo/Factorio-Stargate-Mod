@@ -492,49 +492,53 @@ function GateTransit(gate, player, vehicle)
     local surface = gate.entity.surface
     util.playSoundOnSurface(player.surface, player.position, "kj_stargate_enter")
 
-    player.teleport(
-        FindFreeTeleportArea(gate, player.character.name, pos),
-        surface
-    )
-    if vehicle ~= nil and vehicle.name ~= "kj_stargate_ring" then
-        local speed = vehicle.speed
-        local collBox = vehicle.prototype.collision_box
-        local extraDistance = (math.abs(collBox.left_top.y) + math.abs(collBox.right_bottom.y)) / 2
-        vehicle.teleport(
-            FindFreeTeleportArea(gate, vehicle.name, util.vector2Add(pos, {x = 0, y = extraDistance + 0.25})),
+    if gate.childs.iris ~= nil and gate.childs.iris.power_switch_state == true then
+        player.character.die("neutral", gate.childs.iris)
+        if vehicle ~= nil then vehicle.die("neutral", gate.childs.iris) end
+
+        util.playSoundOnSurface(gate.entity.surface, gate.pos, util.randomSound("kj_stargate_iris_hit_", 3))
+    else
+        player.teleport(
+            FindFreeTeleportArea(gate, player.character.name, pos),
             surface
         )
-        --flip car in certain value ranges
-        vehicle.orientation = (vehicle.orientation < 0.25 or vehicle.orientation > 0.75) and 0.5 or 0
-        vehicle.speed = speed
-        vehicle.set_driver(player)
 
-        --local modus = (vehicle.orientation == 0) and defines.riding.acceleration.reversing or defines.riding.acceleration.accelerating
-		player.riding_state = {acceleration = defines.riding.acceleration.nothing, direction = defines.riding.direction.straight}
+        if vehicle ~= nil and vehicle.name ~= "kj_stargate_ring" then
+            local speed = vehicle.speed
+            local collBox = vehicle.prototype.collision_box
+            local extraDistance = (math.abs(collBox.left_top.y) + math.abs(collBox.right_bottom.y)) / 2
+            vehicle.teleport(
+                FindFreeTeleportArea(gate, vehicle.name, util.vector2Add(pos, {x = 0, y = extraDistance + 0.25})),
+                surface
+            )
+            --flip car in certain value ranges
+            vehicle.orientation = (vehicle.orientation < 0.25 or vehicle.orientation > 0.75) and 0.5 or 0
+            vehicle.speed = speed
+            vehicle.set_driver(player)
 
-        local duration = math.max(1, (1 / math.abs(speed)))
-        table.insert(storage.tasks.vehicles, {tick = game.tick + duration, vehicle = vehicle})
+            --local modus = (vehicle.orientation == 0) and defines.riding.acceleration.reversing or defines.riding.acceleration.accelerating
+            player.riding_state = {acceleration = defines.riding.acceleration.nothing, direction = defines.riding.direction.straight}
 
-        storage.ignoredVehicles[vehicle.unit_number] = game.tick + 10
-    else
-        local duration = math.max(5, (1 / player.character_running_speed) * 2.25)
-        table.insert(storage.tasks.players, {tick = game.tick + duration, player = player})
+            local duration = math.max(1, (1 / math.abs(speed)))
+            table.insert(storage.tasks.vehicles, {tick = game.tick + duration, vehicle = vehicle})
+
+            storage.ignoredVehicles[vehicle.unit_number] = game.tick + 10
+        else
+            local duration = math.max(5, (1 / player.character_running_speed) * 2.25)
+            table.insert(storage.tasks.players, {tick = game.tick + duration, player = player})
+        end
+
+        table.insert(storage.tasks.delayedSounds, {
+            tick = game.tick + 5,
+            surface = surface,
+            position = gate.pos,
+            sound = "kj_stargate_enter"
+        })
     end
 
     local activeGate = storage.tasks.activeGates[gate.id]
     if activeGate then
         activeGate.tick = math.min(activeGate.tick + 3 * 60, activeGate.maxTick)
-    end
-
-    table.insert(storage.tasks.delayedSounds, {
-        tick = game.tick + 5,
-        surface = surface,
-        position = gate.pos,
-        sound = "kj_stargate_enter"
-    })
-    if gate.childs.iris ~= nil and gate.childs.iris.power_switch_state == true then
-        player.character.die("neutral", gate.childs.iris)
-        if vehicle ~= nil then vehicle.die("neutral", gate.childs.iris) end
     end
 end
 

@@ -59,6 +59,32 @@ data:extend({
 })
 
 data:extend({
+	{
+		type = "sound",
+		name = "kj_stargate_iris_hit_1",
+		filename = modname.."/sounds/iris_hit-1.ogg",
+		volume = 0.75,
+		category = "environment",
+		audible_distance_modifier = 1,
+	},
+	{
+		type = "sound",
+		name = "kj_stargate_iris_hit_2",
+		filename = modname.."/sounds/iris_hit-2.ogg",
+		volume = 0.75,
+		category = "environment",
+		audible_distance_modifier = 1,
+	},
+	{
+		type = "sound",
+		name = "kj_stargate_iris_hit_3",
+		filename = modname.."/sounds/iris_hit-3.ogg",
+		volume = 0.75,
+		category = "environment",
+		audible_distance_modifier = 1,
+	},
+})
+data:extend({
 
 	{
 		type = "sound",
