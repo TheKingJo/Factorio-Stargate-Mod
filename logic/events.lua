@@ -1,3 +1,56 @@
+function GDOTriggered(e)
+    if e.prototype_name ~= "kj_stargate_gdo" then return end
+    local player = game.players[e.player_index]
+
+    local entities = game.surfaces[player.surface_index].find_entities_filtered{
+        position = player.position,
+        radius = 10,
+        name = {sgNames.entity, sgNames.entitySignaled}
+    }
+    local gates = {}
+    for _, entity in pairs(entities) do
+        local gate = storage["stargate"][game.surfaces[player.surface_index].name][entity.unit_number]
+        if gate.active and gate.destination and gate.destination.manual == false then
+            gates[entity.unit_number] = gate.destination
+        end
+    end
+
+    gui = player.gui.screen.gdo
+    local refs
+    if not gui then
+        gui, refs = glib.add(player.gui.screen, sg_guis.gdo_frame("gdo", {"gdo"}))
+    else
+        gui.visible = true
+    end
+
+    if refs and refs.gates then
+        if not next(gates) then
+            glib.add(refs.gates, {
+                args = {type = "frame", name = "none", style = "bordered_frame"},
+                style_mods = {horizontal_align = "left"},
+                children = {{
+                    args = {type = "flow", direction = "horizontal"},
+                    style_mods = {horizontally_stretchable = true},
+                    children = {{
+                        args = {type = "label", style = "frame_title", caption = {"gdoGui3"}}
+                    }}
+                }}
+            })
+        else
+            for id, gate in pairs(gates) do
+                glib.add(refs.gates, sg_guis.gdo_gate(gate.entity.surface.name, id, gate.childs.iris))
+            end
+            glib.add(refs.gates, sg_guis.gdo_gate("nauvis", 1))
+            glib.add(refs.gates, sg_guis.gdo_gate("aquilo", 2))
+            glib.add(refs.gates, sg_guis.gdo_gate("vulcanus", 3))
+        end
+    end
+
+    gui.force_auto_center()
+    gui.bring_to_front()
+    player.opened = gui
+end
+
 function OnCorpsed(e)
     if #storage.corpses == 0 then return end
 	game.print("corpsed")
@@ -480,7 +533,13 @@ function GuiOpened(e)
         end
 
         if refs.glyphs then
-            AssembleLettersInDHDGUI(refs.glyphs, e.entity.surface.name, dhd)
+            local surface = e.entity.surface.name
+            dhd:OpenedGUI(refs.glyphs)
+            glib.add(refs.glyphs, sg_guis.dhd_letter("poo_"..poo[surface], surface, dhd.id, dhd.addressLetters["poo_"..poo[surface]]))
+            for _, char in ipairs(chevronChars) do
+                glib.add(refs.glyphs, sg_guis.dhd_letter(char, surface, dhd.id, dhd.addressLetters[char]))
+            end
+            glib.add(refs.glyphs, sg_guis.dhd_letter("connect", surface, dhd.id, dhd.stargate.active))
         end
 
         gui.force_auto_center()

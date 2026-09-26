@@ -94,3 +94,5 @@ script.on_event(defines.events.on_gui_opened, GuiOpened)
 script.on_event(defines.events.on_chunk_generated, Chunk)
 
 script.on_init(OnInit)
+
+script.on_event(defines.events.on_lua_shortcut, GDOTriggered)

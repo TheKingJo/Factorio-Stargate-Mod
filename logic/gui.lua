@@ -6,7 +6,6 @@ util = require("utils")
 ---@param name string
 ---@param caption LocalisedString
 ---@param events? {frame: GuiEventHandler?, button: GuiEventHandler?}
-
 function guis.dhd_frame_new(name, caption, events)
     return {
         args = {type = "frame", name = name, direction = "vertical"},
@@ -45,12 +44,88 @@ function guis.dhd_frame_new(name, caption, events)
     }
 end
 
+function guis.gdo_frame(name, caption, events)
+    return {
+        args = {type = "frame", name = name, direction = "vertical"},
+        _closed = events and events.frame or handlers.default_close,
+        children = {
+            {
+                args = {type = "flow", name = "header"},
+                ref = false,
+                drag_target = name,
+                children = {{
+                    args = {type = "label", caption = caption, style = "frame_title", ignored_by_interaction = true},
+                }, {
+                    args = {type = "empty-widget", style = "draggable_space_header", ignored_by_interaction = true},
+                    style_mods = {horizontally_stretchable = true, height = 24},
+                }, {
+                    args = {type = "sprite-button", style = "close_button", sprite = "utility/close"},
+                    _click = events and events.button or handlers.default_close_button,
+                }},
+            },
+            {
+                args = {type = "frame", style = "inside_shallow_frame"},
+                children = {{
+                    args = {type = "flow", direction = "vertical"},
+                    style_mods = {vertical_spacing = 10},
+                    children = {{
+                        args = {type = "frame", style = "filter_frame"},
+                        children = {{
+                            args = {type = "scroll-pane", style = "deep_scroll_pane"},
+                            style_mods = {horizontally_stretchable = true},
+                            children = {{
+                                args = {type = "flow", name = "gates", direction = "vertical"},
+                                style_mods = {horizontally_stretchable = true},
+                            }},
+                        }},
+                    }},
+                }}
+            }
+        }
+    }
+end
+
 function guis.dhd_letter(letter, dhdSurface, dhdID, toggled) --nauvis.69.E
     local name = dhdSurface.."."..dhdID.."."..letter
     return {
         args = {type = "sprite-button", name = name, sprite = "kj_sg_glyph_"..letter},
         elem_mods = {toggled = toggled or false},
         _click = handlers.letter_click,
+    }
+end
+
+function guis.gdo_gate(gateSurface, gateID, iris) --nauvis.69
+    local name = gateSurface.."."..gateID
+    local irisStatus, fontC = "-", {1,1,1,1}
+    if iris and iris.power_switch_state == true then
+        irisStatus, fontC = {"gdoGui2on"}, {1,0,0,1}
+    elseif iris and iris.power_switch_state == false then
+        irisStatus, fontC = {"gdoGui2off"}, {0,1,0,1}
+    end
+    return {
+        args = {type = "frame", name = name, style = "bordered_frame"},
+        style_mods = {horizontal_align = "left"},
+        children = {
+            {
+                args = {type = "flow", direction = "horizontal"},
+                style_mods = {horizontally_stretchable = true},
+                children = {
+                    {
+                        args = {type = "sprite", style = "image", sprite = "kj_sg_gate"},
+                        style_mods = {right_padding = 10},
+                    },
+                    {
+                        args = {type = "label", style = "frame_title",
+                        caption = {"", {"gdoGui1"}, {"space-location-name."..gateSurface}, " - Iris: "}},
+                    },
+                    {
+                        args = {type = "label", style = "frame_title", caption = irisStatus},
+                        style_mods = {right_padding = 0, font_color = fontC},
+                    },
+                }
+            }
+
+        },
     }
 end
 

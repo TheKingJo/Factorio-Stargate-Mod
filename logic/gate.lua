@@ -541,12 +541,3 @@ function GateTransit(gate, player, vehicle)
         activeGate.tick = math.min(activeGate.tick + 3 * 60, activeGate.maxTick)
     end
 end
-
-function AssembleLettersInDHDGUI(root, dhdSurface, dhd)
-    dhd:OpenedGUI(root)
-    glib.add(root, sg_guis.dhd_letter("poo_"..poo[dhdSurface], dhdSurface, dhd.id, dhd.addressLetters["poo_"..poo[dhdSurface]]))
-    for _, char in ipairs(chevronChars) do
-        glib.add(root, sg_guis.dhd_letter(char, dhdSurface, dhd.id, dhd.addressLetters[char]))
-    end
-    glib.add(root, sg_guis.dhd_letter("connect", dhdSurface, dhd.id, dhd.stargate.active))
-end

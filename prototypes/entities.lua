@@ -21,6 +21,19 @@ local zeroWireConnection = {
     },
 }
 data:extend({
+	{
+		type = "shortcut",
+		name = "kj_stargate_gdo",
+		order = "sg_gdo",
+		action = "lua",
+		--localised_name = {"controls.toggle_cruise_control"},
+		--technology_to_unlock = tech,
+		toggleable = true,
+        icon = modname.."/graphics/entities/stargate/gate_front.png",
+		icon_size = 128,
+		small_icon = modname.."/graphics/entities/stargate/gate_front.png",
+        small_icon_size = 128,
+	},
     {
         type = "power-switch",
         name = "kj_stargate_ringSound",

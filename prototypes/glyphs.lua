@@ -103,6 +103,13 @@ data:extend({
 data:extend({
     {
         type = "sprite",
+        name = "kj_sg_gate",
+        filename = modname.."/graphics/entities/stargate/gate_front.png",
+        scale = 0.3,
+        size = 128,
+    },
+    {
+        type = "sprite",
         name = "kj_sg_glyph_poo_1",
         filename = modname.."/graphics/glyphs/0001.png",
         size = 128,
