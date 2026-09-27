@@ -57,7 +57,7 @@ function guis.gdo_frame(name, caption, events)
                     args = {type = "label", caption = caption, style = "frame_title", ignored_by_interaction = true},
                 }, {
                     args = {type = "empty-widget", style = "draggable_space_header", ignored_by_interaction = true},
-                    style_mods = {horizontally_stretchable = true, height = 24},
+                    style_mods = {horizontally_stretchable = true, height = 24, natural_width = 100},
                 }, {
                     args = {type = "sprite-button", style = "close_button", sprite = "utility/close"},
                     _click = events and events.button or handlers.default_close_button,
@@ -75,6 +75,46 @@ function guis.gdo_frame(name, caption, events)
                             style_mods = {horizontally_stretchable = true},
                             children = {{
                                 args = {type = "flow", name = "gates", direction = "vertical"},
+                                style_mods = {horizontally_stretchable = true},
+                            }},
+                        }},
+                    }},
+                }}
+            }
+        }
+    }
+end
+
+function guis.gdo_iris_frame() --nauvis.69
+    return {
+        args = {type = "frame", name = "gdo_iris", direction = "vertical", anchor = {
+            gui = defines.relative_gui_type.power_switch_gui,
+            position = defines.relative_gui_position.left,
+        }},
+        style_mods = {natural_width = 200},
+        children = {
+            {
+                args = {type = "flow", name = "header"}, ref = false,
+                children = {{
+                        args = {type = "label", caption = {"gdoGuiIris"}, style = "frame_title", ignored_by_interaction = true},
+                    }, {
+                        args = {type = "empty-widget", style = "draggable_space_header", ignored_by_interaction = true},
+                        style_mods = {horizontally_stretchable = true, height = 24, natural_width = 100},
+                    }
+                },
+            },
+            {
+                args = {type = "frame", style = "inside_shallow_frame"},
+                children = {{
+                    args = {type = "flow", direction = "vertical"},
+                    style_mods = {vertical_spacing = 10},
+                    children = {{
+                        args = {type = "frame", style = "filter_frame"},
+                        children = {{
+                            args = {type = "scroll-pane", style = "deep_scroll_pane"},
+                            style_mods = {horizontally_stretchable = true},
+                            children = {{
+                                args = {type = "flow", name = "gdos", direction = "vertical"},
                                 style_mods = {horizontally_stretchable = true},
                             }},
                         }},
@@ -112,20 +152,36 @@ function guis.gdo_gate(gateSurface, gateID, iris) --nauvis.69
                 children = {
                     {
                         args = {type = "sprite", style = "image", sprite = "kj_sg_gate"},
-                        style_mods = {right_padding = 10},
+                        style_mods = {vertical_align = "center", right_padding = 10},
                     },
                     {
                         args = {type = "label", style = "frame_title",
                         caption = {"", {"gdoGui1"}, {"space-location-name."..gateSurface}, " - Iris: "}},
+                        style_mods = {vertical_align = "center"},
                     },
                     {
                         args = {type = "label", style = "frame_title", caption = irisStatus},
-                        style_mods = {right_padding = 0, font_color = fontC},
+                        style_mods = {vertical_align = "center", right_padding = 0, font_color = fontC},
                     },
                 }
             }
-
         },
+    }
+end
+
+function guis.gdo_code(code)
+    return {
+        args = {type = "flow", direction = "horizontal"},
+        style_mods = {horizontally_stretchable = true},
+        children = {{
+                args = {type = "textfield", text = code},
+                style_mods = {right_padding = 10, natural_width = 200},
+            }, {
+                args = {type = "sprite-button", style = "close_button", sprite = "utility/close"},
+                        style_mods = {vertical_align = "center"},
+                --_click = events and events.button or handlers.default_close_button,
+            }
+        }
     }
 end
 

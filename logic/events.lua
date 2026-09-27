@@ -15,7 +15,7 @@ function GDOTriggered(e)
         end
     end
 
-    gui = player.gui.screen.gdo
+    local gui = player.gui.screen.gdo
     local refs
     if not gui then
         gui, refs = glib.add(player.gui.screen, sg_guis.gdo_frame("gdo", {"gdo"}))
@@ -308,6 +308,7 @@ function OnBuilt(e)
             destAddress = {},
             destAddressLetters = {},
             recentAddresses = {},
+            gdos = {"hallo", "ABD"}, --TODO remove placeholder
             lastGlyph = "poo",
 
             manual = false,
@@ -320,7 +321,10 @@ function OnBuilt(e)
             chevrons = chevrons,
             safeToTravel = false,
         }
-        util.addToGlobal("stargate", entity, content, true)
+        local obj = util.addToGlobal("stargate", entity, content, true)
+        if iris == true then
+            storage.irises[childs.iris.unit_number] = obj
+        end
 
         ent.destroy()
     elseif ent.name == sgNames.placement then --manual stargate placed
@@ -516,15 +520,16 @@ end
 
 function GuiOpened(e)
     local player = game.players[e.player_index]
+    if not e.entity then return end
 
-    if e.entity and e.entity.name == sgNames.dhdName then
+    if e.entity.name == sgNames.dhdName then
         local dhd, dhdID = util.findInGlobal("dhd", e.entity)
         if dhd == nil or dhd.stargate == nil then
             player.opened = nil
             return
         end
 
-        gui = player.gui.screen.dhd
+        local gui = player.gui.screen.dhd
         local refs
         if not gui then
             gui, refs = glib.add(player.gui.screen, sg_guis.dhd_frame_new("dhd", {"dhd"}))
@@ -545,10 +550,27 @@ function GuiOpened(e)
         gui.force_auto_center()
         gui.bring_to_front()
         player.opened = gui
-    end
 
-    if e.entity and e.entity.name == sgNames.entitySignaled then
+    elseif e.entity.name == sgNames.entitySignaled then
         player.opened = nil
+
+    elseif e.entity.name == "kj_stargate_iris" then
+        local gui, bool = player.gui.relative, false
+        for _, name in pairs(gui.children_names) do
+            if name == "gdo_iris" then
+                bool = true
+            end
+        end
+
+        if bool == false then
+            local gui, refs = glib.add(gui, sg_guis.gdo_iris_frame())
+            local iris = storage.irises[e.entity.unit_number]
+            if refs and refs.gdos then
+                for _, code in pairs(iris.gdos) do
+                    glib.add(refs.gdos, sg_guis.gdo_code(code))
+                end
+            end
+        end
     end
 end
 

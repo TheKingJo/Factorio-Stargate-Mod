@@ -9,6 +9,7 @@ function initStorage()
         illegalCars = true,
         electricPoles = true,
         corpses = true,
+        irises = true,
     }
     local tasks = {
         activeGates = true,
