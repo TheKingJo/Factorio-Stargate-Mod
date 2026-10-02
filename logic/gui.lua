@@ -85,9 +85,9 @@ function guis.gdo_frame(name, caption, events)
     }
 end
 
-function guis.gdo_iris_frame() --nauvis.69
+function guis.gdo_iris_frame(irisID, events) --123/gdo_iris
     return {
-        args = {type = "frame", name = "gdo_iris", direction = "vertical", anchor = {
+        args = {type = "frame", name = irisID.."/gdo_iris", direction = "vertical", anchor = {
             gui = defines.relative_gui_type.power_switch_gui,
             position = defines.relative_gui_position.left,
         }},
@@ -96,10 +96,10 @@ function guis.gdo_iris_frame() --nauvis.69
             {
                 args = {type = "flow", name = "header"}, ref = false,
                 children = {{
-                        args = {type = "label", caption = {"gdoGuiIris"}, style = "frame_title", ignored_by_interaction = true},
+                        args = {type = "label", caption = {"gdoGuiIris1"}, style = "frame_title", ignored_by_interaction = true},
                     }, {
-                        args = {type = "empty-widget", style = "draggable_space_header", ignored_by_interaction = true},
-                        style_mods = {horizontally_stretchable = true, height = 24, natural_width = 100},
+                        args = {type = "sprite-button", style = "item_and_count_select_confirm", sprite = "utility/add", tooltip = {"gdoGuiIris3"}},
+                        _click = events and events.button or handlers.gdo_add_code,
                     }
                 },
             },
@@ -110,13 +110,10 @@ function guis.gdo_iris_frame() --nauvis.69
                     style_mods = {vertical_spacing = 10},
                     children = {{
                         args = {type = "frame", style = "filter_frame"},
+                        style_mods = {horizontally_stretchable = true},
                         children = {{
-                            args = {type = "scroll-pane", style = "deep_scroll_pane"},
+                            args = {type = "flow", name = "gdos", direction = "vertical"},
                             style_mods = {horizontally_stretchable = true},
-                            children = {{
-                                args = {type = "flow", name = "gdos", direction = "vertical"},
-                                style_mods = {horizontally_stretchable = true},
-                            }},
                         }},
                     }},
                 }}
@@ -169,17 +166,16 @@ function guis.gdo_gate(gateSurface, gateID, iris) --nauvis.69
     }
 end
 
-function guis.gdo_code(code)
+function guis.gdo_code(irisID, code, events) --123/ABDEF
     return {
-        args = {type = "flow", direction = "horizontal"},
+        args = {type = "flow", name = irisID.."/"..code, direction = "horizontal"},
         style_mods = {horizontally_stretchable = true},
         children = {{
-                args = {type = "textfield", text = code},
-                style_mods = {right_padding = 10, natural_width = 200},
+                args = {type = "textfield", text = code, style = "stretchable_textfield"},
+                _text_changed = events and events.button or handlers.gdo_change_code,
             }, {
-                args = {type = "sprite-button", style = "close_button", sprite = "utility/close"},
-                        style_mods = {vertical_align = "center"},
-                --_click = events and events.button or handlers.default_close_button,
+                args = {type = "sprite-button", style = "close_button", sprite = "utility/close", tooltip = {"gdoGuiIris2"}},
+                _click = events and events.button or handlers.gdo_delete_code,
             }
         }
     }
@@ -191,6 +187,39 @@ end
 
 function handlers.default_close_button(event)
     event.element.parent.parent.destroy()
+end
+
+function handlers.gdo_add_code(event)
+    local irisID, _ = string.match(event.element.parent.parent.name, "^(%d+)%/(.*)$")
+    local code, j = "", 1
+    repeat
+        for i = 1, 6 do
+            local chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+            local pos = math.random(1, #chars)
+            code = code..chars:sub(pos, pos)
+        end
+        j = j + 1
+    until storage.irisedGates[tonumber(irisID)].gdos[code] == nil or j == 1000
+
+    storage.irisedGates[tonumber(irisID)].gdos[code] = true
+    glib.add(event.element.parent.parent.children[2].children[1].children[1].children[1], sg_guis.gdo_code(irisID, code))
+end
+
+function handlers.gdo_change_code(event)
+    local irisID, oldCode = string.match(event.element.parent.name, "^(%d+)%/(.*)$")
+    local newCode = event.text
+
+    storage.irisedGates[tonumber(irisID)].gdos[oldCode] = nil
+    storage.irisedGates[tonumber(irisID)].gdos[newCode] = true
+
+    event.element.parent.name = irisID.."/"..newCode
+end
+
+function handlers.gdo_delete_code(event)
+    local irisID, code = string.match(event.element.parent.name, "^(%d+)%/(.*)$")
+    storage.irisedGates[tonumber(irisID)].gdos[code] = nil
+
+    event.element.parent.destroy()
 end
 
 function handlers.letter_click(event)

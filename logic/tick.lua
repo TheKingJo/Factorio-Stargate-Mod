@@ -315,7 +315,7 @@ function OnNthTickSGates(e)
                         local offset = 0
 
                         --table.insert(task.glyphs, {tick = 0})
-                        game.print("Tick: "..game.tick)
+                        --game.print("Tick: "..game.tick)
                         for i, letter in ipairs(addressLetters) do
                             table.insert(task.glyphs, {tick = game.tick + offset})
 
@@ -323,7 +323,7 @@ function OnNthTickSGates(e)
                             localOffset = math.floor(3*60*(distance / 19)) --3s per half cycle
                             offset = offset + localOffset
 
-                            game.print("Distance: "..prevLetter.." -> "..letter.." - "..distance.." around "..direction[dir+1].." with offset "..localOffset)
+                            --game.print("Distance: "..prevLetter.." -> "..letter.." - "..distance.." around "..direction[dir+1].." with offset "..localOffset)
                             table.insert(task.glyphs, {letter = letter, tick = game.tick + offset})
 
                             task.glyphs[#task.glyphs - 1].direction = dir

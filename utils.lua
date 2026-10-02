@@ -174,18 +174,18 @@ function functions.getRingGlyphDistance(from, to)
 
     if settings.global["kj_stargate_ring_long"].value == true then
         if right > left then
-            game.print(b.."-"..a.."="..right..": forward (left)")
+            --game.print(b.."-"..a.."="..right..": forward (left)")
             return right, 0
         else
-            game.print(a.."-"..b.."="..left..": backward (right)")
+            --game.print(a.."-"..b.."="..left..": backward (right)")
             return left, 2
         end
     else
         if right <= left then
-            game.print(b.."-"..a.."="..right..": forward (left)")
+            --game.print(b.."-"..a.."="..right..": forward (left)")
             return right, 0
         else
-            game.print(a.."-"..b.."="..left..": backward (right)")
+            --game.print(a.."-"..b.."="..left..": backward (right)")
             return left, 2
         end
     end

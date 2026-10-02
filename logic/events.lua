@@ -308,7 +308,7 @@ function OnBuilt(e)
             destAddress = {},
             destAddressLetters = {},
             recentAddresses = {},
-            gdos = {"hallo", "ABD"}, --TODO remove placeholder
+            gdos = {["123456"] = true, ABCDEF = true},
             lastGlyph = "poo",
 
             manual = false,
@@ -323,7 +323,7 @@ function OnBuilt(e)
         }
         local obj = util.addToGlobal("stargate", entity, content, true)
         if iris == true then
-            storage.irises[childs.iris.unit_number] = obj
+            storage.irisedGates[childs.iris.unit_number] = obj
         end
 
         ent.destroy()
@@ -554,20 +554,22 @@ function GuiOpened(e)
     elseif e.entity.name == sgNames.entitySignaled then
         player.opened = nil
 
-    elseif e.entity.name == "kj_stargate_iris" then
-        local gui, bool = player.gui.relative, false
-        for _, name in pairs(gui.children_names) do
-            if name == "gdo_iris" then
-                bool = true
+    elseif e.entity.type == "power-switch" then
+        local gui = player.gui.relative
+
+        for i, name in ipairs(gui.children_names) do
+            if string.match(name, "^%d+/gdo_iris$") then
+                gui.children[i].destroy() --deleting existing gdo uis as cleanup - also prevents them in other power switches
             end
         end
 
-        if bool == false then
-            local gui, refs = glib.add(gui, sg_guis.gdo_iris_frame())
-            local iris = storage.irises[e.entity.unit_number]
+        if e.entity.name == "kj_stargate_iris" then
+            local _, refs = glib.add(gui, sg_guis.gdo_iris_frame(e.entity.unit_number))
+            local gate = storage.irisedGates[e.entity.unit_number]
+
             if refs and refs.gdos then
-                for _, code in pairs(iris.gdos) do
-                    glib.add(refs.gdos, sg_guis.gdo_code(code))
+                for code, _ in pairs(gate.gdos) do
+                    glib.add(refs.gdos, sg_guis.gdo_code(e.entity.unit_number, code))
                 end
             end
         end
