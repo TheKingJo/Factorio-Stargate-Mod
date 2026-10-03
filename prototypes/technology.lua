@@ -2,7 +2,7 @@ data:extend({
 	{
 		type = "technology",
 		name = "kj_stargate",
-        icon = "__kj_stargate__/graphics/entities/stargate/icon.png",
+        icon = "__kj_stargate__/graphics/icon.png",
         icon_size = 128,
 		effects = {
 			{
@@ -20,7 +20,7 @@ data:extend({
 	{
 		type = "technology",
 		name = "kj_stargate_s",
-        icon = "__kj_stargate__/graphics/entities/stargate/s_icon.png",
+        icon = "__kj_stargate__/graphics/s_icon.png",
         icon_size = 128,
 		effects = {
 			{

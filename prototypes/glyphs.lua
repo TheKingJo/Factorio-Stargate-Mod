@@ -32,7 +32,7 @@ data:extend({
     {
         type = "item-group",
         name = "kj_dhd_glyphs",
-        icon = modname.."/graphics/entities/dhd/icon.png",
+        icon = modname.."/graphics/dhd_icon.png",
         icon_size = 128,
         order = "y-dhd",
     },
@@ -103,8 +103,15 @@ data:extend({
 data:extend({
     {
         type = "sprite",
-        name = "kj_sg_gate",
-        filename = modname.."/graphics/entities/stargate/gate_front.png",
+        name = "kj_sg_gate_on",
+        filename = modname.."/graphics/gate_front_on.png",
+        scale = 0.3,
+        size = 128,
+    },
+    {
+        type = "sprite",
+        name = "kj_sg_gate_iris",
+        filename = modname.."/graphics/gate_front_iris.png",
         scale = 0.3,
         size = 128,
     },

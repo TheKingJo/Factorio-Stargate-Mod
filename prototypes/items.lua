@@ -2,7 +2,7 @@ data:extend({
     {
         type = "item-with-entity-data",
         name = "kj_stargate_iris",
-        icon = "__kj_stargate__/graphics/entities/stargate/iris_icon.png",
+        icon = "__kj_stargate__/graphics/iris_icon.png",
         icon_size = 128,
         subgroup = "transport",
         order = "1",
@@ -15,7 +15,7 @@ data:extend({
     {
         type = "item-with-entity-data",
         name = "kj_stargate",
-        icon = "__kj_stargate__/graphics/entities/stargate/stargate_icon.png",
+        icon = "__kj_stargate__/graphics/stargate_icon.png",
         icon_size = 128,
         subgroup = "transport",
         order = "0",
@@ -28,7 +28,7 @@ data:extend({
     {
         type = "item-with-entity-data",
         name = "kj_stargate_placement",
-        icon = "__kj_stargate__/graphics/entities/stargate/icon.png",
+        icon = "__kj_stargate__/graphics/icon.png",
         icon_size = 128,
         subgroup = "transport",
         order = "2",
@@ -42,7 +42,7 @@ data:extend({
     {
         type = "item-with-entity-data",
         name = "kj_stargate_signaled_placement",
-        icon = "__kj_stargate__/graphics/entities/stargate/s_icon.png",
+        icon = "__kj_stargate__/graphics/s_icon.png",
         icon_size = 128,
         subgroup = "transport",
         order = "3",
@@ -56,7 +56,7 @@ data:extend({
     {
         type = "item-with-entity-data",
         name = "kj_stargate_signaled_iris_placement",
-        icon = "__kj_stargate__/graphics/entities/stargate/s_gate_iris_icon.png",
+        icon = "__kj_stargate__/graphics/s_gate_iris_icon.png",
         icon_size = 128,
         subgroup = "transport",
         order = "4",
@@ -70,7 +70,7 @@ data:extend({
     {
         type = "item-with-entity-data",
         name = "kj_dhd",
-        icon = "__kj_stargate__/graphics/entities/dhd/icon.png",
+        icon = "__kj_stargate__/graphics/dhd_icon.png",
         icon_size = 128,
         subgroup = "transport",
         order = "0",

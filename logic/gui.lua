@@ -127,7 +127,7 @@ function guis.dhd_letter(letter, dhdSurface, dhdID, toggled) --nauvis.69.E
     return {
         args = {type = "sprite-button", name = name, sprite = "kj_sg_glyph_"..letter},
         elem_mods = {toggled = toggled or false},
-        _click = handlers.letter_click,
+        _click = handlers.dhd_letter_click,
     }
 end
 
@@ -222,7 +222,7 @@ function handlers.gdo_delete_code(event)
     event.element.parent.destroy()
 end
 
-function handlers.letter_click(event)
+function handlers.dhd_letter_click(event)
     if event.button == defines.mouse_button_type.left then
         local element = event.element
         local dhdSurface, dhdID, char = util.splitNameId2(element.name)
