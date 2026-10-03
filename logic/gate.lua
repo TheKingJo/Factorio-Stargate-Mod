@@ -136,6 +136,18 @@ stargate = {
         end
     end,
 
+    SetIris = function(self, state)
+        if not self.childs.iris then return end
+        self.childs.iris.power_switch_state = state
+        for i, GUI in pairs(storage.openGUIs.GDO) do
+
+            GDOTriggered({
+                prototype_name = "kj_stargate_gdo",
+                player_index = GUI.player_index,
+            }, true)
+        end
+    end,
+
     ResetSenderStatus = function(self)
         self:SetSenderStatus()
     end,

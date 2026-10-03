@@ -56,9 +56,6 @@ function guis.gdo_frame(name, caption, events)
                 children = {{
                     args = {type = "label", caption = caption, style = "frame_title", ignored_by_interaction = true},
                 }, {
-                    args = {type = "empty-widget", style = "draggable_space_header", ignored_by_interaction = true},
-                    style_mods = {horizontally_stretchable = true, height = 24, natural_width = 100},
-                }, {
                     args = {type = "sprite-button", style = "close_button", sprite = "utility/close"},
                     _click = events and events.button or handlers.default_close_button,
                 }},
@@ -70,6 +67,7 @@ function guis.gdo_frame(name, caption, events)
                     style_mods = {vertical_spacing = 10},
                     children = {{
                         args = {type = "frame", style = "filter_frame"},
+                            style_mods = {natural_height = 50},
                         children = {{
                             args = {type = "scroll-pane", style = "deep_scroll_pane"},
                             style_mods = {horizontally_stretchable = true},
@@ -131,35 +129,33 @@ function guis.dhd_letter(letter, dhdSurface, dhdID, toggled) --nauvis.69.E
     }
 end
 
-function guis.gdo_gate(gateSurface, gateID, iris) --nauvis.69
-    local name = gateSurface.."."..gateID
-    local irisStatus, fontC = "-", {1,1,1,1}
+function guis.gdo_gate(gateSurface, gateID, iris, events) --nauvis/69
+    local name = gateSurface.."/"..gateID
+    local state = "on"
     if iris and iris.power_switch_state == true then
-        irisStatus, fontC = {"gdoGui2on"}, {1,0,0,1}
-    elseif iris and iris.power_switch_state == false then
-        irisStatus, fontC = {"gdoGui2off"}, {0,1,0,1}
+        state = "iris"
     end
+
     return {
         args = {type = "frame", name = name, style = "bordered_frame"},
-        style_mods = {horizontal_align = "left"},
+        style_mods = {horizontal_align = "left", horizontally_stretchable = true},
         children = {
             {
                 args = {type = "flow", direction = "horizontal"},
                 style_mods = {horizontally_stretchable = true},
-                children = {
-                    {
-                        args = {type = "sprite", style = "image", sprite = "kj_sg_gate"},
+                children = {{
+                        args = {type = "sprite", style = "image", sprite = "kj_sg_gate_"..state},
                         style_mods = {vertical_align = "center", right_padding = 10},
-                    },
-                    {
+                    }, {
                         args = {type = "label", style = "frame_title",
-                        caption = {"", {"gdoGui1"}, {"space-location-name."..gateSurface}, " - Iris: "}},
+                        caption = {"", {"gdoGui1"}, {"space-location-name."..gateSurface}, }},
                         style_mods = {vertical_align = "center"},
-                    },
-                    {
-                        args = {type = "label", style = "frame_title", caption = irisStatus},
-                        style_mods = {vertical_align = "center", right_padding = 0, font_color = fontC},
-                    },
+                    }, {
+                        args = {type = "textfield", name = "code", style = "stretchable_textfield"},
+                    }, {
+                        args = {type = "sprite-button", style = "item_and_count_select_confirm", sprite = "utility/enter", tooltip = {"gdoGui4"}},
+                        _click = events and events.button or handlers.gdo_send_code,
+                    }
                 }
             }
         },
@@ -187,6 +183,31 @@ end
 
 function handlers.default_close_button(event)
     event.element.parent.parent.destroy()
+end
+
+function handlers.gdo_send_code(event)
+    local code = event.element.parent.code.text
+    if code == "" then return end
+    local _, irisID = string.match(event.element.parent.parent.name, "^(.*)/(%d+)$")
+    local irisedGate = storage.irisedGates[tonumber(irisID)]
+
+    if irisedGate.gdos[code] == true then
+        local section = irisedGate.childs.signalSender.get_control_behavior().get_section(1)
+        section.set_slot(3, {
+            value = {
+                type = "entity",
+                name = "kj_stargate_iris",
+                quality = qualities[1],
+                comparator = "=",
+            },
+            min = -1,
+        })
+        irisedGate:SetIris(false)
+        GDOTriggered({
+            prototype_name = "kj_stargate_gdo",
+            player_index = event.player_index,
+        }, true)
+    end
 end
 
 function handlers.gdo_add_code(event)

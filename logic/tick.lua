@@ -409,3 +409,25 @@ function OnNthTickTasks(e)
         end
     end
 end
+
+--15
+--tracks:
+---refreshes GDO GUIs
+function OnNthTickTasks2(e)
+    if #storage.openGUIs.GDO == 0 then return end
+    for i, GUI in pairs(storage.openGUIs.GDO) do
+        if not GUI.valid then
+            storage.openGUIs.GDO[i] = nil
+            goto continue
+        end
+        if not GUI.visible then
+            goto continue
+        end
+
+        GDOTriggered({
+            prototype_name = "kj_stargate_gdo",
+            player_index = GUI.player_index,
+        }, true)
+        ::continue::
+    end
+end

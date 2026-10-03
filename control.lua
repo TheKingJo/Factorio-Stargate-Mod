@@ -75,10 +75,13 @@ script.on_event(defines.events.on_post_entity_died, OnCorpsed)
 
 script.on_event(defines.events.on_player_driving_changed_state, OnPlayerEnteredVehicle)
 
+script.on_event(defines.events.on_player_changed_position, OnPlayerChangedPos)
+
 script.on_event(defines.events.on_entity_damaged , OnDamaged)
 
 script.on_event(defines.events.on_tick, OnTick)
 script.on_nth_tick(60, OnNthTickTasks)
+script.on_nth_tick(15, OnNthTickTasks2)
 script.on_nth_tick(10, OnNthTickSGates)
 script.on_nth_tick( 4, OnNthTickSGateDialing)
 script.on_nth_tick( 2, OnNthTickPlayer)

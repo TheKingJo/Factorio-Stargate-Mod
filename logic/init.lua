@@ -10,6 +10,7 @@ function initStorage()
         electricPoles = true,
         corpses = true,
         irisedGates = true,
+        openGUIs = {GDO = {}},
     }
     local tasks = {
         activeGates = true,
@@ -21,8 +22,12 @@ function initStorage()
         delayedTurnOffs = true,
         signaledGates = true,
     }
-    for name, _ in pairs(names) do
-        storage[name] = storage[name] or {}
+    for name, value in pairs(names) do
+        if value == true then
+            storage[name] = storage[name] or {}
+        else
+            storage[name] = storage[name] or value
+        end
     end
     for task, _ in pairs(tasks) do
         storage.tasks[task] = storage.tasks[task] or {}

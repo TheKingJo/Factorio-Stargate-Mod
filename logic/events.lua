@@ -1,38 +1,57 @@
-function GDOTriggered(e)
+function GDOTriggered(e, refresh)
     if e.prototype_name ~= "kj_stargate_gdo" then return end
-    local player = game.players[e.player_index]
-
+    local player, gates = game.players[e.player_index], {}
     local entities = game.surfaces[player.surface_index].find_entities_filtered{
         position = player.position,
         radius = 10,
         name = {sgNames.entity, sgNames.entitySignaled}
     }
-    local gates = {}
+
     for _, entity in pairs(entities) do
-        local gate = storage["stargate"][game.surfaces[player.surface_index].name][entity.unit_number]
+        local gate = storage["stargate"][entity.surface.name][entity.unit_number]
+
         if gate.active and gate.destination and gate.destination.manual == false then
-            gates[entity.unit_number] = gate.destination
+            gates[gate.destination.childs.iris.unit_number] = gate.destination
         end
     end
 
-    local gui = player.gui.screen.gdo
-    local refs
+    local gui, refs = player.gui.screen.gdo, nil
     if not gui then
         gui, refs = glib.add(player.gui.screen, sg_guis.gdo_frame("gdo", {"gdo"}))
+
+        gui.force_auto_center()
+        gui.bring_to_front()
+        player.opened = gui
+        table.insert(storage.openGUIs.GDO, gui)
     else
         gui.visible = true
+        refs = {gates = gui.children[2].children[1].children[1].children[1].gates}
+        if refresh and refresh == true then
+            for _, child in pairs(refs.gates.children) do
+                local _, irisID = string.match(child.name, "^(.*)/(%d+)$")
+                if irisID then
+                    local state, iris = "on", storage.irisedGates[tonumber(irisID)].childs.iris
+                    if iris.power_switch_state == true then
+                        state = "iris"
+                    end
+                    child.children[1].children[1].sprite = "kj_sg_gate_"..state
+                end
+            end
+        else
+            refs.gates.clear()
+        end
     end
 
-    if refs and refs.gates then
+    if refs and refs.gates and not refresh then
         if not next(gates) then
             glib.add(refs.gates, {
-                args = {type = "frame", name = "none", style = "bordered_frame"},
+                args = {type = "frame", style = "bordered_frame"},
                 style_mods = {horizontal_align = "left"},
                 children = {{
                     args = {type = "flow", direction = "horizontal"},
-                    style_mods = {horizontally_stretchable = true},
+                    style_mods = {horizontally_stretchable = true, horizontal_align = "center"},
                     children = {{
-                        args = {type = "label", style = "frame_title", caption = {"gdoGui3"}}
+                        args = {type = "label", style = "frame_title", caption = {"gdoGui3"}},
                     }}
                 }}
             })
@@ -40,15 +59,19 @@ function GDOTriggered(e)
             for id, gate in pairs(gates) do
                 glib.add(refs.gates, sg_guis.gdo_gate(gate.entity.surface.name, id, gate.childs.iris))
             end
-            glib.add(refs.gates, sg_guis.gdo_gate("nauvis", 1))
-            glib.add(refs.gates, sg_guis.gdo_gate("aquilo", 2))
-            glib.add(refs.gates, sg_guis.gdo_gate("vulcanus", 3))
         end
     end
+end
 
-    gui.force_auto_center()
-    gui.bring_to_front()
-    player.opened = gui
+function OnPlayerChangedPos(e)
+    local player = game.players[e.player_index]
+    local gui = player.gui.screen.gdo
+    if gui then
+        GDOTriggered({
+            prototype_name = "kj_stargate_gdo",
+            player_index = e.player_index,
+        })
+    end
 end
 
 function OnCorpsed(e)
@@ -288,8 +311,8 @@ function OnBuilt(e)
         local wireConsSR = childs.signalReceiver.get_wire_connector(1, true)
         local wireConsSS = childs.signalSender.get_wire_connector(2, true)
         if iris == true then
-            wireConsIR = childs.iris.get_wire_connector(1, true)
-            wireConsR[1].connect_to(wireConsIR)
+            wireConsIR = childs.iris.get_wire_connector(2, true)
+            wireConsR[2].connect_to(wireConsIR)
         end
 
         for id, wireConnector in pairs(wireConsM) do
