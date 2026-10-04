@@ -28,7 +28,8 @@ function GDOTriggered(e, refresh)
         refs = {gates = gui.children[2].children[1].children[1].children[1].gates}
         if refresh and refresh == true then
             for _, child in pairs(refs.gates.children) do
-                local _, irisID = string.match(child.name, "^(.*)/(%d+)$")
+                local irisID = child.tags.irisID
+
                 if irisID then
                     local state, iris = "on", storage.irisedGates[tonumber(irisID)].childs.iris
                     if iris.power_switch_state == true then
@@ -578,24 +579,66 @@ function GuiOpened(e)
         player.opened = nil
 
     elseif e.entity.type == "power-switch" then
-        local gui = player.gui.relative
+        GDOIris({
+            name = e.entity.name,
+            player_index = e.player_index,
+            unit_number = e.entity.unit_number,
+        })
+    end
+end
 
-        for i, name in ipairs(gui.children_names) do
-            if string.match(name, "^%d+/gdo_iris$") then
-                gui.children[i].destroy() --deleting existing gdo uis as cleanup - also prevents them in other power switches
-            end
+function RefreshAllGDOIris(mode)
+    if #storage.openGUIs.GDOIris == 0 then return end
+
+    for i = #storage.openGUIs.GDOIris, 1, -1 do
+        local GUI = storage.openGUIs.GDOIris[i]
+
+        if not GUI then goto continue end
+        if not GUI.valid then
+            table.remove(storage.openGUIs.GDOIris, i)
+            goto continue
+        end
+        if not GUI.visible then goto continue end
+
+        local gui = game.players[GUI.player_index].gui.relative.gdo_iris.children[2].children[1].children[1].gdos
+
+        if mode.change then
+            gui[mode.change[1]].name = mode.change[2]
+
+        elseif mode.add then
+            glib.add(gui, sg_guis.gdo_code(gui.tags.irisID, mode.add))
+
+        elseif mode.delete then
+            gui[mode.delete].destroy()
+        end
+        ::continue::
+    end
+end
+
+function GDOIris(data)
+    local player = game.players[data.player_index]
+    local gui, refs = player.gui.relative.gdo_iris, nil
+
+    if data.name == "kj_stargate_iris" then
+        local irisID = data.unit_number or gui.tags.irisID
+        local gate = storage.irisedGates[irisID]
+
+        if not gui then
+            gui, refs = glib.add(player.gui.relative, sg_guis.gdo_iris_frame(irisID))
+
+            table.insert(storage.openGUIs.GDOIris, gui)
+        else
+            refs = {gdos = gui.children[2].children[1].children[1].gdos}
         end
 
-        if e.entity.name == "kj_stargate_iris" then
-            local _, refs = glib.add(gui, sg_guis.gdo_iris_frame(e.entity.unit_number))
-            local gate = storage.irisedGates[e.entity.unit_number]
-
-            if refs and refs.gdos then
-                for code, _ in pairs(gate.gdos) do
-                    glib.add(refs.gdos, sg_guis.gdo_code(e.entity.unit_number, code))
-                end
+        if refs and refs.gdos then
+            refs.gdos.clear()
+            for code, _ in pairs(gate.gdos) do
+                glib.add(refs.gdos, sg_guis.gdo_code(irisID, code))
             end
         end
+    else
+        if gui then gui.destroy() end --no gdo gui in other power switches
     end
 end
 

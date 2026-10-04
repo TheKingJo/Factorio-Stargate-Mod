@@ -137,11 +137,12 @@ stargate = {
         if not self.childs.iris then return end
         self.childs.iris.power_switch_state = state
         for i, GUI in pairs(storage.openGUIs.GDO) do
-
-            GDOTriggered({
-                prototype_name = "kj_stargate_gdo",
-                player_index = GUI.player_index,
-            }, true)
+            if GUI and GUI.valid then
+                GDOTriggered({
+                    prototype_name = "kj_stargate_gdo",
+                    player_index = GUI.player_index,
+                }, true)
+            end
         end
     end,
 

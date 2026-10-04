@@ -10,7 +10,7 @@ function initStorage()
         electricPoles = true,
         corpses = true,
         irisedGates = true,
-        openGUIs = {GDO = {}},
+        openGUIs = {GDO = {}, GDOIris = {}},
     }
     local tasks = {
         activeGates = true,

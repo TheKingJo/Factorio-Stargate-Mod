@@ -424,9 +424,11 @@ end
 ---refreshes GDO GUIs
 function OnNthTickTasks2(e)
     if #storage.openGUIs.GDO == 0 then return end
-    for i, GUI in pairs(storage.openGUIs.GDO) do
+    for i = #storage.openGUIs.GDO, 1, -1 do
+        local GUI = storage.openGUIs.GDOIris[i]
+        if not GUI then goto continue end
         if not GUI.valid then
-            storage.openGUIs.GDO[i] = nil
+            table.remove(storage.openGUIs.GDO, i)
             goto continue
         end
         if not GUI.visible then
