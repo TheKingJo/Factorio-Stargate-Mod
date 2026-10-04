@@ -34,6 +34,15 @@ commands.add_command("deleteGates", nil, function()
     util.removeAllGates()
 end)
 
+commands.add_command("instantDial", nil, function(command)
+    local state = strToBool[command.parameter]
+    if state == nil then
+        state = false
+    end
+    storage.instantDial = state
+    game.print("Instant Dialing: "..tostring(state))
+end)
+
 commands.add_command("infCon", nil, function(command)
     local state = strToBool[command.parameter]
     if state == nil then
@@ -71,13 +80,12 @@ script.on_event(defines.events.on_player_mined_entity, OnRemoved)
 script.on_event(defines.events.on_robot_mined_entity, OnRemoved)
 script.on_event(defines.events.on_entity_died, OnRemoved)
 
+script.on_event(defines.events.on_entity_damaged , OnDamaged)
 script.on_event(defines.events.on_post_entity_died, OnCorpsed)
 
 script.on_event(defines.events.on_player_driving_changed_state, OnPlayerEnteredVehicle)
-
 script.on_event(defines.events.on_player_changed_position, OnPlayerChangedPos)
-
-script.on_event(defines.events.on_entity_damaged , OnDamaged)
+script.on_event(defines.events.on_player_changed_surface, PlayerChangedSurface)
 
 script.on_event(defines.events.on_tick, OnTick)
 script.on_nth_tick(60, OnNthTickTasks)

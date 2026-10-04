@@ -265,7 +265,7 @@ function handlers.dhd_letter_click(event)
                 if element.toggled == false then --clicked letter button
                     if #dhd.address < 7 then
                         element.toggled = not element.toggled
-                        util.playSoundOnSurface(gate.entity.surface, gate.pos, util.randomSound("kj_stargate_dhd", 7))
+                        util.playSoundOnSurface(dhd.entity.surface, gate.pos, util.randomSound("kj_stargate_dhd", 7))
                         dhd.glyphs[(#dhd.address or 0) + 1].animation_offset = charLookup[char]
                         dhd.addressLetters[char] = true
                         table.insert(dhd.address, char)

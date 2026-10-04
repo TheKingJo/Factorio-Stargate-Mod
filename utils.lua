@@ -296,7 +296,17 @@ end
 ---@param excludeEntity? LuaEntity entity to ignore in search
 ---@return LuaEntity can be nil when nothing found
 function functions.findEntity(name, entName, entity, excludeEntity)
-    local entities = game.surfaces[entity.surface_index].find_entities_filtered{position = entity.position, radius = dhdSearchRadius, name = "kj_"..entName}
+    local surface_index
+    if excludeEntity then
+        surface_index = excludeEntity.surface_index
+    else
+        if entity.valid then
+            surface_index = entity.surface_index
+        else
+            error("Neither DHD nor Stargate were valid entities - big problem")
+        end
+    end
+    local entities = game.surfaces[surface_index].find_entities_filtered{position = entity.position, radius = dhdSearchRadius, name = "kj_"..entName}
     local distance = 100000
     local shortestEntity
     for _, ent in ipairs(entities) do

@@ -104,7 +104,7 @@ function OnNthTickPlayer(e)
                     if not gate.childs.iris or (gate.childs.iris and gate.childs.iris.power_switch_state == false) then
                         local vehicle = player.physical_vehicle
                         if (vehicle and vehicle.prototype.type == "spider-vehicle") then return end
-                        if util.getDistance(player.physical_position, gate.childs.tpArea.position) > 13 then return end
+                        if util.getDistance(player.physical_position, gate.childs.tpArea.position) > 13 then goto continue end
 
                         if vehicle == nil then --player not in vehicle
                             if player.character and util.boundingBoxesCollision(player.character.bounding_box, gate.childs.tpArea.bounding_box) then
@@ -129,6 +129,7 @@ function OnNthTickPlayer(e)
             else
                 storage.stargate[player.surface.name][gID] = nil
             end
+            ::continue::
         end
     end
 end
@@ -220,7 +221,7 @@ function OnNthTickSGateDialing(e)
                 task.gate.entity.energy = 0
                 task.gate:SetEnergyStatus()
             else
-                game.print("Not enough electricity")
+                --game.print("Not enough electricity")
                 task.gate.entity.surface.create_entity {
                     name = "kj_stargate_electricFailure",
                     position = util.vector2Add(task.gate.pos, {x = 0, y = entOffY.eF}),
@@ -321,7 +322,11 @@ function OnNthTickSGates(e)
 
                             local distance, dir = util.getRingGlyphDistance(prevLetter, letter)
                             localOffset = math.floor(3*60*(distance / 19)) --3s per half cycle
-                            offset = offset + localOffset
+                            if storage.instantDial and storage.instantDial == true then
+                                offset = 0
+                            else
+                                offset = offset + localOffset
+                            end
 
                             --game.print("Distance: "..prevLetter.." -> "..letter.." - "..distance.." around "..direction[dir+1].." with offset "..localOffset)
                             table.insert(task.glyphs, {letter = letter, tick = game.tick + offset})
@@ -330,7 +335,11 @@ function OnNthTickSGates(e)
                             prevLetter = letter
                             gate.destAddressLetters[letter] = i
 
-                            offset = offset + 120 --offset for the stop sound and animation
+                            if storage.instantDial and storage.instantDial == true then
+                                offset = 0
+                            else
+                                offset = offset + 120 --offset for the stop sound and animation
+                            end
                         end
                         task.lastChevronTick = offset + game.tick
 

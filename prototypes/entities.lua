@@ -80,9 +80,9 @@ data:extend({
         flags = {"placeable-player", "placeable-neutral", "player-creation", "placeable-off-grid",},
         max_health = 1,
 		collision_mask = {layers = {}},
-        --selection_box = {{4.6, 0.2}, {4.9, 0.7}}, --switch box
+        collision_box = {{-2.5, -2.5}, {2.5, 0.5}}, --switch box
         selection_box = {{-2.5, -3.5}, {2.5, 0.5}},
-        map_color = {r = 0.55, g = 0.55, b = 0.55, a = 1},
+        map_color = {r = 0, g = 0.2, b = 1, a = 1},
         selection_priority = 50,
         draw_circuit_wires = true,
         draw_copper_wires = false,
@@ -647,7 +647,7 @@ data:extend({
             }
         },
         factoriopedia_alternative = "kj_stargate_placement",
-        flags = {"placeable-neutral", "placeable-off-grid", "not-flammable"},
+        flags = {"not-on-map", "placeable-neutral", "placeable-off-grid", "not-flammable"},
         map_color = {r = 0.55, g = 0.55, b = 0.55, a = 1},
         max_health = 1,
         resistances = {
@@ -681,7 +681,7 @@ data:extend({
             }
         },
         factoriopedia_alternative = "kj_stargate_signaled_placement",
-        flags = {"placeable-neutral", "placeable-off-grid", "not-flammable"},
+        flags = {"not-on-map", "placeable-neutral", "placeable-off-grid", "not-flammable"},
         map_color = {r = 0.55, g = 0.55, b = 0.55, a = 1},
         max_health = 1,
         resistances = {
@@ -779,7 +779,7 @@ data:extend({
         --collision_box = {{-0.5, -0.5}, {0.5, 0.5}},
         selection_box = {{-0.5, -0.5}, {0.5, 0.5}},
         factoriopedia_alternative = "kj_stargate_signaled_placement",
-        flags = {"placeable-neutral", "placeable-off-grid", "not-flammable"},
+        flags = {"not-on-map", "placeable-neutral", "placeable-off-grid", "not-flammable"},
         map_color = {r = 0.55, g = 0.55, b = 0.55, a = 1},
         max_health = 1,
         selection_priority = 45,
@@ -800,7 +800,7 @@ data:extend({
         hidden = true,
         icon = modname.."/graphics/icon.png",
         icon_size = 128,
-        flags = {"placeable-neutral", "placeable-off-grid", "not-flammable"},
+        flags = {"not-on-map", "placeable-neutral", "placeable-off-grid", "not-flammable"},
         map_color = {r = 0.55, g = 0.55, b = 0.55, a = 1},
 		collision_mask = {layers = {}},
         is_military_target  = false,
@@ -820,7 +820,7 @@ data:extend({
         hidden = true,
         icon = modname.."/graphics/s_gate_light_icon.png",
         icon_size = 128,
-        flags = {"placeable-neutral", "placeable-off-grid", "not-flammable"},
+        flags = {"not-on-map", "placeable-neutral", "placeable-off-grid", "not-flammable"},
         selectable_in_game = false,
         collision_box = {{-1.4, -0.8}, {1.4, 4.4}},
         selection_box = {{-1.4, -0.8}, {1.4, 4.4}},
@@ -858,6 +858,7 @@ local pole1 = {
     icon_size = 128,
     selection_box = {{-0.45, -0.32}, {0.45, 0.32}},
     collision_box = {{-0.45, -0.32}, {0.45, 0.32}},
+    flags = {"placeable-neutral", "placeable-off-grid", "not-flammable"},
     max_health = 1,
     resistances = {
         {
@@ -871,7 +872,6 @@ local pole1 = {
             percent  = 0,
         },
     },
-    flags = {"placeable-neutral", "placeable-off-grid", "not-flammable"},
     factoriopedia_alternative = "kj_stargate_signaled_placement",
     localised_name = {"", {"entity-name.kj_stargate_pole"}},
     localised_description = {"", {"entity-description.kj_stargate_pole"}},
@@ -916,6 +916,7 @@ local pole3 = table.deepcopy(pole1)
 pole3.name = "kj_stargate_pole_invisible"
 pole3.selection_box = {{-3, -3}, {3, 3}}
 pole3.collision_box = pole3.selection_box
+table.insert(pole3.flags, "not-on-map")
 pole3.collision_mask = {layers = {}}
 pole3.maximum_wire_distance = 5
 pole3.supply_area_distance = 3
@@ -935,7 +936,7 @@ data:extend({
         hidden = true,
         icon = modname.."/graphics/icon.png",
         icon_size = 128,
-        flags = {"placeable-neutral", "placeable-off-grid", "not-flammable"},
+        flags = {"not-on-map", "placeable-neutral", "placeable-off-grid", "not-flammable"},
         map_color = {r = 0.55, g = 0.55, b = 0.55, a = 1},
         collision_box = {{-0.5, -1.5}, {0.5, 2}},
     },
@@ -945,10 +946,20 @@ data:extend({
         hidden = true,
         icon = modname.."/graphics/icon.png",
         icon_size = 128,
-        flags = {"placeable-neutral", "placeable-off-grid", "not-flammable", "building-direction-16-way"},
+        flags = {"not-on-map", "placeable-neutral", "placeable-off-grid", "not-flammable", "building-direction-16-way"},
         map_color = {r = 0.55, g = 0.55, b = 0.55, a = 1},
         collision_box = {{-3, -0.225}, {3, 0.225}},
         is_military_target  = false,
+    },
+    {
+        type = "simple-entity",
+        name = "kj_stargate_colliderHoriShort",
+        hidden = true,
+        icon = modname.."/graphics/icon.png",
+        icon_size = 128,
+        flags = {"not-on-map", "placeable-neutral", "placeable-off-grid", "not-flammable"},
+        map_color = {r = 0.55, g = 0.55, b = 0.55, a = 1},
+        collision_box = {{-0.75, -0.1}, {0.75, 0.1}},
     },
     {
         type = "simple-entity-with-force",
@@ -956,7 +967,7 @@ data:extend({
         hidden = true,
         icon = modname.."/graphics/icon.png",
         icon_size = 128,
-        flags = {"placeable-neutral", "placeable-off-grid", "not-flammable", "building-direction-16-way"},
+        flags = {"not-on-map", "placeable-neutral", "placeable-off-grid", "not-flammable", "building-direction-16-way"},
         map_color = {r = 0.55, g = 0.55, b = 0.55, a = 1},
         collision_box = {{-3.5, -0.5}, {3.5, 0.225}},
         is_military_target  = false,
@@ -970,16 +981,6 @@ data:extend({
         flags = {"placeable-neutral", "placeable-off-grid", "not-flammable"},
         map_color = {r = 0.55, g = 0.55, b = 0.55, a = 1},
         collision_box = {{-1.5, -0.75}, {1.5, 0.75}},
-    },
-    {
-        type = "simple-entity",
-        name = "kj_stargate_colliderHoriShort",
-        hidden = true,
-        icon = modname.."/graphics/icon.png",
-        icon_size = 128,
-        flags = {"placeable-neutral", "placeable-off-grid", "not-flammable"},
-        map_color = {r = 0.55, g = 0.55, b = 0.55, a = 1},
-        collision_box = {{-0.75, -0.1}, {0.75, 0.1}},
     },
     {
         type = "simple-entity-with-force",
@@ -1781,6 +1782,7 @@ data:extend({
         type = "tile",
         name = "kj_stargate_slowDownTile",
         hidden = true,
+        flags = {"not-on-map"},
         allows_being_covered = false,
         walking_speed_modifier = 0.5,
         vehicle_friction_modifier = 0.5,
@@ -1805,6 +1807,7 @@ data:extend({
         type = "tile",
         name = "kj_stargate_metalTile",
         hidden = true,
+        flags = {"not-on-map"},
         allows_being_covered = false,
         walking_speed_modifier = 1,
         vehicle_friction_modifier = 1,

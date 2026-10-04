@@ -36,7 +36,9 @@ data:extend({
 		enabled = true,
 		energy_required = 10,
 		ingredients = {
-            {type = "item", name = "steel-plate", amount = 1000},
+            {type = "item", name = "steel-plate", amount = 200},
+            {type = "item", name = "tungsten-plate", amount = 700},
+            {type = "item", name = "holmium-plate", amount = 100},
         },
 		results = {{type = "item", name = "kj_stargate_iris", amount = 1}},
 	},

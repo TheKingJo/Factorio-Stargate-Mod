@@ -35,9 +35,6 @@ stargate = {
     Disconnect = function(self, override)
         local dest = self.destination
         if dest then
-            if not self.manual then
-                self.entity.electric_buffer_size = 10^9
-            end
             deactivateGate(self, override)
             deactivateGate(dest, override)
 
@@ -277,9 +274,11 @@ dhd = {
         else
             if self.stargate then
                 if self.stargate.destination == nil then
-                    self.stargate.chevrons.animation_offset = 0
+                    if self.stargate.chevrons.valid then
+                        self.stargate.chevrons.animation_offset = 0
+                    end
                 end
-                util.playSoundOnSurface(self.stargate.entity.surface, self.stargate.pos, "kj_stargate_fail")
+                util.playSoundOnSurface(self.entity.surface, self.stargate.pos, "kj_stargate_fail")
             else
                 util.playSoundOnSurface(self.entity.surface, self.pos, "kj_stargate_fail")
             end
@@ -334,6 +333,9 @@ function deactivateGate(gate, override)
     gate.active = false
     --gate.safeToTravel = false
     --gate.destination = nil
+    if not gate.manual then
+        gate.entity.electric_buffer_size = 10^9
+    end
     if override then
         gate.safeToTravel = false
         gate.destination = nil
@@ -514,6 +516,7 @@ function GateTransit(gate, player, vehicle)
             FindFreeTeleportArea(gate, player.character.name, pos),
             surface
         )
+        player.opened = nil
 
         if vehicle ~= nil and vehicle.name ~= "kj_stargate_ring" then
             local speed = vehicle.speed
