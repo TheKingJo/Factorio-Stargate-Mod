@@ -75,7 +75,7 @@ script.on_event(defines.events.on_robot_built_entity, OnBuilt)
 
 
 script.on_load(OnLoad)
-script.on_configuration_changed(initStorage)
+script.on_configuration_changed(InitStorage)
 
 script.on_event(defines.events.on_player_mined_entity, OnRemoved)
 script.on_event(defines.events.on_robot_mined_entity, OnRemoved)
@@ -86,7 +86,6 @@ script.on_event(defines.events.on_post_entity_died, OnCorpsed)
 
 script.on_event(defines.events.on_player_driving_changed_state, OnPlayerEnteredVehicle)
 script.on_event(defines.events.on_player_changed_position, OnPlayerChangedPos)
-script.on_event(defines.events.on_player_changed_surface, PlayerChangedSurface)
 
 script.on_event(defines.events.on_tick, OnTick)
 script.on_nth_tick(60, OnNthTickTasks)

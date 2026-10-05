@@ -64,14 +64,58 @@ function GDOTriggered(e, refresh)
     end
 end
 
-function OnPlayerChangedPos(e)
-    local player = game.players[e.player_index]
-    local gui = player.gui.screen.gdo
-    if gui then
-        GDOTriggered({
-            prototype_name = "kj_stargate_gdo",
-            player_index = e.player_index,
-        })
+function RefreshAllGDOIris(mode)
+    if #storage.openGUIs.GDOIris == 0 then return end
+
+    for i = #storage.openGUIs.GDOIris, 1, -1 do
+        local GUI = storage.openGUIs.GDOIris[i]
+
+        if not GUI then goto continue end
+        if not GUI.valid then
+            table.remove(storage.openGUIs.GDOIris, i)
+            goto continue
+        end
+        if not GUI.visible then goto continue end
+
+        local gui = game.players[GUI.player_index].gui.relative.gdo_iris.children[2].children[1].children[1].gdos
+
+        if mode.change then
+            gui[mode.change[1]].name = mode.change[2]
+
+        elseif mode.add then
+            glib.add(gui, sg_guis.gdo_code(gui.tags.irisID, mode.add))
+
+        elseif mode.delete then
+            gui[mode.delete].destroy()
+        end
+        ::continue::
+    end
+end
+
+function GDOIris(data)
+    local player = game.players[data.player_index]
+    local gui, refs = player.gui.relative.gdo_iris, nil
+
+    if data.name == sgNames.iris then
+        local irisID = data.unit_number or gui.tags.irisID
+        local gate = storage.irisedGates[irisID]
+
+        if not gui then
+            gui, refs = glib.add(player.gui.relative, sg_guis.gdo_iris_frame(irisID))
+
+            table.insert(storage.openGUIs.GDOIris, gui)
+        else
+            refs = {gdos = gui.children[2].children[1].children[1].gdos}
+        end
+
+        if refs and refs.gdos then
+            refs.gdos.clear()
+            for code, _ in pairs(gate.gdos) do
+                glib.add(refs.gdos, sg_guis.gdo_code(irisID, code))
+            end
+        end
+    else
+        if gui then gui.destroy() end --no gdo gui in other power switches
     end
 end
 
@@ -518,7 +562,7 @@ function OnRemoved(e)
         if sg.childs.iris then
             local player = game.get_player(e.player_index)
             if player and player.valid then
-                player.insert({name = "kj_stargate_iris", count = 1})
+                player.insert({name = sgNames.iris, count = 1})
             end
         end
         util.removeFromGlobal("stargate", ent)
@@ -585,61 +629,6 @@ function GuiOpened(e)
             player_index = e.player_index,
             unit_number = e.entity.unit_number,
         })
-    end
-end
-
-function RefreshAllGDOIris(mode)
-    if #storage.openGUIs.GDOIris == 0 then return end
-
-    for i = #storage.openGUIs.GDOIris, 1, -1 do
-        local GUI = storage.openGUIs.GDOIris[i]
-
-        if not GUI then goto continue end
-        if not GUI.valid then
-            table.remove(storage.openGUIs.GDOIris, i)
-            goto continue
-        end
-        if not GUI.visible then goto continue end
-
-        local gui = game.players[GUI.player_index].gui.relative.gdo_iris.children[2].children[1].children[1].gdos
-
-        if mode.change then
-            gui[mode.change[1]].name = mode.change[2]
-
-        elseif mode.add then
-            glib.add(gui, sg_guis.gdo_code(gui.tags.irisID, mode.add))
-
-        elseif mode.delete then
-            gui[mode.delete].destroy()
-        end
-        ::continue::
-    end
-end
-
-function GDOIris(data)
-    local player = game.players[data.player_index]
-    local gui, refs = player.gui.relative.gdo_iris, nil
-
-    if data.name == "kj_stargate_iris" then
-        local irisID = data.unit_number or gui.tags.irisID
-        local gate = storage.irisedGates[irisID]
-
-        if not gui then
-            gui, refs = glib.add(player.gui.relative, sg_guis.gdo_iris_frame(irisID))
-
-            table.insert(storage.openGUIs.GDOIris, gui)
-        else
-            refs = {gdos = gui.children[2].children[1].children[1].gdos}
-        end
-
-        if refs and refs.gdos then
-            refs.gdos.clear()
-            for code, _ in pairs(gate.gdos) do
-                glib.add(refs.gdos, sg_guis.gdo_code(irisID, code))
-            end
-        end
-    else
-        if gui then gui.destroy() end --no gdo gui in other power switches
     end
 end
 
@@ -716,6 +705,17 @@ function OnPlayerEnteredVehicle(e)
         if ent.get_passenger() then
             ent.set_passenger(nil)
         end
+    end
+end
+
+function OnPlayerChangedPos(e)
+    local player = game.players[e.player_index]
+    local gui = player.gui.screen.gdo
+    if gui then
+        GDOTriggered({
+            prototype_name = "kj_stargate_gdo",
+            player_index = e.player_index,
+        })
     end
 end
 

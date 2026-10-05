@@ -196,7 +196,7 @@ function handlers.gdo_send_code(event)
         section.set_slot(3, {
             value = {
                 type = "entity",
-                name = "kj_stargate_iris",
+                name = sgNames.iris,
                 quality = qualities[1],
                 comparator = "=",
             },

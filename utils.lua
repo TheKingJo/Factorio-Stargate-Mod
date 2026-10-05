@@ -90,7 +90,7 @@ function functions.getRingGlyphDistance(from, to)
     end
 end
 
-function functions.hash_fnv1a(str)
+function functions.hashFnv1a(str)
     local hash = 2166136261
     for i = 1, #str do
         hash = bit32.bxor(hash, string.byte(str, i))
@@ -234,12 +234,13 @@ function functions.findIDInGlobal(name, surface, id)
     return nil
 end
 
----@return table, number [if it exists in global]
 function functions.findInGlobal(name, entity)
-    if entity == nil then return nil, nil end
+    if entity == nil then return nil end
     local sName = entity.surface.name
-    if not storage[name][sName] then return nil, nil end
+    if not storage[name][sName] then return nil end
 
+    return storage[name][sName][entity.unit_number], entity.unit_number
+    --[[
     for id, object in pairs(storage[name][sName]) do
         if object.entity == entity then
             return object, id
@@ -247,6 +248,7 @@ function functions.findInGlobal(name, entity)
     end
 
     return nil, nil
+    ]]
 end
 
 ---@param name string name of storage table
@@ -254,8 +256,7 @@ end
 ---@param addContent? table additional content to add to the storage entry
 function functions.addToGlobal(name, entity, addContent, override)
     local sName = entity.surface.name
-    local id = entity.unit_number or ((storage[name.."id"] or 0) + 1)
-    storage[name.."id"] = id
+    local id = entity.unit_number
     storage[name][sName] = storage[name][sName] or {}
 
     local content = {

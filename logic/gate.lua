@@ -429,7 +429,7 @@ function generateAddress(surface)
     local result, used = {}, {}
 
     repeat
-        hash = util.hash_fnv1a(mapSeed..surface.name..hash)
+        hash = util.hashFnv1a(mapSeed..surface.name..hash)
         generator = game.create_random_generator(hash)
         game.print(surface.name.. " - Game Seed: "..mapSeed.." - Custom Seed: "..hash)
 
@@ -450,7 +450,7 @@ function generateAddress(surface)
     return resultString
 end
 
-function FindFreeTeleportArea(gate, name, pos)
+function findFreeTeleportArea(gate, name, pos)
     local teleportSpaces = {
         {
             {{0, 0}, {0, 0}},
@@ -491,7 +491,7 @@ function FindFreeTeleportArea(gate, name, pos)
     return teleportPosition
 end
 
-function GateTransit(gate, player, vehicle)
+function gateTransit(gate, player, vehicle)
     local pos = util.vector2Add(gate.pos, {x = 0, y = entOffY.sg})
     local surface = gate.entity.surface
     util.playSoundOnSurface(player.surface, player.position, "kj_stargate_enter")
@@ -503,7 +503,7 @@ function GateTransit(gate, player, vehicle)
         util.playSoundOnSurface(gate.entity.surface, gate.pos, util.randomSound("kj_stargate_iris_hit_", 3))
     else
         player.teleport(
-            FindFreeTeleportArea(gate, player.character.name, pos),
+            findFreeTeleportArea(gate, player.character.name, pos),
             surface
         )
         player.opened = nil
@@ -513,7 +513,7 @@ function GateTransit(gate, player, vehicle)
             local collBox = vehicle.prototype.collision_box
             local extraDistance = (math.abs(collBox.left_top.y) + math.abs(collBox.right_bottom.y)) / 2
             vehicle.teleport(
-                FindFreeTeleportArea(gate, vehicle.name, util.vector2Add(pos, {x = 0, y = extraDistance + 0.25})),
+                findFreeTeleportArea(gate, vehicle.name, util.vector2Add(pos, {x = 0, y = extraDistance + 0.25})),
                 surface
             )
             --flip car in certain value ranges

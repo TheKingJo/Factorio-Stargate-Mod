@@ -109,7 +109,7 @@ function OnNthTickPlayer(e)
                         if vehicle == nil then --player not in vehicle
                             if player.character and util.boundingBoxesCollision(player.character.bounding_box, gate.childs.tpArea.bounding_box) then
 
-                                GateTransit(gate.destination, player, vehicle)
+                                gateTransit(gate.destination, player, vehicle)
                             end
                         else --player in vehicle
                             if storage.illegalCars[vehicle.name] then return end
@@ -117,7 +117,7 @@ function OnNthTickPlayer(e)
                             if not iV or (iV and iV < game.tick) then
                                 if util.rotatedBoxInsideBoundingBox(vehicle.bounding_box, vehicle.orientation, gate.childs.tpArea.bounding_box) == true then
 
-                                    GateTransit(gate.destination, player, vehicle)
+                                    gateTransit(gate.destination, player, vehicle)
                                     iV = nil
                                 end
                             end

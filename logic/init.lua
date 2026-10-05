@@ -1,4 +1,4 @@
-function initStorage()
+function InitStorage()
     local names = {
         dhd = true,
         stargate = true,
@@ -69,7 +69,7 @@ function OnLoad(e)
 end
 
 function OnInit(e)
-    initStorage()
+    InitStorage()
     for _, surface in pairs(game.surfaces) do
         addAddressToGlobal(surface, generateAddress(surface))
         --[[Chunk({
