@@ -1,5 +1,6 @@
 if script.active_mods["gvv"] then require("__gvv__.gvv")() end
 util = require("utils")
+require("constants")
 require("util")
 require("logic.gate")
 require("logic.events")
