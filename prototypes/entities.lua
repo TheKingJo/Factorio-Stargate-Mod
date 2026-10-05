@@ -1674,9 +1674,9 @@ data:extend({
         layers = {
             {
                 size = 288,
+                x = 288,
                 shift = {0, 0.5},
                 scale = 0.5,
-                x = 288,
                 blend_mode = "additive",
                 draw_as_glow = true,
                 filename = modname.."/graphics/entities/dhd/dhd_button_light.png",
@@ -1689,9 +1689,9 @@ data:extend({
         layers = {
             {
                 size = 288,
+                y = 288,
                 shift = {0, 0.5},
                 scale = 0.5,
-                y = 288,
                 blend_mode = "additive",
                 draw_as_glow = true,
                 filename = modname.."/graphics/entities/dhd/dhd_button_light.png",
@@ -1704,10 +1704,10 @@ data:extend({
         layers = {
             {
                 size = 288,
-                shift = {0, 0.5},
-                scale = 0.5,
                 x = 288,
                 y = 288,
+                shift = {0, 0.5},
+                scale = 0.5,
                 blend_mode = "additive",
                 draw_as_glow = true,
                 filename = modname.."/graphics/entities/dhd/dhd_button_light.png",

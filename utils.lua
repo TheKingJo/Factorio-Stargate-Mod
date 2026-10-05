@@ -240,15 +240,6 @@ function functions.findInGlobal(name, entity)
     if not storage[name][sName] then return nil end
 
     return storage[name][sName][entity.unit_number], entity.unit_number
-    --[[
-    for id, object in pairs(storage[name][sName]) do
-        if object.entity == entity then
-            return object, id
-        end
-    end
-
-    return nil, nil
-    ]]
 end
 
 ---@param name string name of storage table
@@ -262,7 +253,7 @@ function functions.addToGlobal(name, entity, addContent, override)
     local content = {
         id = id,
         entity = entity,
-        pos = util.vector2Add(entity.position, {x = 0, y = 0.33}),
+        pos = util.vector2Add(entity.position, {x = 0, y = entOffY[name]}),
     }
 
     local shortestOppEnt, shortestOppEntObj
@@ -332,10 +323,6 @@ function functions.removeAllGates()
 
             if gate.animation then
                 gate.animation.destroy()
-            end
-
-            if gate.buttonLight then
-                gate.buttonLight.destroy()
             end
 
             if gate.glyphs then

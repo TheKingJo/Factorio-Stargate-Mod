@@ -39,6 +39,8 @@ qualities = {
     "legendary",
 }
 entOffY = {
+    stargate = 0.33,
+    dhd = 0,
     base = -1.9,
     baseBck = -2.5,
     entS = -1.8-0.33,
