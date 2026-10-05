@@ -30,18 +30,6 @@ end
 
 data:extend({
     {
-        type = "item-group",
-        name = "kj_dhd_glyphs",
-        icon = modname.."/graphics/dhd_icon.png",
-        icon_size = 128,
-        order = "y-dhd",
-    },
-    {
-        type = "item-subgroup",
-        name = "kj_dhd_glyphs",
-        group = "kj_dhd_glyphs",
-    },
-    {
         type = "virtual-signal",
         name = "kj_sg_glyph_connect",
         icon = modname.."/graphics/glyphs/connect.png",

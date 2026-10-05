@@ -39,7 +39,7 @@ data:extend({
         name = "kj_stargate_ringSound",
         icon = modname.."/graphics/icon.png",
         icon_size = 128,
-        flags = {"placeable-player", "placeable-neutral", "player-creation", "placeable-off-grid",},
+        flags = {"placeable-player", "placeable-neutral", "player-creation", "placeable-off-grid"},
         max_health = 1,
         hidden = true,
 		collision_mask = {layers = {}},
@@ -56,18 +56,21 @@ data:extend({
                     sound = {
                         filename = modname.."/sounds/s_gate_spinHold.ogg",
                         volume = 0.8,
-                        aggregation = {max_count = 2, remove = true, count_already_playing = true}
+                        aggregation = {max_count = 2, remove = true, count_already_playing = true},
+                        audible_distance_modifier = 2,
                     },
                     fade_in_ticks = 10,
                 },
             },
             activate_sound = {
                 filename = modname.."/sounds/s_gate_spinUp.ogg",
-                aggregation = {max_count = 2, remove = true, count_already_playing = true}
+                aggregation = {max_count = 2, remove = true, count_already_playing = true},
+                audible_distance_modifier = 2,
             },
             deactivate_sound = {
                 filename = modname.."/sounds/s_gate_spinDown.ogg",
-                aggregation = {max_count = 2, remove = true, count_already_playing = true}
+                aggregation = {max_count = 2, remove = true, count_already_playing = true},
+                audible_distance_modifier = 2,
             },
             max_sounds_per_prototype = 1
         },
@@ -76,8 +79,15 @@ data:extend({
         type = "power-switch",
         name = "kj_stargate_iris",
         icon = modname.."/graphics/iris_icon.png",
+        subgroup = "kj_stargate",
         icon_size = 128,
-        flags = {"placeable-player", "placeable-neutral", "player-creation", "placeable-off-grid",},
+        flags = {"placeable-player", "placeable-neutral", "player-creation", "placeable-off-grid"},
+        minable = {
+            mining_time = 1,
+            results = {
+                {type = "item", name = "kj_stargate_iris", amount = 1},
+            }
+        },
         max_health = 1,
 		collision_mask = {layers = {}},
         collision_box = {{-2.5, -2.5}, {2.5, 0.5}}, --switch box
@@ -138,14 +148,6 @@ data:extend({
 })
 data:extend({
     {
-        type = "item-with-entity-data",
-        name = "kj_stargate_ring",
-        icon = modname.."/graphics/icon.png",
-        icon_size = 128,
-        place_result = "kj_stargate_ring",
-        stack_size = 1
-    },
-    {
         type = "car",
         name = "kj_stargate_ring",
         icon = modname.."/graphics/icon.png",
@@ -153,7 +155,6 @@ data:extend({
         selection_box = {{-1,-1}, {1,1}},
         hidden = true,
         flags = {"placeable-neutral", "placeable-off-grid", "not-flammable"},
-        minable = {mining_time = 0.5, result = "kj_stargate_ring"},
 		collision_mask = {layers = {}},
         consumption = "100kW",
         effectivity = 1,
@@ -330,6 +331,7 @@ data:extend({
         type = "simple-entity-with-owner",
         name = "kj_stargate_auto_gen",
         icon = modname.."/graphics/entities/stargate/remnant_icon.png",
+        subgroup = "kj_stargate",
         dying_explosion = "big-explosion",
         icon_size = 128,
         collision_box = {{-3, -3}, {3, 3}},
@@ -403,6 +405,7 @@ data:extend({
         type = "simple-entity-with-owner",
         name = "kj_dhd_auto_gen",
         icon = modname.."/graphics/entities/dhd/remnant_icon.png",
+        subgroup = "kj_stargate",
         dying_explosion = "big-explosion",
         icon_size = 128,
         collision_box = {{-1, -1}, {1, 1}},
@@ -633,6 +636,7 @@ data:extend({
     {
         type = "simple-entity-with-owner",
         name = "kj_stargate_entity", --originally kj_stargate_transferArea
+        subgroup = "kj_stargate",
         dying_explosion = "rocket-silo-explosion",
         icon = modname.."/graphics/icon.png",
         icon_size = 128,
@@ -667,6 +671,7 @@ data:extend({
     {
         type = "electric-energy-interface",
         name = "kj_stargate_entity_signaled", --originally kj_stargate_transferArea_signaled
+        subgroup = "kj_stargate",
         dying_explosion = "rocket-silo-explosion",
         icon = modname.."/graphics/icon.png",
         icon_size = 128,

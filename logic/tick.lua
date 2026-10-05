@@ -108,7 +108,6 @@ function OnNthTickPlayer(e)
 
                         if vehicle == nil then --player not in vehicle
                             if player.character and util.boundingBoxesCollision(player.character.bounding_box, gate.childs.tpArea.bounding_box) then
-                                --game.print(e.tick.." - Player "..player.name.." entered gate on "..player.surface.name)
 
                                 GateTransit(gate.destination, player, vehicle)
                             end
@@ -117,7 +116,6 @@ function OnNthTickPlayer(e)
                             local iV = storage.ignoredVehicles and storage.ignoredVehicles[vehicle.unit_number]
                             if not iV or (iV and iV < game.tick) then
                                 if util.rotatedBoxInsideBoundingBox(vehicle.bounding_box, vehicle.orientation, gate.childs.tpArea.bounding_box) == true then
-                                    --game.print(e.tick.." - Player "..player.name.." entered gate on "..player.surface.name)
 
                                     GateTransit(gate.destination, player, vehicle)
                                     iV = nil
@@ -142,14 +140,6 @@ function OnNthTickSGateDialing(e)
     local signaledGates = storage.tasks.signaledGates
     if not signaledGates then return end
 
-    --[[signaledGate = {
-        gate = nil, --gate ref
-        glyphs = {
-            {letter = "a", tick = game.tick+60},
-            {letter = "b", tick = game.tick+120},
-        },
-        pooID = "1"
-    }]]
     for id, task in pairs(signaledGates) do
         if not task.gate.entity.valid then
             signaledGates[id] = nil
@@ -158,13 +148,9 @@ function OnNthTickSGateDialing(e)
 
         local childs = task.gate.childs
         if #task.glyphs > 0 then
-            --local drain = task.gate.entity.electric_drain * 60 --in W aka 10 MW max
-            --local limit = task.gate.entity.power_usage * 60 --in W aka 100 MW
-            --if drain < limit * 0.5 then return end --atm a bit useless to check since its draining its own capacitor so will likely be always true
-
             local glyph = task.glyphs[1]
+
             if game.tick >= glyph.tick then
-                --game.print("tick: "..math.floor(game.tick))
                 if glyph.letter then
                     --game.print("Locked Chevron "..glyph.letter)
                     local temp = "2"
@@ -251,21 +237,18 @@ end
   --creating dial job
   --canceling dial jobs
   --checking if dial signal is still there during dialing
-  --TODO: checking if electricity is on during dialing
 function OnNthTickSGates(e)
     if not storage.stargate then return end
 
     for _, surface in pairs(storage.stargate) do
         for _, gate in pairs(surface) do
             if gate.manual == true then goto continue end
-            --if not gate.childs.signalReceiver then surface[id] = nil return end
             gate:SetEnergyStatus()
             local receiver = gate.childs.signalReceiver
             local signals = receiver.get_signals(1)
 
             if gate.active == false and storage.tasks.signaledGates[gate.id] == nil then --gate is inactive and also not dialing
                 if gate.safeToTravel == false and signals ~= nil and game.tick > (gate.senderLastTick or 0) then
-                    --if gate.entity and gate.entity.energy ~= 10^9 then return end
                     local address = ""
                     local addressLetters = {}
                     local letterIndex = 1
@@ -315,7 +298,6 @@ function OnNthTickSGates(e)
                         local prevLetter = gate.lastGlyph or "poo"
                         local offset = 0
 
-                        --table.insert(task.glyphs, {tick = 0})
                         --game.print("Tick: "..game.tick)
                         for i, letter in ipairs(addressLetters) do
                             table.insert(task.glyphs, {tick = game.tick + offset})

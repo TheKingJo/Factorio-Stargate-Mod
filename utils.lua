@@ -335,26 +335,6 @@ function functions.findIDInGlobal(name, surface, id)
     return nil
 end
 
-function functions.splitNameId(input)
-    local surface1, id1, surface2, id2 = string.match(
-            input, "^%(([^%.]+)%.(-?%d+)%)%.%(([^%.]+)%.(-?%d+)%)$"
-        )
-    if surface1 and surface2 and id1 and id2 then
-        return surface1, surface2, tonumber(id1), tonumber(id2)
-    else
-        return nil, nil, nil, nil
-    end
-end
-
-function functions.splitNameId2(input)
-    local dhdSurface, dhdID, char = string.match(input, "^([^%.]+)%.(%d+)%.([^%.]+)$")
-    if dhdSurface and dhdID and char then
-        return dhdSurface, tonumber(dhdID), char
-    else
-        return nil, nil, nil
-    end
-end
-
 ---@return table, number [if it exists in global]
 function functions.findInGlobal(name, entity)
     if entity == nil then return nil, nil end

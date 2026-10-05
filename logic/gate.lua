@@ -25,8 +25,6 @@ stargate = {
             end
 
             storage.tasks.activeGates[thisGate.id] = {tick = game.tick + 20*60, maxTick = game.tick + 60*60, stargate = thisGate}
-
-            --game.print("Gates connected: "..thisGate.id.."|"..otherGate.id)
         end
 
         return true
@@ -39,7 +37,6 @@ stargate = {
             deactivateGate(dest, override)
 
             storage.tasks.activeGates[self.id] = nil
-            --game.print("Gates disconnected: "..self.id.."|"..dest.id)
         end
     end,
 
@@ -110,7 +107,6 @@ stargate = {
         if ssControl.sections_count > 1 then
             for i = ssControl.sections_count, 2, -1 do
                 ssControl.remove_section(i)
-                --game.print(ssControl.remove_section(i) and "" or " Cannot remove section "..i)
             end
         end
 
@@ -226,12 +222,7 @@ dhd = {
     FetchAddress = function(self, otherGate)
         local sName = otherGate.entity.surface.name
         self.address, self.addressLetters = util.lettersFromAddress(storage.addresses[sName], "poo_"..poo[sName], "poo_"..poo[self.entity.surface.name])
-        --we do it this way (obv) so we display the address of the contrary gate
-
-        --self.address = table.deepcopy(otherGate.dhd.address)
-        --self.address[7] = "poo_"..poo[self.entity.surface.name]
-        --self.addressLetters = table.deepcopy(otherGate.dhd.addressLetters)
-        --self.addressLetters["poo_"..poo[self.entity.surface.name]] = true
+        --we display the address of the contrary gate
     end,
 
     SetGlyphs = function(self)
@@ -265,12 +256,13 @@ dhd = {
             end
         end
 
+        local gate = findRandomGateOnSurface(surface)
+        if gate == nil then result = false end
         if dhdSurface == surface then result = false end --cant connect to same surface
         if storage.stargate[surface] == nil then result = false end --no gates on that surface
         --i have decided to allow multiple gate connections between surf a and b because it is canon
 
         if result == true then
-            --game.print("omg we found a connection!")
             self.stargate:Connect(findRandomGateOnSurface(surface))
         else
             if self.stargate then
@@ -283,7 +275,6 @@ dhd = {
             else
                 util.playSoundOnSurface(self.entity.surface, self.pos, "kj_stargate_fail")
             end
-            --game.print("no gate with that address. emptying ram")
             self:ResetGlyphs()
             self:CloseGUIs()
         end
@@ -332,8 +323,6 @@ function deactivateGate(gate, override)
     end
     gate.entity.minable_flag = true
     gate.active = false
-    --gate.safeToTravel = false
-    --gate.destination = nil
     if not gate.manual then
         gate.entity.electric_buffer_size = 10^9
     end
@@ -432,7 +421,7 @@ function checkForAddressInGlobal(add)
     return false
 end
 
-function generateAdress(surface)
+function generateAddress(surface)
     --setting up rng
     local mapSeed = surface.map_gen_settings.seed
     local hash, resultString = "", ""

@@ -97,7 +97,7 @@ script.on_nth_tick( 2, OnNthTickPlayer)
 script.on_event(defines.events.on_surface_created,
     function(event)
         local surface = game.surfaces[event.surface_index]
-        addAddressToGlobal(surface, generateAdress(surface))
+        addAddressToGlobal(surface, generateAddress(surface))
     end
 )
 

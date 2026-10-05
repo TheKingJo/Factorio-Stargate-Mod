@@ -77,7 +77,7 @@ end
 
 function OnCorpsed(e)
     if #storage.corpses == 0 then return end
-	game.print("corpsed")
+	--game.print("corpsed")
     if settings.global["kj_stargate_realistic_death"].value == true then
         for _, corpse in pairs(storage.corpses) do
             if e.tick == corpse.tick and e.prototype.name == corpse.name then
@@ -217,6 +217,7 @@ function OnBuilt(e)
                 force = "neutral",
                 position = util.vector2Add(pos, {x = 0, y = -2}),
             }
+            childs.iris.minable_flag = false
         end
         for _, child in pairs(childs) do
             child.destructible = false

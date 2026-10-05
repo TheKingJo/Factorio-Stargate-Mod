@@ -44,6 +44,16 @@ function guis.dhd_frame_new(name, caption, events)
     }
 end
 
+function guis.dhd_letter(letter, dhdSurface, dhdID, toggled) --letter
+    return {
+        args = {type = "sprite-button", name = letter, sprite = "kj_sg_glyph_"..letter,
+            tags = {surface = dhdSurface, dhdID = dhdID, letter = letter}
+        },
+        elem_mods = {toggled = toggled or false},
+        _click = handlers.dhd_letter_click,
+    }
+end
+
 function guis.gdo_frame(name, caption, events)
     return {
         args = {type = "frame", name = name, direction = "vertical"},
@@ -83,6 +93,38 @@ function guis.gdo_frame(name, caption, events)
     }
 end
 
+function guis.gdo_gate(gateSurface, gateID, iris, events) --gdo_gate
+    local state = "on"
+    if iris and iris.power_switch_state == true then
+        state = "iris"
+    end
+
+    return {
+        args = {type = "frame", name = "gdo_gate", style = "bordered_frame", tags = {irisID = gateID}},
+        style_mods = {horizontal_align = "left", horizontally_stretchable = true},
+        children = {
+            {
+                args = {type = "flow", direction = "horizontal"},
+                style_mods = {horizontally_stretchable = true},
+                children = {{
+                        args = {type = "sprite", style = "image", sprite = "kj_sg_gate_"..state},
+                        style_mods = {vertical_align = "center", right_padding = 10},
+                    }, {
+                        args = {type = "label", style = "frame_title",
+                        caption = {"", {"gdoGui1"}, {"space-location-name."..gateSurface}, }},
+                        style_mods = {vertical_align = "center"},
+                    }, {
+                        args = {type = "textfield", name = "code", style = "stretchable_textfield"},
+                    }, {
+                        args = {type = "sprite-button", style = "item_and_count_select_confirm", sprite = "utility/enter", tooltip = {"gdoGui4"}},
+                        _click = events and events.button or handlers.gdo_send_code,
+                    }
+                }
+            }
+        },
+    }
+end
+
 function guis.gdo_iris_frame(irisID, events) --gdo_iris
     return {
         args = {type = "frame", name = "gdo_iris", direction = "vertical", anchor = {
@@ -117,47 +159,6 @@ function guis.gdo_iris_frame(irisID, events) --gdo_iris
                 }}
             }
         }
-    }
-end
-
-function guis.dhd_letter(letter, dhdSurface, dhdID, toggled) --nauvis.69.E
-    local name = dhdSurface.."."..dhdID.."."..letter
-    return {
-        args = {type = "sprite-button", name = name, sprite = "kj_sg_glyph_"..letter},
-        elem_mods = {toggled = toggled or false},
-        _click = handlers.dhd_letter_click,
-    }
-end
-
-function guis.gdo_gate(gateSurface, gateID, iris, events) --gdo_gate
-    local state = "on"
-    if iris and iris.power_switch_state == true then
-        state = "iris"
-    end
-
-    return {
-        args = {type = "frame", name = "gdo_gate", style = "bordered_frame", tags = {irisID = gateID}},
-        style_mods = {horizontal_align = "left", horizontally_stretchable = true},
-        children = {
-            {
-                args = {type = "flow", direction = "horizontal"},
-                style_mods = {horizontally_stretchable = true},
-                children = {{
-                        args = {type = "sprite", style = "image", sprite = "kj_sg_gate_"..state},
-                        style_mods = {vertical_align = "center", right_padding = 10},
-                    }, {
-                        args = {type = "label", style = "frame_title",
-                        caption = {"", {"gdoGui1"}, {"space-location-name."..gateSurface}, }},
-                        style_mods = {vertical_align = "center"},
-                    }, {
-                        args = {type = "textfield", name = "code", style = "stretchable_textfield"},
-                    }, {
-                        args = {type = "sprite-button", style = "item_and_count_select_confirm", sprite = "utility/enter", tooltip = {"gdoGui4"}},
-                        _click = events and events.button or handlers.gdo_send_code,
-                    }
-                }
-            }
-        },
     }
 end
 
@@ -248,21 +249,18 @@ end
 function handlers.dhd_letter_click(event)
     if event.button == defines.mouse_button_type.left then
         local element = event.element
-        local dhdSurface, dhdID, char = util.splitNameId2(element.name)
+        local dhdSurface, dhdID, char = element.tags.surface, element.tags.dhdID, element.tags.letter
         local dhd = util.findIDInGlobal("dhd", dhdSurface, dhdID)
 
         if dhd then
             local gate = dhd.stargate
             if char == "connect" then
                 if gate.active == false then
-                    --game.print("Trying to establish connection")
                     util.playSoundOnSurface(gate.entity.surface, gate.pos, "kj_stargate_dhdc")
                     dhd:Connect(dhdSurface)
                 else
                     dhd:Disconnect()
                 end
-                --dhd:CloseGUIs()
-                --element.parent.parent.parent.parent.parent.parent.destroy() --close menu
             elseif gate.active == false and gate.safeToTravel == false then
                 if element.toggled == false then --clicked letter button
                     if #dhd.address < 7 then
@@ -277,10 +275,9 @@ function handlers.dhd_letter_click(event)
                     local index = util.deleteFromITable(dhd.address, char)
                     if dhd.glyphs[index] == nil then
                         dhd:CloseGUIs()
-                        --element.parent.parent.parent.parent.parent.parent.destroy() --close menu
                         return
                     end
-                    dhd.glyphs[index].destroy()--prüfen ob existiert, und wenn nicht GUI schließen
+                    dhd.glyphs[index].destroy() --prüfen ob existiert, und wenn nicht GUI schließen
                     element.toggled = not element.toggled
                     util.playSoundOnSurface(gate.entity.surface, gate.pos, util.randomSound("kj_stargate_dhd", 7))
                     dhd.addressLetters[char] = nil

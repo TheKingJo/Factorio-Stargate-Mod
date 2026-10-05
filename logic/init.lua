@@ -39,7 +39,6 @@ function initStorage()
         if math.abs(collBox.left_top.x) + math.abs(collBox.right_bottom.x) > 3 then
             storage.illegalCars[name] = true
         end
-        game.print("saas")
     end
     if kj_compat and kj_compat.wideCars then
         for _, name in pairs(kj_compat.wideCars) do
@@ -72,7 +71,7 @@ end
 function OnInit(e)
     initStorage()
     for _, surface in pairs(game.surfaces) do
-        addAddressToGlobal(surface, generateAdress(surface))
+        addAddressToGlobal(surface, generateAddress(surface))
         --[[Chunk({
             position = {x = 0, y = 0},
             surface = surface
