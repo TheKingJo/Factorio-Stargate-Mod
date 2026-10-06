@@ -6,16 +6,16 @@ util = require("utils")
 ---@param name string
 ---@param caption LocalisedString
 ---@param events? {frame: GuiEventHandler?, button: GuiEventHandler?}
-function guis.dhd_frame_new(name, caption, events)
+function guis.dhd_frame_new(events)
     return {
-        args = {type = "frame", name = name, direction = "vertical"},
+        args = {type = "frame", name = "dhd", direction = "vertical"},
         _closed = events and events.frame or handlers.default_close,
         children = {{
             args = {type = "flow", name = "header"},
             ref = false,
-            drag_target = name,
+            drag_target = "dhd",
             children = {{
-                args = {type = "label", caption = caption, style = "frame_title", ignored_by_interaction = true},
+                args = {type = "label", caption = {"dhd"}, style = "frame_title", ignored_by_interaction = true},
             }, {
                 args = {type = "empty-widget", style = "draggable_space_header", ignored_by_interaction = true},
                 style_mods = {horizontally_stretchable = true, height = 24},
@@ -54,17 +54,17 @@ function guis.dhd_letter(letter, dhdSurface, dhdID, toggled) --letter
     }
 end
 
-function guis.gdo_frame(name, caption, events)
+function guis.gdo_frame(events)
     return {
-        args = {type = "frame", name = name, direction = "vertical"},
+        args = {type = "frame", name = "gdo", direction = "vertical"},
         _closed = events and events.frame or handlers.default_close,
         children = {
             {
                 args = {type = "flow", name = "header"},
                 ref = false,
-                drag_target = name,
+                drag_target = "gdo",
                 children = {{
-                    args = {type = "label", caption = caption, style = "frame_title", ignored_by_interaction = true},
+                    args = {type = "label", caption = {"gdo"}, style = "frame_title", ignored_by_interaction = true},
                 }, {
                     args = {type = "sprite-button", style = "close_button", sprite = "utility/close"},
                     _click = events and events.button or handlers.default_close_button,

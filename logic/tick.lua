@@ -212,6 +212,10 @@ function OnNthTickSGateDialing(e)
                     name = "kj_stargate_electricFailure",
                     position = util.vector2Add(task.gate.pos, {x = 0, y = entOffY.eF}),
                 }
+                task.gate.entity.surface.create_entity {
+                    name = "kj_stargate_electricFailure_damage",
+                    position = task.gate.childs.tpArea.position,
+                }
             end
 
             if success == true then
@@ -407,7 +411,7 @@ end
 function OnNthTickTasks2(e)
     if #storage.openGUIs.GDO == 0 then return end
     for i = #storage.openGUIs.GDO, 1, -1 do
-        local GUI = storage.openGUIs.GDOIris[i]
+        local GUI = storage.openGUIs.GDO[i]
         if not GUI then goto continue end
         if not GUI.valid then
             table.remove(storage.openGUIs.GDO, i)

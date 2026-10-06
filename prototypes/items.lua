@@ -24,7 +24,7 @@ data:extend({
         type = "item-with-entity-data",
         name = "kj_stargate_iris",
         icon = modname.."/graphics/iris_icon.png",
-        place_result = "kj_stargate_iris",
+        --place_result = "kj_stargate_iris",
         icon_size = 128,
         subgroup = "transport",
         order = "1",

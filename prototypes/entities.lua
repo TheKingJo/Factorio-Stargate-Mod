@@ -1336,6 +1336,45 @@ data:extend({
             }
         },
     },
+    {
+        type = "smoke-with-trigger",
+        name = "kj_stargate_electricFailure_damage",
+        flags = {"not-on-map"},
+        hidden = true,
+        affected_by_wind = false,
+        cyclic = true,
+        duration = 10 * 1,
+        fade_away_duration = 0,
+        spread_duration = 0,
+        action_cooldown = 1,
+        action =
+        {
+            type = "direct",
+            action_delivery =
+            {
+                type = "instant",
+                target_effects =
+                {
+                    type = "nested-result",
+                    action =
+                    {
+                        type = "area",
+                        radius = 1.5,
+                        ignore_collision_condition = true,
+                        action_delivery =
+                        {
+                            type = "instant",
+                            target_effects = {{
+                                    type = "damage",
+                                    damage = {amount = 400, type = "electric"}
+                                }
+                            },
+                        }
+                    }
+                }
+            }
+        },
+    },
 })
 
 for name, _ in pairs(data.raw["damage-type"]) do

@@ -17,7 +17,7 @@ function GDOTriggered(e, refresh)
 
     local gui, refs = player.gui.screen.gdo, nil
     if not gui then
-        gui, refs = glib.add(player.gui.screen, sg_guis.gdo_frame("gdo", {"gdo"}))
+        gui, refs = glib.add(player.gui.screen, sg_guis.gdo_frame())
 
         gui.force_auto_center()
         gui.bring_to_front()
@@ -81,6 +81,7 @@ function RefreshAllGDOIris(mode)
 
         if mode.change then
             gui[mode.change[1]].name = mode.change[2]
+            gui[mode.change[1]].text = mode.change[2]
 
         elseif mode.add then
             glib.add(gui, sg_guis.gdo_code(gui.tags.irisID, mode.add))
@@ -258,7 +259,7 @@ function OnBuilt(e)
         if iris == true then
             childs.iris = surface.create_entity{
                 name = sgNames.iris,
-                force = "neutral",
+                force = game.get_player(e.player_index).force,
                 position = util.vector2Add(pos, {x = 0, y = -2}),
             }
             childs.iris.minable_flag = false
@@ -440,6 +441,14 @@ function OnBuilt(e)
                 name = sgNames.colliderHS,
                 position = util.vector2Add(pos, {x = 2.5, y = -0.5}),
             },
+            colliderH23 = surface.create_entity{
+                name = sgNames.colliderHS,
+                position = util.vector2Add(pos, {x = -3, y = 0}),
+            },
+            colliderH24 = surface.create_entity{
+                name = sgNames.colliderHS,
+                position = util.vector2Add(pos, {x = 3, y = 0}),
+            },
             colliderH31 = surface.create_entity{
                 name = sgNames.colliderHS,
                 position = util.vector2Add(pos, {x = -2.25, y = -1.6}),
@@ -601,7 +610,7 @@ function GuiOpened(e)
         local gui = player.gui.screen.dhd
         local refs
         if not gui then
-            gui, refs = glib.add(player.gui.screen, sg_guis.dhd_frame_new("dhd", {"dhd"}))
+            gui, refs = glib.add(player.gui.screen, sg_guis.dhd_frame_new())
         else
             gui.visible = true
         end
@@ -629,6 +638,15 @@ function GuiOpened(e)
             player_index = e.player_index,
             unit_number = e.entity.unit_number,
         })
+    end
+end
+
+function OnPlayerDied(e)
+    local player = game.players[e.player_index]
+    local gui = player.gui.screen.gdo
+    if gui then
+        player.gui.screen.gdo.destroy()
+        player.opened = nil
     end
 end
 

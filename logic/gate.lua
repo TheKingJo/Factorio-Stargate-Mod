@@ -14,6 +14,10 @@ stargate = {
             if thisGate.destination ~= nil then
                 thisGate:Disconnect()
             end
+            if storage.tasks.signaledGates[otherGate.id] ~= nil then
+                otherGate:Reset()
+                storage.tasks.signaledGates[otherGate.id] = nil
+            end
             activateGate(thisGate)
             activateGate(otherGate)
             thisGate.destination = otherGate
@@ -54,6 +58,12 @@ stargate = {
                 acceleration = defines.riding.acceleration.nothing,
                 direction = 1,
             }
+        end
+        if self.childs.ringSound then
+            self.childs.ringSound.power_switch_state = false
+        end
+        if self.childs.signalSender then
+            self.childs.signalSender.get_control_behavior().get_section(1).clear_slot(3) --resetting iris deactivation flag
         end
     end,
 
@@ -132,7 +142,7 @@ stargate = {
     SetIris = function(self, state)
         if not self.childs.iris then return end
         self.childs.iris.power_switch_state = state
-        for i, GUI in pairs(storage.openGUIs.GDO) do
+        for _, GUI in pairs(storage.openGUIs.GDO) do
             if GUI and GUI.valid then
                 GDOTriggered({
                     prototype_name = "kj_stargate_gdo",
