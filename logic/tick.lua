@@ -249,108 +249,111 @@ function OnNthTickSGates(e)
             if gate.manual == true then goto continue end
             gate:SetEnergyStatus()
             local receiver = gate.childs.signalReceiver
-            local signals = receiver.get_signals(1)
 
             if gate.active == false and storage.tasks.signaledGates[gate.id] == nil then --gate is inactive and also not dialing
-                if gate.safeToTravel == false and signals ~= nil and game.tick > (gate.senderLastTick or 0) then
-                    local address = ""
-                    local addressLetters = {}
-                    local letterIndex = 1
-                    local successful = false
-                    local disConnect = 0
-                    local pooGlyphID = ""
-                    local surfaceName = gate.entity.surface.name
+                local signals = receiver.get_signals(1)
+                if gate.safeToTravel == false and signals ~= nil and game.tick > (gate.senderLastTick or 0) and gate.entity.energy >= 10^7 then
+                    if receiver.get_signals_changed(1, game.tick - 10) == true then
+                        local address, pooGlyphID = "", ""
+                        local addressLetters = {}
+                        local letterIndex, disConnect = 1, 0
+                        local successful = false
+                        local surfaceName = gate.entity.surface.name
 
-                    table.sort(signals, function(a, b) --sort ascending
-                        return a.count < b.count
-                    end)
+                        table.sort(signals, function(a, b) --sort ascending
+                            return a.count < b.count
+                        end)
 
-                    for _, signal in ipairs(signals) do
-                        local glyph = signal.signal.name:match("^kj_sg_glyph_(.+)$")
+                        for _, signal in ipairs(signals) do
+                            local glyph = signal.signal.name:match("^kj_sg_glyph_(.+)$")
 
-                        if charLookup[glyph] ~= nil then --signal is a glyph
-                            if letterIndex == signal.count then --glyph has correct count
-                                if glyph ~= "poo_"..poo[surfaceName] then --glyph is a letter, gets concat to address
-                                    table.insert(addressLetters, glyph)
-                                    address = address..glyph
+                            if charLookup[glyph] ~= nil then --signal is a glyph
+                                if letterIndex == signal.count then --glyph has correct count
+                                    if glyph ~= "poo_"..poo[surfaceName] then --glyph is a letter, gets concat to address
+                                        table.insert(addressLetters, glyph)
+                                        address = address..glyph
+                                    else
+                                        if letterIndex == 7 and tonumber(glyph:match("_(%d+)$")) == poo[surfaceName] then --is poo glyph same as surface
+                                            pooGlyphID = poo[surfaceName]
+                                            table.insert(addressLetters, "poo")
+                                            successful = true
+                                        end
+                                    end
+
+                                    letterIndex = letterIndex + 1
                                 else
-                                    if letterIndex == 7 and tonumber(glyph:match("_(%d+)$")) == poo[surfaceName] then --is poo glyph same as surface
-                                        pooGlyphID = poo[surfaceName]
-                                        table.insert(addressLetters, "poo")
-                                        successful = true
+                                    break --letter sequence broken, abort
+                                end
+                            else
+                                if glyph == "connect" then --signal is connection command
+                                    if signal.count == 1 then
+                                        disConnect = 1
+                                    else
+                                        disConnect = -1
+                                        break
                                     end
                                 end
-
-                                letterIndex = letterIndex + 1
-                            else
-                                break --letter sequence broken, abort
                             end
-                        else
-                            if glyph == "connect" then --signal is connection command
-                                if signal.count == 1 then
-                                    disConnect = 1
+                        end
+
+                        if successful == true and disConnect == 1 then
+                            local task = {gate = gate, glyphs = {}, pooID = pooGlyphID, lastChevronTick = game.tick}
+                            local prevLetter = gate.lastGlyph or "poo"
+                            local offset = 0
+
+                            --game.print("Tick: "..game.tick)
+                            for i, letter in ipairs(addressLetters) do
+                                table.insert(task.glyphs, {tick = game.tick + offset})
+
+                                local distance, dir = util.getRingGlyphDistance(prevLetter, letter)
+                                localOffset = math.floor(3*60*(distance / 19)) --3s per half cycle
+                                if storage.instantDial and storage.instantDial == true then
+                                    offset = 0
                                 else
-                                    disConnect = -1
-                                    break
+                                    offset = offset + localOffset
+                                end
+
+                                --game.print("Distance: "..prevLetter.." -> "..letter.." - "..distance.." around "..direction[dir+1].." with offset "..localOffset)
+                                table.insert(task.glyphs, {letter = letter, tick = game.tick + offset})
+
+                                task.glyphs[#task.glyphs - 1].direction = dir
+                                prevLetter = letter
+                                gate.destAddressLetters[letter] = i
+
+                                if storage.instantDial and storage.instantDial == true then
+                                    offset = 0
+                                else
+                                    offset = offset + 120 --offset for the stop sound and animation
                                 end
                             end
+                            task.lastChevronTick = offset + game.tick
+
+                            gate.entity.minable_flag = false
+                            storage.tasks.signaledGates[gate.id] = task
+                            gate:TurnSmokes(true)
+                            gate:ResetSenderStatus()
                         end
+                        game.print("Address entered: "..address.." "..util.getSignalFromChar(address, true))
                     end
-
-                    if successful == true and disConnect == 1 then
-                        local task = {gate = gate, glyphs = {}, pooID = pooGlyphID, lastChevronTick = game.tick}
-                        local prevLetter = gate.lastGlyph or "poo"
-                        local offset = 0
-
-                        --game.print("Tick: "..game.tick)
-                        for i, letter in ipairs(addressLetters) do
-                            table.insert(task.glyphs, {tick = game.tick + offset})
-
-                            local distance, dir = util.getRingGlyphDistance(prevLetter, letter)
-                            localOffset = math.floor(3*60*(distance / 19)) --3s per half cycle
-                            if storage.instantDial and storage.instantDial == true then
-                                offset = 0
-                            else
-                                offset = offset + localOffset
-                            end
-
-                            --game.print("Distance: "..prevLetter.." -> "..letter.." - "..distance.." around "..direction[dir+1].." with offset "..localOffset)
-                            table.insert(task.glyphs, {letter = letter, tick = game.tick + offset})
-
-                            task.glyphs[#task.glyphs - 1].direction = dir
-                            prevLetter = letter
-                            gate.destAddressLetters[letter] = i
-
-                            if storage.instantDial and storage.instantDial == true then
-                                offset = 0
-                            else
-                                offset = offset + 120 --offset for the stop sound and animation
-                            end
-                        end
-                        task.lastChevronTick = offset + game.tick
-
-                        gate.entity.minable_flag = false
-                        storage.tasks.signaledGates[gate.id] = task
-                        gate:TurnSmokes(true)
-                        gate:ResetSenderStatus()
-                    end
-                    game.print("Address entered: "..address.." "..util.getSignalFromChar(address, true))
                 end
             else --gate is connected or dialing
                 local success = true
 
                 if gate.active == false then --gate is dialing
                     if storage.tasks.signaledGates[gate.id] ~= nil then
-                        local pooLookup = {[7] = "_"..storage.tasks.signaledGates[gate.id].pooID}
-                        for letter, index in pairs(gate.destAddressLetters) do
-                            if receiver.get_signal({type = "virtual", name = "kj_sg_glyph_"..letter..(pooLookup[index] or "")}, 1) ~= index then
-                                success = false
-                                break
+                        if receiver.get_signals_changed(1, game.tick - 10) == true then
+                            local pooLookup = {[7] = "_"..storage.tasks.signaledGates[gate.id].pooID}
+                            for letter, index in pairs(gate.destAddressLetters) do
+                                if receiver.get_signal({type = "virtual", name = "kj_sg_glyph_"..letter..(pooLookup[index] or "")}, 1) ~= index then
+                                    success = false
+                                    break
+                                end
                             end
+                            game.print("it changed")
                         end
                     end
                     --abort while dialing
-                    if receiver.get_signal({type = "virtual", name = "kj_sg_glyph_connect"}, 1) == -1 then
+                    if gate.entity.energy < 10^7 or receiver.get_signal({type = "virtual", name = "kj_sg_glyph_connect"}, 1) == -1 then
                         success = false
                     end
                 end
