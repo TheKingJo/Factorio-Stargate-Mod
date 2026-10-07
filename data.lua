@@ -1,4 +1,6 @@
 require("prototypes.items")
 require("prototypes.recipes")
 require("prototypes.entities")
+require("prototypes.glyphs")
 require("prototypes.sounds")
+require("prototypes.technology")

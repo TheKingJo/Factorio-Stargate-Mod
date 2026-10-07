@@ -1,25 +1,204 @@
+local tile_sounds = require("__base__/prototypes/tile/tile-sounds")
 local modname = "__kj_stargate__"
-local eHw_fs = {}
-local w_fs = {}
 local eHwbw_fs = {}
-for i=1, 16*0.5, 1 do
-    table.insert(eHw_fs, 1)
-end
-for i=1, 15*1.5, 1 do
-    table.insert(w_fs, 1)
-end
-for i=1, 16*1.75, 1 do
-    table.insert(eHwbw_fs, 1)
-end
-for i=2, 16, 1 do
-    table.insert(eHw_fs, i)
-end
-for i=2, 33, 1 do
-    table.insert(w_fs, i)
-end
+local simulations = require("prototypes.simulations")
 for i=16, 2, -1 do
     table.insert(eHwbw_fs, i)
 end
+
+local metal = table.deepcopy(tile_sounds.walking.refined_concrete)
+metal.variations = sound_variations(modname.."/sounds/walk_metal", 4, 0.5)
+
+local zeroWireConnection = {
+    shadow = {
+        green = {0, 0},
+        copper= {0, 0},
+        red =   {0, 0},
+    },
+    wire = {
+        green = {0, 0},
+        copper= {0, 0},
+        red =   {0, 0},
+    },
+}
+data:extend({
+	{
+		type = "shortcut",
+		name = "kj_stargate_gdo",
+		order = "sg_gdo",
+		action = "lua",
+		--localised_name = {"controls.toggle_cruise_control"},
+		--technology_to_unlock = tech,
+		toggleable = true,
+        icon = modname.."/graphics/gate_front.png",
+		icon_size = 128,
+		small_icon = modname.."/graphics/gate_front.png",
+        small_icon_size = 128,
+	},
+    {
+        type = "power-switch",
+        name = "kj_stargate_ringSound",
+        icon = modname.."/graphics/icon.png",
+        icon_size = 128,
+        flags = {"placeable-player", "placeable-neutral", "player-creation", "placeable-off-grid"},
+        max_health = 1,
+        hidden = true,
+		collision_mask = {layers = {}},
+        selection_box = {{-0.5, -0.5}, {0.5, 0.5}},
+
+        overlay_start_delay = 0,
+        circuit_wire_connection_point = zeroWireConnection,
+        left_wire_connection_point = zeroWireConnection,
+        right_wire_connection_point = zeroWireConnection,
+
+        working_sound = {
+            main_sounds = {
+                {
+                    sound = {
+                        filename = modname.."/sounds/s_gate_spinHold.ogg",
+                        volume = 0.8,
+                        aggregation = {max_count = 2, remove = true, count_already_playing = true},
+                        audible_distance_modifier = 2,
+                    },
+                    fade_in_ticks = 10,
+                },
+            },
+            activate_sound = {
+                filename = modname.."/sounds/s_gate_spinUp.ogg",
+                aggregation = {max_count = 2, remove = true, count_already_playing = true},
+                audible_distance_modifier = 2,
+            },
+            deactivate_sound = {
+                filename = modname.."/sounds/s_gate_spinDown.ogg",
+                aggregation = {max_count = 2, remove = true, count_already_playing = true},
+                audible_distance_modifier = 2,
+            },
+            max_sounds_per_prototype = 1
+        },
+    },
+    {
+        type = "power-switch",
+        name = "kj_stargate_iris",
+        icon = modname.."/graphics/iris_icon.png",
+        subgroup = "kj_stargate",
+        icon_size = 128,
+        factoriopedia_simulation = simulations.iris,
+        flags = {"placeable-player", "placeable-neutral", "player-creation", "placeable-off-grid"},
+        minable = {
+            mining_time = 1,
+            results = {
+                {type = "item", name = "kj_stargate_iris", amount = 1},
+            }
+        },
+        max_health = 1,
+		collision_mask = {layers = {}},
+        collision_box = {{-2.5, -2.5}, {2.5, 0.5}}, --switch box
+        selection_box = {{-2.5, -3.5}, {2.5, 0.5}},
+        map_color = {r = 0, g = 0.2, b = 1, a = 1},
+        selection_priority = 50,
+        draw_circuit_wires = true,
+        draw_copper_wires = false,
+        wire_max_distance = 10,
+
+        overlay_start_delay = 0,
+        circuit_wire_connection_point =  {
+            shadow = {
+                green = {10.1, 1.45},
+                copper= {10.1, 1.5},
+                red =   {10.1, 1.55},
+            },
+            wire = {
+                green = {4.9, -4.05},
+                copper= {4.9, -4},
+                red =   {4.9, -3.95},
+            },
+        },
+        left_wire_connection_point = zeroWireConnection,
+        right_wire_connection_point = zeroWireConnection,
+
+        power_on_animation = {
+            layers = {
+                {
+                    filename = modname.."/graphics/entities/stargate/iris.png",
+                    animation_speed = 15/60,
+                    line_length = 5,
+                    width = 480,
+                    height = 480,
+                    frame_count = 45,
+                    shift = {0, -1.325},
+                    scale = 0.505,
+                    run_mode = "backward",
+                },
+            }
+        },
+        working_sound =
+        {
+            main_sounds = {sound = {filename = "__core__/sound/silence-1sec.ogg"}},
+            activate_sound = {
+                filename = modname.."/sounds/iris_close.ogg",
+                volume = 0.7,
+                aggregation = {max_count = 2, remove = true, count_already_playing = true}
+            },
+            deactivate_sound = {
+                filename = modname.."/sounds/iris_open.ogg",
+                volume = 0.7,
+                aggregation = {max_count = 2, remove = true, count_already_playing = true}
+            },
+            max_sounds_per_prototype = 1
+        },
+    },
+})
+data:extend({
+    {
+        type = "car",
+        name = "kj_stargate_ring",
+        icon = modname.."/graphics/icon.png",
+        icon_size = 128,
+        selection_box = {{-1,-1}, {1,1}},
+        hidden = true,
+        flags = {"placeable-neutral", "placeable-off-grid", "not-flammable"},
+		collision_mask = {layers = {}},
+        consumption = "100kW",
+        effectivity = 1,
+        energy_source = {type = "void"},
+        inventory_size = 0,
+        rotation_speed = 1/(6*60), --6s per cycle
+        selection_priority = 47,
+        braking_force = 1,
+        energy_per_hit_point = 1,
+        friction_force = 1,
+        weight = 100,
+        allow_remote_driving = false,
+        tank_driving = true,
+        is_military_target  = false,
+        minimap_representation = {
+            filename = modname.."/graphics/gate_front.png",
+            size = 128,
+            scale = 0.35,
+        },
+        selected_minimap_representation = {
+            filename = modname.."/graphics/gate_front.png",
+            size = 128,
+            scale = 0.35,
+        },
+        animation = {
+            layers = {
+                {
+                    size = 480,
+                    shift = {0, -0.5-1},
+                    direction_count = 117,
+                    apply_projection = false,
+                    frame_count = 1,
+                    line_length = 9,
+                    scale = 0.5,
+                    animation_speed = 1,
+                    max_advance = 1,
+                    filename = modname.."/graphics/entities/stargate/ring_anim2.png",
+                },
+            },
+        },
+    },
+})
 data:extend({
     {
         type = "tips-and-tricks-item",
@@ -48,112 +227,13 @@ data:extend({
                 },
             },
         },
-        simulation = {
-            init = [[
-                player = game.simulation.create_test_player{name = "big k"}
-                player.teleport({-4, 0.5})
-                game.simulation.camera_player = player
-                game.simulation.camera_position = {0, 0.5}
-                game.simulation.camera_player_cursor_position = player.position
-                player.character.direction = defines.direction.east
-
-                step_1 = function()
-                biter = game.surfaces[1].create_entity{name = "medium-biter", position = {12 + (math.random() * 2), -4 + (math.random() * 4)}}
-                biter.speed = 0.05
-                biter.commandable.set_command
-                {
-                    type = defines.command.attack,
-                    target = player.character
-                }
-
-                tree = game.surfaces[1].create_entity{name = "tree-02", position = {4, 2.5}}
-
-                local count = 60
-                script.on_nth_tick(1, function()
-                    if count > 0 then count = count - 1 return end
-                    step_2()
-                end)
-                end
-
-                step_2 = function()
-                local rand_x = -1.5
-                local rand_y = -1
-                local position = {0.5 * ((biter.position.x + rand_x) + player.position.x), 0.5 * ((biter.position.y + rand_y) + player.position.y)}
-                player.clear_items_inside()
-                player.insert("pistol")
-                player.insert("piercing-rounds-magazine")
-                player.force.set_ammo_damage_modifier("bullet", 0.5)
-
-                script.on_nth_tick(1, function()
-                    if not biter.valid then
-                    step_3()
-                    return
-                    end
-                    if game.simulation.move_cursor({position = position}) then
-                    player.shooting_state = {state  = defines.shooting.shooting_enemies, position = position}
-                    end
-                end)
-
-                end
-
-                step_3 = function()
-                local count = 60
-                script.on_nth_tick(1, function()
-                    if count > 0 then count = count - 1 return end
-
-                    if game.simulation.move_cursor({position = tree.position}) then
-                    step_4()
-                    end
-                end)
-                end
-
-                step_4 = function()
-                local count = 30
-                script.on_nth_tick(1, function()
-                    if count > 0 then count = count - 1 return end
-                    if not tree.valid then
-                    step_5()
-                    end
-                    player.shooting_state = {state  = defines.shooting.shooting_selected, position = game.simulation.camera_player_cursor_position}
-                end)
-                end
-
-                step_5 = function()
-                local count = 30
-                script.on_nth_tick(1, function()
-                    if count > 0 then count = count - 1 return end
-                    if game.simulation.move_cursor({position = player.position}) then
-                    reset()
-                    end
-                end)
-                end
-
-                reset = function()
-
-                local count = 30
-                script.on_nth_tick(1, function()
-                    if count > 0 then count = count - 1 return end
-                    start()
-                end)
-                end
-
-                start = function()
-                local count = 30
-                script.on_nth_tick(1, function()
-                    if count > 0 then count = count - 1 return end
-                    step_1()
-                end)
-                end
-
-                start()
-
-            ]]
-        }
+        simulation = simulations.tipsAndTricks,
     },
     {
         type = "simple-entity-with-owner",
         name = "kj_stargate_auto_gen",
         icon = modname.."/graphics/entities/stargate/remnant_icon.png",
+        subgroup = "kj_stargate",
         dying_explosion = "big-explosion",
         icon_size = 128,
         collision_box = {{-3, -3}, {3, 3}},
@@ -164,7 +244,7 @@ data:extend({
         minable = {
             mining_time = 15,
             results = {
-                {type = "item", name = "kj_stargate_placement", amount = 1},
+                {type = "item", name = "kj_stargate", amount = 1},
             }
         },
         resistances = {
@@ -227,6 +307,7 @@ data:extend({
         type = "simple-entity-with-owner",
         name = "kj_dhd_auto_gen",
         icon = modname.."/graphics/entities/dhd/remnant_icon.png",
+        subgroup = "kj_stargate",
         dying_explosion = "big-explosion",
         icon_size = 128,
         collision_box = {{-1, -1}, {1, 1}},
@@ -299,15 +380,27 @@ data:extend({
     {
         type = "simple-entity",
         name = "kj_stargate_placement",
-        icon = modname.."/graphics/entities/stargate/icon.png",
+        icon = modname.."/graphics/icon.png",
         icon_size = 128,
         collision_box = {{-3.9, -2.4}, {3.9, 2.4}},
         selection_box = {{-4,   -2.5}, {4,   2.5}},
         drawing_box_vertical_extension = 3,
-        minable = {mining_time = 1, result = "kj_stargate_placement"},
+        minable = {
+            mining_time = 5,
+            results = {
+                {type = "item", name = "kj_stargate", amount = 1},
+                {type = "item", name = "stone", amount = 500},
+            }
+        },
         map_color = {r = 0.55, g = 0.55, b = 0.55, a = 1},
         picture = {
             layers = {
+                {
+                    size = 704,
+                    shift = {1.25, -1.5},
+                    scale = 0.5,
+                    filename = modname.."/graphics/entities/stargate/gate_background.png",
+                },
                 {
                     size = 704,
                     shift = {1.25, -1.5},
@@ -332,43 +425,136 @@ data:extend({
     },
     {
         type = "simple-entity",
-        name = "kj_stargate_base",
-        icon = modname.."/graphics/entities/stargate/icon.png",
-        hidden = true,
+        name = "kj_stargate_signaled_placement",
+        icon = modname.."/graphics/s_icon.png",
         icon_size = 128,
-        flags = {"placeable-neutral", "placeable-off-grid", "not-flammable"},
+        collision_box = {{-5, -3.5}, {5, 5}},
+        selection_box = {{-5, -3.5}, {5, 5}},
+        drawing_box_vertical_extension = 3,
+        minable = {
+            mining_time = 5,
+            results = {
+                {type = "item", name = "kj_stargate", amount = 1},
+                {type = "item", name = "scrap", amount = 100},
+            }
+        },
         map_color = {r = 0.55, g = 0.55, b = 0.55, a = 1},
-		collision_mask = {layers = {}},
         picture = {
             layers = {
                 {
-                    size = 704,
-                    shift = {1.25, 0.5},
+                    size = 832,
+                    shift = {0, -0.5},
                     scale = 0.5,
-                    filename = modname.."/graphics/entities/stargate/gate.png",
+                    filename = modname.."/graphics/entities/stargate/s_gate_background.png",
                 },
                 {
-                    size = 704,
-                    shift = {1.25, 0.5},
+                    size = 832,
+                    shift = {0, -0.5},
+                    scale = 0.5,
+                    filename = modname.."/graphics/s_gate.png",
+                },
+                {
+                    size = 992,
+                    shift = {2.5, -0.5},
                     scale = 0.5,
                     draw_as_shadow = true,
-                    filename = modname.."/graphics/entities/stargate/gate_shadow.png",
+                    filename = modname.."/graphics/entities/stargate/s_gate_shadow.png",
                 },
             }
-        }
+        },
+        surface_conditions = {
+            {
+                property = "gravity",
+                min = 0.1,
+            }
+        },
+    },
+    {
+        type = "simple-entity",
+        name = "kj_stargate_signaled_iris_placement",
+        icon = modname.."/graphics/s_gate_iris_icon.png",
+        icon_size = 128,
+        collision_box = {{-5, -3.5}, {5, 5}},
+        selection_box = {{-5, -3.5}, {5, 5}},
+        drawing_box_vertical_extension = 3,
+        minable = {
+            mining_time = 5,
+            results = {
+                {type = "item", name = "kj_stargate_iris",  amount = 1},
+                {type = "item", name = "kj_stargate", amount = 1},
+                {type = "item", name = "scrap", amount = 100},
+            }
+        },
+        map_color = {r = 0.55, g = 0.55, b = 0.55, a = 1},
+        picture = {
+            layers = {
+                {
+                    size = 832,
+                    shift = {0, -0.5},
+                    scale = 0.5,
+                    filename = modname.."/graphics/entities/stargate/s_gate_background.png",
+                },
+                {
+                    width = 480,
+                    height = 480,
+                    shift = {0, -3.3},
+                    scale = 0.505,
+                    filename = modname.."/graphics/entities/stargate/iris.png",
+                },
+                {
+                    size = 832,
+                    shift = {0, -0.5},
+                    scale = 0.5,
+                    filename = modname.."/graphics/s_gate.png",
+                },
+                {
+                    size = 992,
+                    shift = {2.5, -0.5},
+                    scale = 0.5,
+                    draw_as_shadow = true,
+                    filename = modname.."/graphics/entities/stargate/s_gate_shadow.png",
+                },
+            }
+        },
+        surface_conditions = {
+            {
+                property = "gravity",
+                min = 0.1,
+            }
+        },
     },
     {
         type = "simple-entity-with-owner",
         name = "kj_stargate_transferArea",
-        dying_explosion = "rocket-silo-explosion",
-        icon = modname.."/graphics/entities/stargate/icon.png",
+        icon = modname.."/graphics/icon.png",
         icon_size = 128,
-        collision_mask = {layers = {trigger_target = true}},
+		collision_mask = {layers = {}},
         collision_box = {{-1.5, -0.3}, {1.5, 0.3}},
-        selection_box = {{-4, -0.8}, {4, 3}},
         factoriopedia_alternative = "kj_stargate_placement",
         flags = {"placeable-neutral", "placeable-off-grid", "not-flammable"},
         map_color = {1, 1, 1, 1},
+        max_health = 1,
+    },
+    {
+        type = "simple-entity-with-owner",
+        name = "kj_stargate_entity", --originally kj_stargate_transferArea
+        subgroup = "kj_stargate",
+        dying_explosion = "rocket-silo-explosion",
+        icon = modname.."/graphics/icon.png",
+        icon_size = 128,
+        collision_mask = {layers = {doodad = true}},
+        collision_box = {{-4, -0.8}, {4, 3}},
+        selection_box = {{-4, -0.8}, {4, 3}},
+        minable = {
+            mining_time = 5,
+            results = {
+                {type = "item", name = "kj_stargate", amount = 1},
+                {type = "item", name = "stone", amount = 500},
+            }
+        },
+        factoriopedia_alternative = "kj_stargate_placement",
+        flags = {"not-on-map", "placeable-neutral", "placeable-off-grid", "not-flammable"},
+        map_color = {r = 0.55, g = 0.55, b = 0.55, a = 1},
         max_health = 1,
         resistances = {
             {
@@ -382,57 +568,146 @@ data:extend({
                 percent  = 0,
             },
         },
-        minable = {mining_time = 1, result = "kj_stargate_placement"},
         selection_priority = 45,
     },
     {
-        type = "simple-entity",
-        name = "kj_stargate_colliderVert",
-        hidden = true,
-        icon = modname.."/graphics/entities/stargate/icon.png",
+        type = "electric-energy-interface",
+        name = "kj_stargate_entity_signaled", --originally kj_stargate_transferArea_signaled
+        subgroup = "kj_stargate",
+        dying_explosion = "rocket-silo-explosion",
+        icon = modname.."/graphics/icon.png",
         icon_size = 128,
-        flags = {"placeable-neutral", "placeable-off-grid", "not-flammable"},
+        collision_mask = {layers = {doodad = true}},
+        collision_box = {{-3, -1.5}, {3, 3}},
+        selection_box = {{-3, -1.5}, {3, 3}},
+        minable = {
+            mining_time = 5,
+            results = {
+                {type = "item", name = "kj_stargate", amount = 1},
+                {type = "item", name = "scrap", amount = 100},
+            }
+        },
+        factoriopedia_alternative = "kj_stargate_signaled_placement",
+        flags = {"not-on-map", "placeable-neutral", "placeable-off-grid", "not-flammable"},
         map_color = {r = 0.55, g = 0.55, b = 0.55, a = 1},
-        collision_box = {{-0.5, -1.5}, {0.5, 2}},
-    },
-    {
-        type = "simple-entity",
-        name = "kj_stargate_colliderHori1",
-        hidden = true,
-        icon = modname.."/graphics/entities/stargate/icon.png",
-        icon_size = 128,
-        flags = {"placeable-neutral", "placeable-off-grid", "not-flammable"},
-        map_color = {r = 0.55, g = 0.55, b = 0.55, a = 1},
-        collision_box = {{-3, -0.225}, {3, 0.225}},
-    },
-    {
-        type = "simple-entity",
-        name = "kj_stargate_colliderHori2",
-        hidden = true,
-        icon = modname.."/graphics/entities/stargate/icon.png",
-        icon_size = 128,
-        flags = {"placeable-neutral", "placeable-off-grid", "not-flammable"},
-        map_color = {r = 0.55, g = 0.55, b = 0.55, a = 1},
-        collision_box = {{-0.75, -0.1}, {0.75, 0.1}},
-    },
-    {
-        type = "simple-entity-with-force",
-        name = "kj_stargate_colliderDiag",
-        hidden = true,
-        icon = modname.."/graphics/entities/stargate/icon.png",
-        icon_size = 128,
-        flags = {"placeable-neutral", "placeable-off-grid", "not-flammable", "building-direction-16-way"},
-        map_color = {r = 0.55, g = 0.55, b = 0.55, a = 1},
-        collision_box = {{-1, -0.1}, {1, 0.1}},
+        max_health = 1,
+        resistances = {
+            {
+                type = "explosion",
+                decrease = 1000,
+                percent  = 0,
+            },
+            {
+                type = "physical",
+                decrease = 15000,
+                percent  = 0,
+            },
+        },
+        selection_priority = 45,
         is_military_target  = false,
+        gui_mode = "all",
+        energy_source = {
+            type = "electric",
+            usage_priority = "dynamic",
+            buffer_capacity = "1GJ",
+            drain = "10MW",
+            input_flow_limit = "100MW",
+            output_flow_limit = "0W",
+        },
+    },
+    {
+        type = "sprite",
+        name = "kj_stargate_base_sprite",
+        layers = {
+            {
+                size = 704,
+                shift = {1.25, 0.5},
+                scale = 0.5,
+                filename = modname.."/graphics/entities/stargate/gate.png",
+            },
+            {
+                size = 704,
+                shift = {1.25, 0.5},
+                scale = 0.5,
+                draw_as_shadow = true,
+                filename = modname.."/graphics/entities/stargate/gate_shadow.png",
+            },
+        }
+    },
+    {
+        type = "sprite",
+        name = "kj_stargate_base_sprite_background",
+        layers = {
+            {
+                size = 704,
+                shift = {1.25, 1},
+                scale = 0.5,
+                filename = modname.."/graphics/entities/stargate/gate_background.png",
+            },
+        }
+    },
+    {
+        type = "sprite",
+        name = "kj_stargate_base_sprite_s",
+        layers = {
+            {
+                size = 832,
+                shift = {0, 1.4},
+                scale = 0.5,
+                filename = modname.."/graphics/s_gate.png",
+            },
+            {
+                size = 992,
+                shift = {2.5, 1.4},
+                scale = 0.5,
+                draw_as_shadow = true,
+                filename = modname.."/graphics/entities/stargate/s_gate_shadow.png",
+            },
+        }
+    },
+    {
+        type = "sprite",
+        name = "kj_stargate_base_sprite_s_background",
+        layers = {
+            {
+                size = 832,
+                shift = {0, 2},
+                scale = 0.5,
+                filename = modname.."/graphics/entities/stargate/s_gate_background.png",
+            },
+        }
+    },
+    {
+        type = "constant-combinator",
+        name = "kj_stargate_signal_receiver",
+        hidden = true,
+        icon = modname.."/graphics/s_icon.png",
+        icon_size = 128,
+        --collision_box = {{-0.5, -0.5}, {0.5, 0.5}},
+        selection_box = {{-0.5, -0.5}, {0.5, 0.5}},
+        factoriopedia_alternative = "kj_stargate_signaled_placement",
+        flags = {"not-on-map", "placeable-neutral", "placeable-off-grid", "not-flammable"},
+        map_color = {r = 0.55, g = 0.55, b = 0.55, a = 1},
+        max_health = 1,
+        selection_priority = 45,
+
+        circuit_wire_max_distance = 3,
+        activity_led_light_offsets = {{0,0},{0,0},{0,0},{0,0}},
+        draw_circuit_wires = false,
+        circuit_wire_connection_points = {
+            zeroWireConnection,
+            zeroWireConnection,
+            zeroWireConnection,
+            zeroWireConnection
+        },
     },
     {
         type = "simple-entity-with-force",
         name = "kj_stargate_ambientSound",
         hidden = true,
-        icon = modname.."/graphics/entities/stargate/icon.png",
+        icon = modname.."/graphics/icon.png",
         icon_size = 128,
-        flags = {"placeable-neutral", "placeable-off-grid", "not-flammable"},
+        flags = {"not-on-map", "placeable-neutral", "placeable-off-grid", "not-flammable"},
         map_color = {r = 0.55, g = 0.55, b = 0.55, a = 1},
 		collision_mask = {layers = {}},
         is_military_target  = false,
@@ -447,76 +722,321 @@ data:extend({
         },
     },
     {
-        type = "electric-energy-interface",
-        name = "kj_stargate_eventHorizon_ent",
-        collision_box = {{-1, -1}, {1, 1}},
-		collision_mask = {layers = {}},
-        factoriopedia_alternative = "kj_stargate_placement",
+        type = "lamp",
+        name = "kj_stargate_lamps",
         hidden = true,
-        icon = modname.."/graphics/entities/stargate/icon.png",
+        icon = modname.."/graphics/s_gate_light_icon.png",
         icon_size = 128,
-        flags = {"placeable-neutral", "placeable-off-grid", "not-flammable"},
+        flags = {"not-on-map", "placeable-neutral", "placeable-off-grid", "not-flammable"},
+        selectable_in_game = false,
+        collision_box = {{-1.4, -0.8}, {1.4, 4.4}},
+        selection_box = {{-1.4, -0.8}, {1.4, 4.4}},
+        alert_icon_shift = {0, 1.8},
+		collision_mask = {layers = {}},
         map_color = {r = 0.55, g = 0.55, b = 0.55, a = 1},
-        gui_mode = "none",
+        glow_render_mode = "additive",
+        is_military_target  = false,
         energy_source = {
-            render_no_power_icon = false,
             type = "electric",
-            usage_priority = "secondary-input",
-            buffer_capacity = "0J",
-            drain = "0W",
-            input_flow_limit = "0W",
-            output_flow_limit = "0W",
+            usage_priority = "lamp"
         },
-        continuous_animation = true,
-        animation = {
+        energy_usage_per_tick = "10kW",
+        picture_on = {
             layers = {
                 {
-                    size = 704,
-                    shift = {1.25, 0.49},
-                    scale = 0.505,
-                    frame_count = 64,
-                    stripes = {
-                        {
-                            filename = modname.."/graphics/entities/stargate/eventHorizon.png",
-                            height_in_frames = 8,
-                            width_in_frames = 8,
-                        },
-                    },
-                },
-                {
-                    size = 704,
-                    shift = {1.25, 0.49},
-                    scale = 0.505,
-                    frame_count = 64,
+                    size = 832,
+                    shift = {0, -0.5},
+                    scale = 0.5,
+                    filename = modname.."/graphics/entities/stargate/s_gate_light.png",
                     blend_mode = "additive",
                     draw_as_glow = true,
-                    stripes = {
-                        {
-                            filename = modname.."/graphics/entities/stargate/eventHorizon_light.png",
-                            height_in_frames = 8,
-                            width_in_frames = 8,
-                        },
-                    },
                 },
-            },
+            }
         },
     },
 })
 
+--electric poles
+local pole1 = {
+    type = "electric-pole",
+    name = "kj_stargate_pole_visible_right",
+    hidden = true,
+    icon = modname.."/graphics/icon.png",
+    icon_size = 128,
+    selection_box = {{-0.45, -0.32}, {0.45, 0.32}},
+    collision_box = {{-0.45, -0.32}, {0.45, 0.32}},
+    flags = {"placeable-neutral", "placeable-off-grid", "not-flammable"},
+    max_health = 1,
+    resistances = {
+        {
+            type = "explosion",
+            decrease = 1000,
+            percent  = 0,
+        },
+        {
+            type = "physical",
+            decrease = 15000,
+            percent  = 0,
+        },
+    },
+    factoriopedia_alternative = "kj_stargate_signaled_placement",
+    localised_name = {"", {"entity-name.kj_stargate_pole"}},
+    localised_description = {"", {"entity-description.kj_stargate_pole"}},
+    supply_area_distance = 0.5,
+    auto_connect_up_to_n_wires = 1,
+    maximum_wire_distance = 5,
+    rewire_neighbours_when_destroying = false,
+    map_color = {r = 0.55, g = 0.55, b = 0.55, a = 1},
+    radius_visualisation_picture = data.raw["electric-pole"]["small-electric-pole"].radius_visualisation_picture,
+    connection_points = {
+        {
+            shadow = {
+                green = {5.4, 0.02},
+                copper= {5.4, 0.015},
+                red =   {5.4, 0.01},
+            },
+            wire = {
+                green = {0.2, -5.55},
+                copper= {0.2, -5.5},
+                red =   {0.2, -5.45},
+            },
+        },
+    },
+}
+local pole2 = table.deepcopy(pole1)
+pole2.name = "kj_stargate_pole_visible_left"
+pole2.connection_points = {
+    {
+        shadow = {
+            green = {5.4, 0.02},
+            copper= {5.4, 0.015},
+            red =   {5.4, 0.01},
+        },
+        wire = {
+            green = {-0.2, -5.55},
+            copper= {-0.2, -5.5},
+            red =   {-0.2, -5.45},
+        },
+    },
+}
+local pole3 = table.deepcopy(pole1)
+pole3.name = "kj_stargate_pole_invisible"
+pole3.selection_box = {{-3, -3}, {3, 3}}
+pole3.collision_box = pole3.selection_box
+table.insert(pole3.flags, "not-on-map")
+pole3.collision_mask = {layers = {}}
+pole3.maximum_wire_distance = 5
+pole3.supply_area_distance = 3
+pole3.draw_circuit_wires = false
+pole3.draw_copper_wires = false
+pole3.auto_connect_up_to_n_wires = 0
+pole3.selectable_in_game = false
+pole3.connection_points = {zeroWireConnection}
+
+data:extend({pole1, pole2, pole3})
+
+--colliders
 data:extend({
+    {
+        type = "simple-entity",
+        name = "kj_stargate_colliderVert",
+        hidden = true,
+        icon = modname.."/graphics/icon.png",
+        icon_size = 128,
+        flags = {"not-on-map", "placeable-neutral", "placeable-off-grid", "not-flammable"},
+        map_color = {r = 0.55, g = 0.55, b = 0.55, a = 1},
+        collision_box = {{-0.5, -1.5}, {0.5, 2}},
+    },
+    {
+        type = "simple-entity-with-force",
+        name = "kj_stargate_colliderHoriLong",
+        hidden = true,
+        icon = modname.."/graphics/icon.png",
+        icon_size = 128,
+        flags = {"not-on-map", "placeable-neutral", "placeable-off-grid", "not-flammable", "building-direction-16-way"},
+        map_color = {r = 0.55, g = 0.55, b = 0.55, a = 1},
+        collision_box = {{-3, -0.225}, {3, 0.225}},
+        is_military_target  = false,
+    },
+    {
+        type = "simple-entity",
+        name = "kj_stargate_colliderHoriShort",
+        hidden = true,
+        icon = modname.."/graphics/icon.png",
+        icon_size = 128,
+        flags = {"not-on-map", "placeable-neutral", "placeable-off-grid", "not-flammable"},
+        map_color = {r = 0.55, g = 0.55, b = 0.55, a = 1},
+        collision_box = {{-0.75, -0.1}, {0.75, 0.1}},
+    },
+    {
+        type = "simple-entity-with-force",
+        name = "kj_stargate_colliderHoriLonger",
+        hidden = true,
+        icon = modname.."/graphics/icon.png",
+        icon_size = 128,
+        flags = {"not-on-map", "placeable-neutral", "placeable-off-grid", "not-flammable", "building-direction-16-way"},
+        map_color = {r = 0.55, g = 0.55, b = 0.55, a = 1},
+        collision_box = {{-3.5, -0.5}, {3.5, 0.225}},
+        is_military_target  = false,
+    },
+    {
+        type = "simple-entity",
+        name = "kj_stargate_colliderHoriBig",
+        hidden = true,
+        icon = modname.."/graphics/icon.png",
+        icon_size = 128,
+        flags = {"placeable-neutral", "placeable-off-grid", "not-flammable"},
+        map_color = {r = 0.55, g = 0.55, b = 0.55, a = 1},
+        collision_box = {{-1.5, -0.75}, {1.5, 0.75}},
+    },
+    {
+        type = "simple-entity-with-force",
+        name = "kj_stargate_colliderDiag",
+        hidden = true,
+        icon = modname.."/graphics/icon.png",
+        icon_size = 128,
+        flags = {"placeable-neutral", "placeable-off-grid", "not-flammable", "building-direction-16-way"},
+        map_color = {r = 0.55, g = 0.55, b = 0.55, a = 1},
+        collision_box = {{-1, -0.1}, {1, 0.1}},
+        is_military_target  = false,
+    },
+})
+
+--explosion / animation
+data:extend({
+    {
+        type = "explosion",
+        name = "kj_stargate_chevron_s_anim",
+        flags = {"not-on-map", "placeable-off-grid"},
+        hidden = true,
+        subgroup = "explosions",
+        render_layer = "object",
+        delay = 0.613*60,
+        sound = {
+            variations = sound_variations(modname.."/sounds/chevron_open", 3, 1),
+        },
+        animations = {
+            layers = {
+                {
+                    filename = modname.."/graphics/entities/stargate/s_chevron_anim.png",
+                    size = 64,
+                    shift = {0, -4.212},--08
+                    scale = 0.5,
+                    frame_count = 16,
+                    frame_sequence = {1,2,3,4,5,5,5,5,5,5,5,5,5,14,15,1},
+                    line_length = 4,
+                    animation_speed = 15/60,
+                    usage = "explosion"
+                },
+                {
+                    filename = modname.."/graphics/entities/stargate/s_chevron_anim_light.png",
+                    size = 64,
+                    shift = {0, -4.212},
+                    scale = 0.5,
+                    frame_count = 16,
+                    frame_sequence = {1,2,3,4,5,5,5,5,5,5,5,5,5,14,15,1},
+                    line_length = 4,
+                    animation_speed = 15/60,
+                    usage = "explosion",
+                    blend_mode = "additive",
+                    draw_as_glow = true,
+                },
+            },
+        },
+    },
+    {
+        type = "explosion",
+        name = "kj_stargate_chevron_s_anim2",
+        flags = {"not-on-map", "placeable-off-grid"},
+        hidden = true,
+        subgroup = "explosions",
+        render_layer = "object",
+        delay = 37, -- =0.6333333*60,
+        sound = {
+            variations = sound_variations(modname.."/sounds/chevron_open", 3, 1),
+        },
+        animations = {
+            layers = {
+                {
+                    filename = modname.."/graphics/entities/stargate/s_chevron_anim.png",
+                    size = 64,
+                    shift = {0, -4.212},--08
+                    scale = 0.5,
+                    frame_count = 16,
+                    frame_sequence = {1,2,3,4,5,5,5,5,5,5,5,5,5,14,15,1,1,1,1,1,1},
+                    line_length = 4,
+                    animation_speed = 15/60,
+                    usage = "explosion"
+                },
+                {
+                    filename = modname.."/graphics/entities/stargate/s_chevron_anim_light.png",
+                    size = 64,
+                    shift = {0, -4.212},
+                    scale = 0.5,
+                    frame_count = 20,
+                    frame_sequence = {1,2,3,4,5,5,5,5,5,5,5,5,17,18,19,20,20,20,20,20,20},
+                    line_length = 4,
+                    animation_speed = 15/60,
+                    usage = "explosion",
+                    blend_mode = "additive",
+                    draw_as_glow = true,
+                },
+            },
+        },
+    },
+    {
+        type = "explosion",
+        name = "kj_stargate_chevron_s_anim_sound2",
+        flags = {"not-on-map", "placeable-off-grid"},
+        hidden = true,
+        subgroup = "explosions",
+        delay = 37 + 0.773*60,
+        sound = {
+            variations = sound_variations(modname.."/sounds/chevron_shut", 3, 1),
+        },
+        animations = util.empty_animation(1),
+    },
+    {
+        type = "explosion",
+        name = "kj_stargate_electricFailure",
+        flags = {"not-on-map", "placeable-off-grid"},
+        hidden = true,
+        subgroup = "explosions",
+        render_layer = "object",
+        sound = {
+            filename = modname.."/sounds/s_gate_electricFailure.ogg",
+            volume = 1,
+        },
+        animations = {
+            layers = {
+                {
+                    filename = modname.."/graphics/entities/stargate/s_gate_electricFailure.png",
+                    size = 832,
+                    shift = {0, 0.4},
+                    scale = 0.5,
+                    frame_count = 28,
+                    line_length = 7,
+                    animation_speed = 16/30,
+                    usage = "explosion",
+                    blend_mode = "additive",
+                    draw_as_glow = true,
+                },
+            },
+        },
+    },
     {
         type = "explosion",
         name = "kj_stargate_eventHorizon_short",
         flags = {"not-on-map", "placeable-off-grid"},
         hidden = true,
         subgroup = "explosions",
-        render_layer = "higher-object-under",
+        render_layer = "object",
         animations = {
             layers = {
                 {
                     filename = modname.."/graphics/entities/stargate/eventHorizon.png",
                     size = 704,
-                    shift = {1.25, 0.49},
+                    shift = {1.25, 0.49+0.3},
                     scale = 0.505,
                     frame_count = 28,
                     line_length = 8,
@@ -526,7 +1046,7 @@ data:extend({
                 {
                     filename = modname.."/graphics/entities/stargate/eventHorizon_light.png",
                     size = 704,
-                    shift = {1.25, 0.49},
+                    shift = {1.25, 0.49+0.3},
                     scale = 0.505,
                     frame_count = 28,
                     line_length = 8,
@@ -544,7 +1064,8 @@ data:extend({
         flags = {"not-on-map", "placeable-off-grid"},
         hidden = true,
         subgroup = "explosions",
-        render_layer = "higher-object-under",
+        render_layer = "object",
+        delay = 8*60/16,
         animations = {
             layers = {
                 {
@@ -552,9 +1073,8 @@ data:extend({
                     size = 704,
                     scale = 0.505,
                     frame_count = 16,
-                    frame_sequence = eHw_fs,
                     line_length = 4,
-                    shift = {1.25, 0.49},
+                    shift = {1.25, 0.49+0.3},
                     animation_speed = 16/60,
                     usage = "explosion"
                 },
@@ -563,9 +1083,8 @@ data:extend({
                     size = 704,
                     scale = 0.505,
                     frame_count = 16,
-                    frame_sequence = eHw_fs,
                     line_length = 4,
-                    shift = {1.25, 0.49},
+                    shift = {1.25, 0.49+0.3},
                     animation_speed = 16/60,
                     usage = "explosion",
                     draw_as_glow = true,
@@ -580,7 +1099,8 @@ data:extend({
         flags = {"not-on-map", "placeable-off-grid"},
         hidden = true,
         subgroup = "explosions",
-        render_layer = "higher-object-under",
+        render_layer = "object",
+        delay = 28*60/16,
         animations = {
             layers = {
                 {
@@ -590,7 +1110,7 @@ data:extend({
                     frame_count = 16,
                     frame_sequence = eHwbw_fs,
                     line_length = 4,
-                    shift = {1.25, 0.49},
+                    shift = {1.25, 0.49+0.3},
                     animation_speed = 16/60,
                     usage = "explosion"
                 },
@@ -601,7 +1121,7 @@ data:extend({
                     frame_count = 16,
                     frame_sequence = eHwbw_fs,
                     line_length = 4,
-                    shift = {1.25, 0.49},
+                    shift = {1.25, 0.49+0.3},
                     animation_speed = 16/60,
                     usage = "explosion",
                     draw_as_glow = true,
@@ -617,6 +1137,7 @@ data:extend({
         hidden = true,
         subgroup = "explosions",
         render_layer = "cargo-hatch",
+        delay = 22*60/15,
         animations = {
             {
                 filename = modname.."/graphics/entities/stargate/woosh_glow.png",
@@ -626,7 +1147,29 @@ data:extend({
                 scale = 0.5,
                 frame_count = 33,
                 line_length = 6,
-                frame_sequence = w_fs,
+                shift = {0, 2.5},
+                animation_speed = 15/60,
+                usage = "explosion"
+            }
+        },
+    },
+    {
+        type = "explosion",
+        name = "kj_stargate_woosh_glow_s",
+        flags = {"not-on-map", "placeable-off-grid"},
+        hidden = true,
+        subgroup = "explosions",
+        render_layer = "cargo-hatch",
+        delay = 22*60/15,
+        animations = {
+            {
+                filename = modname.."/graphics/entities/stargate/s_woosh_glow.png",
+                blend_mode = "additive",
+                draw_as_glow = true,
+                size = 832,
+                scale = 0.5,
+                frame_count = 33,
+                line_length = 6,
                 shift = {0, 2.5},
                 animation_speed = 15/60,
                 usage = "explosion"
@@ -640,6 +1183,7 @@ data:extend({
         hidden = true,
         subgroup = "explosions",
         render_layer = "projectile",
+        delay = 22*60/15,
         animations = {
             {
                 filename = modname.."/graphics/entities/stargate/woosh.png",
@@ -648,12 +1192,28 @@ data:extend({
                 scale = 0.5,
                 frame_count = 33,
                 line_length = 6,
-                frame_sequence = w_fs,
                 shift = {0, 2.5},
                 animation_speed = 15/60,
                 usage = "explosion"
             },
         },
+    },
+    {
+        type = "animation",
+        name = "kj_stargate_s_smoke",
+        layers = {
+            {
+                filename = "__base__/graphics/entity/rocket-silo/steam-1.png",
+                frame_count = 64,
+                line_length = 8,
+                width = 136,
+                height = 178,
+                animation_speed = 0.3,
+                --shift = util.by_pixel(3.0, 93.0),
+                blend_mode = "additive-soft",
+                scale = 0.5,
+            },
+        }
     },
     {
         type = "animation",
@@ -671,29 +1231,49 @@ data:extend({
             },
         }
     },
-    --[[{
+    {
+        type = "animation",
+        name = "kj_stargate_chevrons_s",
+        layers = {
+            {
+                size = 832,
+                shift = {0, 0.5},
+                scale = 0.5,
+                frame_count = 8,
+                line_length = 8,
+                blend_mode = "additive",
+                draw_as_glow = true,
+                filename = modname.."/graphics/entities/stargate/s_chevron_light.png",
+            },
+        }
+    },
+    {
         type = "animation",
         name = "kj_stargate_eventHorizon",
         layers = {
             {
                 size = 704,
-                shift = {1.25, 0.5},
-                scale = 0.5,
-                frame_count = 1,
+                shift = {1.25, 0.49},
+                scale = 0.505,
+                line_length = 8,
+                frame_count = 64,
                 filename = modname.."/graphics/entities/stargate/eventHorizon.png",
             },
             {
                 size = 704,
-                shift = {1.25, 0.5},
-                scale = 0.5,
-                frame_count = 1,
+                shift = {1.25, 0.49},
+                scale = 0.505,
+                line_length = 8,
+                frame_count = 64,
                 blend_mode = "additive",
                 draw_as_glow = true,
-                filename = modname.."/graphics/entities/stargate/gate_light.png",
+                filename = modname.."/graphics/entities/stargate/eventHorizon_light.png",
             },
         }
-    },]]
+    },
 })
+
+--dmg
 data:extend({
     {
         type = "projectile",
@@ -756,6 +1336,45 @@ data:extend({
             }
         },
     },
+    {
+        type = "smoke-with-trigger",
+        name = "kj_stargate_electricFailure_damage",
+        flags = {"not-on-map"},
+        hidden = true,
+        affected_by_wind = false,
+        cyclic = true,
+        duration = 10 * 1,
+        fade_away_duration = 0,
+        spread_duration = 0,
+        action_cooldown = 1,
+        action =
+        {
+            type = "direct",
+            action_delivery =
+            {
+                type = "instant",
+                target_effects =
+                {
+                    type = "nested-result",
+                    action =
+                    {
+                        type = "area",
+                        radius = 1.5,
+                        ignore_collision_condition = true,
+                        action_delivery =
+                        {
+                            type = "instant",
+                            target_effects = {{
+                                    type = "damage",
+                                    damage = {amount = 400, type = "electric"}
+                                }
+                            },
+                        }
+                    }
+                }
+            }
+        },
+    },
 })
 
 for name, _ in pairs(data.raw["damage-type"]) do
@@ -767,6 +1386,7 @@ for name, _ in pairs(data.raw["damage-type"]) do
     end
 end
 
+--dhd
 data:extend({
     {
         type = "recipe-category",
@@ -775,7 +1395,7 @@ data:extend({
     {
         type = "assembling-machine",
         name = "kj_dhd",
-        icon = modname.."/graphics/entities/dhd/icon.png",
+        icon = modname.."/graphics/dhd_icon.png",
         icon_size = 128,
         max_health = 1,
         dying_explosion = "big-explosion",
@@ -995,9 +1615,9 @@ data:extend({
         layers = {
             {
                 size = 288,
+                x = 288,
                 shift = {0, 0.5},
                 scale = 0.5,
-                x = 288,
                 blend_mode = "additive",
                 draw_as_glow = true,
                 filename = modname.."/graphics/entities/dhd/dhd_button_light.png",
@@ -1010,9 +1630,9 @@ data:extend({
         layers = {
             {
                 size = 288,
+                y = 288,
                 shift = {0, 0.5},
                 scale = 0.5,
-                y = 288,
                 blend_mode = "additive",
                 draw_as_glow = true,
                 filename = modname.."/graphics/entities/dhd/dhd_button_light.png",
@@ -1025,10 +1645,10 @@ data:extend({
         layers = {
             {
                 size = 288,
-                shift = {0, 0.5},
-                scale = 0.5,
                 x = 288,
                 y = 288,
+                shift = {0, 0.5},
+                scale = 0.5,
                 blend_mode = "additive",
                 draw_as_glow = true,
                 filename = modname.."/graphics/entities/dhd/dhd_button_light.png",
@@ -1100,143 +1720,58 @@ data:extend({
             },
         }
     },
+})
 
-
+--tiles
+data:extend({
     {
         type = "tile",
         name = "kj_stargate_slowDownTile",
         hidden = true,
+        flags = {"not-on-map"},
         allows_being_covered = false,
         walking_speed_modifier = 0.5,
         vehicle_friction_modifier = 0.5,
         collision_mask = {layers={ground_tile=true}},
         map_color = {r = 0.55, g = 0.55, b = 0.55, a = 1},
         layer = 0,
+        walking_sound = tile_sounds.walking.refined_concrete,
+        driving_sound = tile_sounds.driving.concrete,
         variants = {
-            material_background =
+            main =
             {
-                picture = "__core__/graphics/empty.png",
-                count = 1,
-                scale = 1
+                {
+                    picture = "__core__/graphics/empty.png",
+                    count = 1,
+                    size = 1
+                }
             },
             empty_transitions = true
         },
     },
-})
-
-
---char table
-local chars = {}
-for i = string.byte("A"), string.byte("S") do
-    table.insert(chars, string.char(i))
-end
-for i = string.byte("a"), string.byte("s") do
-    table.insert(chars, string.char(i))
-end
-for i, char in ipairs(chars) do
-    data:extend({
-        {
-            type = "virtual-signal",
-            name = "kj_sg_glyph_"..char,
-            icon = modname.."/graphics/glyphs/"..string.format("%04d", i+1)..".png",
-            icon_size = 128,
-            localised_name = {"", {"virtual-signal-name.kj_sg_glyph"}, " ", tostring(i-1)},
-            localised_description = {"", {"virtual-signal-description.kj_sg_glyph"}, tostring(i-1)},
-            order = tostring(string.format("%03d", i-1)),
+    {
+        type = "tile",
+        name = "kj_stargate_metalTile",
+        hidden = true,
+        flags = {"not-on-map"},
+        allows_being_covered = false,
+        walking_speed_modifier = 1,
+        vehicle_friction_modifier = 1,
+        collision_mask = {layers={ground_tile=true}},
+        map_color = {r = 0.55, g = 0.55, b = 0.55, a = 1},
+        layer = 0,
+        walking_sound = metal,
+        driving_sound = nil,
+        variants = {
+            main =
+            {
+                {
+                    picture = "__core__/graphics/empty.png",
+                    count = 1,
+                    size = 1
+                }
+            },
+            empty_transitions = true
         },
-        {
-            type = "sprite",
-            name = "kj_sg_glyph_"..char,
-            filename = modname.."/graphics/glyphs/"..string.format("%04d", i+1)..".png",
-            size = 128,
-        },
-    })
-end
-
-data:extend({
-    {
-        type = "virtual-signal",
-        name = "kj_sg_glyph_poo_1",
-        icon = modname.."/graphics/glyphs/0001.png",
-        icon_size = 128,
-        localised_name = {"", {"virtual-signal-name.kj_sg_glyph_poo"}, " 1"},
-        localised_description = {"", {"virtual-signal-description.kj_sg_glyph_poo"}, " 1"},
-        order = "poo-1",
-    },
-    {
-        type = "virtual-signal",
-        name = "kj_sg_glyph_poo_2",
-        icon = modname.."/graphics/glyphs/0040.png",
-        icon_size = 128,
-        localised_name = {"", {"virtual-signal-name.kj_sg_glyph_poo"}, " 2"},
-        localised_description = {"", {"virtual-signal-description.kj_sg_glyph_poo"}, " 2"},
-        order = "poo-1",
-    },
-    {
-        type = "virtual-signal",
-        name = "kj_sg_glyph_poo_3",
-        icon = modname.."/graphics/glyphs/0041.png",
-        icon_size = 128,
-        localised_name = {"", {"virtual-signal-name.kj_sg_glyph_poo"}, " 3"},
-        localised_description = {"", {"virtual-signal-description.kj_sg_glyph_poo"}, " 3"},
-        order = "poo-1",
-    },
-    {
-        type = "virtual-signal",
-        name = "kj_sg_glyph_poo_4",
-        icon = modname.."/graphics/glyphs/0042.png",
-        icon_size = 128,
-        localised_name = {"", {"virtual-signal-name.kj_sg_glyph_poo"}, " 4"},
-        localised_description = {"", {"virtual-signal-description.kj_sg_glyph_poo"}, " 4"},
-        order = "poo-1",
-    },
-    {
-        type = "virtual-signal",
-        name = "kj_sg_glyph_poo_5",
-        icon = modname.."/graphics/glyphs/0043.png",
-        icon_size = 128,
-        localised_name = {"", {"virtual-signal-name.kj_sg_glyph_poo"}, " 5"},
-        localised_description = {"", {"virtual-signal-description.kj_sg_glyph_poo"}, " 5"},
-        order = "poo-1",
-    },
-})
-data:extend({
-    {
-        type = "sprite",
-        name = "kj_sg_glyph_poo_1",
-        filename = modname.."/graphics/glyphs/0001.png",
-        size = 128,
-    },
-    {
-        type = "sprite",
-        name = "kj_sg_glyph_poo_2",
-        filename = modname.."/graphics/glyphs/0040.png",
-        size = 128,
-    },
-    {
-        type = "sprite",
-        name = "kj_sg_glyph_poo_3",
-        filename = modname.."/graphics/glyphs/0041.png",
-        size = 128,
-    },
-    {
-        type = "sprite",
-        name = "kj_sg_glyph_poo_4",
-        filename = modname.."/graphics/glyphs/0042.png",
-        size = 128,
-    },
-    {
-        type = "sprite",
-        name = "kj_sg_glyph_poo_5",
-        filename = modname.."/graphics/glyphs/0043.png",
-        size = 128,
-    },
-
-
-    {
-        type = "sprite",
-        name = "kj_sg_glyph_connect",
-        filename = modname.."/graphics/glyphs/connect.png",
-        size = 128,
     },
 })

@@ -1,13 +1,55 @@
+require("constants")
 local functions = {}
 local dhdSearchRadius = 15
+local max = #ringChars -- 39
 local opposite = {
     dhd = "stargate",
     stargate = "dhd",
 }
 local oppositeEntity = {
-    dhd = "stargate_transferArea",
+    dhd = "stargate_entity",
     stargate = "dhd",
 }
+
+function functions.glyphFromOrientation(orientation)
+    return ringChars[(math.floor((1 - orientation) * 39 + 0.5) % 39) + 1] or "poo"
+end
+
+function functions.orientationFromGlyph(glyph)
+    return 1 - ((ringCharPos[glyph] - 1) / 39)
+end
+
+function functions.getSignalFromChar(input, assembled)
+    assert(type(input) == "string", "Expected string")
+
+    if #input == 1 then -- single char
+        return "[img=virtual-signal.kj_sg_glyph_"..input.."]"
+    else
+        local gChars = {}
+        local adr, poo = input:match("^(.-)(poo_%d)$")
+        adr = adr or input
+        poo = poo or nil
+
+        for c in adr:gmatch(".") do
+            table.insert(gChars, functions.getSignalFromChar(c))
+        end
+        if poo ~= nil then
+            table.insert(gChars, "[img=virtual-signal.kj_sg_glyph_"..poo.."]")
+        end
+
+        if assembled then
+            local export = ""
+
+            for _, c in ipairs(gChars) do
+                export = export..c
+            end
+
+            return export
+        else
+            return gChars
+        end
+    end
+end
 
 function functions.getDistance(pos1, pos2)
 	return math.sqrt((pos2.x - pos1.x)^2 + (pos2.y - pos1.y)^2)
@@ -22,7 +64,33 @@ function functions.deleteFromITable(t, value)
     end
 end
 
-function functions.hash_fnv1a(str)
+function functions.getRingGlyphDistance(from, to)
+    local a = ringCharPos[from]
+    local b = ringCharPos[to]
+
+    local right = (b - a) % max
+    local left  = (a - b) % max
+
+    if settings.global["kj_stargate_ring_long"].value == true then
+        if right > left then
+            --game.print(b.."-"..a.."="..right..": forward (left)")
+            return right, 0
+        else
+            --game.print(a.."-"..b.."="..left..": backward (right)")
+            return left, 2
+        end
+    else
+        if right <= left then
+            --game.print(b.."-"..a.."="..right..": forward (left)")
+            return right, 0
+        else
+            --game.print(a.."-"..b.."="..left..": backward (right)")
+            return left, 2
+        end
+    end
+end
+
+function functions.hashFnv1a(str)
     local hash = 2166136261
     for i = 1, #str do
         hash = bit32.bxor(hash, string.byte(str, i))
@@ -127,7 +195,17 @@ end
 ---@param excludeEntity? LuaEntity entity to ignore in search
 ---@return LuaEntity can be nil when nothing found
 function functions.findEntity(name, entName, entity, excludeEntity)
-    local entities = game.surfaces[entity.surface_index].find_entities_filtered{position = entity.position, radius = dhdSearchRadius, name = "kj_"..entName}
+    local surface_index
+    if excludeEntity then
+        surface_index = excludeEntity.surface_index
+    else
+        if entity.valid then
+            surface_index = entity.surface_index
+        else
+            error("Neither DHD nor Stargate were valid entities - big problem")
+        end
+    end
+    local entities = game.surfaces[surface_index].find_entities_filtered{position = entity.position, radius = dhdSearchRadius, name = "kj_"..entName}
     local distance = 100000
     local shortestEntity
     for _, ent in ipairs(entities) do
@@ -156,59 +234,35 @@ function functions.findIDInGlobal(name, surface, id)
     return nil
 end
 
-function functions.splitNameId(input)
-    local surface1, id1, surface2, id2 = string.match(
-            input, "^%(([^%.]+)%.(-?%d+)%)%.%(([^%.]+)%.(-?%d+)%)$"
-        )
-    if surface1 and surface2 and id1 and id2 then
-        return surface1, surface2, tonumber(id1), tonumber(id2)
-    else
-        return nil, nil, nil, nil
-    end
-end
-
-function functions.splitNameId2(input)
-    local dhdSurface, dhdID, char = string.match(input, "^([^%.]+)%.(%d+)%.([^%.]+)$")
-    if dhdSurface and dhdID and char then
-        return dhdSurface, tonumber(dhdID), char
-    else
-        return nil, nil, nil
-    end
-end
-
----@return table, number [if it exists in global]
 function functions.findInGlobal(name, entity)
-    if entity == nil then return nil, nil end
+    if entity == nil then return nil end
     local sName = entity.surface.name
-    if not storage[name][sName] then return nil, nil end
+    if not storage[name][sName] then return nil end
 
-    for id, object in pairs(storage[name][sName]) do
-        if object.entity == entity then
-            return object, id
-        end
-    end
-
-    return nil, nil
+    return storage[name][sName][entity.unit_number], entity.unit_number
 end
 
 ---@param name string name of storage table
 ---@param entity LuaEntity the entity of the entry to be added
 ---@param addContent? table additional content to add to the storage entry
-function functions.addToGlobal(name, entity, addContent)
+function functions.addToGlobal(name, entity, addContent, override)
     local sName = entity.surface.name
-    local id = entity.unit_number or ((storage[name.."id"] or 0) + 1)
-    storage[name.."id"] = id
+    local id = entity.unit_number
     storage[name][sName] = storage[name][sName] or {}
-
-    local shortestOppEnt = functions.findEntity(opposite[name], oppositeEntity[name], entity)
-    local shortestOppEntObj = functions.findInGlobal(opposite[name], shortestOppEnt)
 
     local content = {
         id = id,
         entity = entity,
-        pos = entity.position,
-        [opposite[name]] = shortestOppEntObj,
+        pos = util.vector2Add(entity.position, {x = 0, y = entOffY[name]}),
     }
+
+    local shortestOppEnt, shortestOppEntObj
+    if override == nil then
+        shortestOppEnt = functions.findEntity(opposite[name], oppositeEntity[name], entity)
+        shortestOppEntObj = functions.findInGlobal(opposite[name], shortestOppEnt)
+        content[opposite[name]] = shortestOppEntObj
+    end
+
     if addContent then
         for k, v in pairs(addContent) do content[k] = v end
     end
@@ -230,6 +284,63 @@ function functions.addToGlobal(name, entity, addContent)
     return storage[name][sName][id]
 end
 
+function functions.removeAllGates()
+    if not storage["stargate"] then return end
+    for sName, surface in pairs(storage["stargate"]) do
+        for id, gate in pairs(surface) do
+            local ch = gate.childs
+            if gate and gate.oldTiles then
+                for i = #gate.oldTiles, 1, -1 do
+                    local tile = gate.oldTiles[i]
+                    if ch.baseEnt.surface.get_tile(tile.position.x, tile.position.y).name == "nuclear-ground" then
+                        table.remove(gate.oldTiles, i)
+                    end
+                end
+                ch.baseEnt.surface.set_tiles(gate.oldTiles)
+            end
+
+            if ch then
+                if ch.poleVisibleRight then
+                    storage.electricPoles[ch.poleVisibleRight.unit_number] = nil
+                end
+                if ch.poleVisibleLeft then
+                    storage.electricPoles[ch.poleVisibleLeft.unit_number] = nil
+                end
+                for _, ent in pairs(ch) do
+                    ent.destroy()
+                end
+            end
+
+            if gate.smokes then
+                for _, smk in pairs(gate.smokes) do
+                    smk.destroy()
+                end
+            end
+
+            if gate.chevrons then
+                gate.chevrons.destroy()
+            end
+
+            if gate.animation then
+                gate.animation.destroy()
+            end
+
+            if gate.glyphs then
+                for _,glyph in pairs(gate.glyphs) do
+                    glyph.destroy()
+                end
+            end
+
+            if gate.entity and gate.entity.valid then gate.entity.destroy() end
+
+            storage.tasks.activeGates[id] = nil
+            storage.tasks.busyDhds[id] = nil
+
+            storage["stargate"][sName][id] = nil
+        end
+    end
+end
+
 ---@param name string name of storage table
 ---@param entity LuaEntity the entity of the entry to be deleted
 function functions.removeFromGlobal(name, entity)
@@ -244,7 +355,7 @@ function functions.removeFromGlobal(name, entity)
         local shortestEnt = functions.findEntity(name, oppositeEntity[opposite[name]], storObj[opposite[name]].entity, entity)
         local shortestEntObj = functions.findInGlobal(name, shortestEnt)
         storObj[opposite[name]][name] = shortestEntObj
-        storObj[opposite[name]]:Reset()
+        storObj[opposite[name]]:Reset() --dhd.stargate / stargate.dhd
 
         if shortestEntObj ~= nil then
             shortestEntObj[opposite[name]] = storObj[opposite[name]]
@@ -254,9 +365,22 @@ function functions.removeFromGlobal(name, entity)
         returnValue = storObj[opposite[name]]
     end
 
-    if storObj.childs then
-        for _, ent in pairs(storObj.childs) do
+    local ch = storObj.childs
+    if ch then
+        if ch.poleVisibleRight then
+            storage.electricPoles[ch.poleVisibleRight.unit_number] = nil
+        end
+        if ch.poleVisibleLeft then
+            storage.electricPoles[ch.poleVisibleLeft.unit_number] = nil
+        end
+        for _, ent in pairs(ch) do
             ent.destroy()
+        end
+    end
+
+    if storObj.smokes then
+        for _, smk in pairs(storObj.smokes) do
+            smk.destroy()
         end
     end
 
@@ -274,7 +398,7 @@ function functions.removeFromGlobal(name, entity)
 
     if storObj.glyphs then
         for _,glyph in pairs(storObj.glyphs) do
-        glyph.destroy()
+            glyph.destroy()
         end
     end
 
@@ -299,8 +423,8 @@ function functions.lettersFromAddress(name, suffix1, suffix2)
     return address, addressLetters
 end
 
----@param surface surface surface the sound is to be played on
----@param position Position position the sound is to be played at
+---@param surface LuaSurface surface the sound is to be played on
+---@param position MapPosition position the sound is to be played at
 ---@param sound string name of the sound
 ---@param volume? number volume
 function functions.playSoundOnSurface(surface, position, sound, volume)
@@ -324,8 +448,9 @@ function functions.setMetatablesInGlobal(name, mt)
 		end
 	end
 end
+
 function functions.randomSound(name, number)
-    return name..math.random(1,number)
+    return name..math.random(1, number)
 end
 
 functions.mtMgr =

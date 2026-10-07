@@ -1,0 +1,558 @@
+stargate = {
+    Initialize = function(self)
+    end,
+
+	Connect = function(thisGate, otherGate)
+        if otherGate == nil then return nil end
+        if otherGate.destination ~= nil then --other gate has connection
+            if thisGate.dhd then
+                thisGate.dhd:ResetGlyphs()
+                thisGate.dhd:CloseGUIs()
+            end
+            util.playSoundOnSurface(thisGate.entity.surface, thisGate.pos, "kj_stargate_fail")
+        else
+            if thisGate.destination ~= nil then
+                thisGate:Disconnect()
+            end
+            if storage.tasks.signaledGates[otherGate.id] ~= nil then
+                otherGate:Reset()
+                storage.tasks.signaledGates[otherGate.id] = nil
+            end
+            activateGate(thisGate)
+            activateGate(otherGate)
+            thisGate.destination = otherGate
+            otherGate.destination = thisGate
+
+            if otherGate.dhd then
+                otherGate.dhd:FetchAddress(thisGate)
+                otherGate.dhd:SetGlyphs()
+            end
+
+            storage.tasks.activeGates[thisGate.id] = {tick = game.tick + 20*60, maxTick = game.tick + 60*60, stargate = thisGate}
+        end
+
+        return true
+	end,
+
+    Disconnect = function(self, override)
+        local dest = self.destination
+        if dest then
+            deactivateGate(self, override)
+            deactivateGate(dest, override)
+
+            storage.tasks.activeGates[self.id] = nil
+        end
+    end,
+
+    Reset = function(self)
+        if self.destination == nil then
+            self.chevrons.animation_offset = 0
+        end
+        self:ResetAddress()
+        self:SnapRingToSlot()
+        self:SetLastGlyphByRingPos()
+        self:TurnSmokes(false)
+
+        if self.childs.rings then
+            self.childs.rings.riding_state = {
+                acceleration = defines.riding.acceleration.nothing,
+                direction = 1,
+            }
+        end
+        if self.childs.ringSound then
+            self.childs.ringSound.power_switch_state = false
+        end
+        if self.childs.signalSender then
+            self.childs.signalSender.get_control_behavior().get_section(1).clear_slot(3) --resetting iris deactivation flag
+        end
+    end,
+
+    SetRotationFromGlyph = function(self, glyph)
+        self.childs.rings.orientation = util.orientationFromGlyph(glyph)
+        --game.print("Orientation from "..glyph..": "..self.childs.rings.orientation)
+    end,
+
+    --snap do glyph frames so it doesnt stop in transition frames
+    SnapRingToSlot = function(self)
+        local rings = self.childs.rings
+        if rings then
+            --game.print(util.glyphFromOrientation(rings.orientation).." - Orientation "..rings.orientation)
+            rings.orientation = util.orientationFromGlyph(util.glyphFromOrientation(rings.orientation))--math.floor(rings.orientation * 39) / 39
+            --game.print(util.glyphFromOrientation(rings.orientation).." - Snapped to "..rings.orientation)
+        end
+    end,
+
+    SetLastGlyphByRingPos = function(self)
+        local rings = self.childs.rings
+        if rings then
+            self.lastGlyph = util.glyphFromOrientation(rings.orientation)
+            --game.print("Last Glyph: "..self.lastGlyph)
+        end
+    end,
+
+    GetDestAddress = function(self)
+        if self.destAddress then
+            return table.concat(self.destAddress)
+        else
+            return nil
+        end
+    end,
+
+    ResetAddress = function(self)
+        if self.destAddress then
+            self.destAddress = {}
+            self.destAddressLetters = {}
+        end
+    end,
+
+    RefreshRecentAddressesInSender = function(self)
+        local ssControl = self.childs.signalSender.get_control_behavior()
+        table.insert(self.recentAddresses, 1, self.destAddress)
+
+        if #self.recentAddresses > 5 then
+            for i = 6, #self.recentAddresses do
+                table.remove(self.recentAddresses, i)
+            end
+        end
+        if ssControl.sections_count > 1 then
+            for i = ssControl.sections_count, 2, -1 do
+                ssControl.remove_section(i)
+            end
+        end
+
+        for i, address in ipairs(self.recentAddresses) do
+            local section = ssControl.add_section()
+            for j, char in ipairs(address) do
+                if char == "poo" then
+                    char = char.."_"..poo[self.entity.surface.name]
+                end
+                section.set_slot(j, {
+                    value = {
+                        type = "virtual",
+                        name = "kj_sg_glyph_"..char,
+                        quality = qualities[i],
+                        comparator = "=",
+                    },
+                    min = j,
+                })
+            end
+        end
+    end,
+
+    SetIris = function(self, state)
+        if not self.childs.iris then return end
+        self.childs.iris.power_switch_state = state
+        for _, GUI in pairs(storage.openGUIs.GDO) do
+            if GUI and GUI.valid then
+                GDOTriggered({
+                    prototype_name = "kj_stargate_gdo",
+                    player_index = GUI.player_index,
+                }, true)
+            end
+        end
+    end,
+
+    ResetSenderStatus = function(self)
+        self:SetSenderStatus()
+    end,
+
+    SetEnergyStatus = function(self)
+        local ssControl = self.childs.signalSender.get_control_behavior()
+        ssControl.get_section(1).set_slot(2, {
+            value = {
+                type = "virtual",
+                name = "signal-lightning",
+                quality = "normal",
+                comparator = "=",
+            },
+            min = 100 * self.entity.energy / self.entity.electric_buffer_size,
+        })
+    end,
+
+    SetSenderStatus = function(self, status)
+        local ssControl = self.childs.signalSender.get_control_behavior()
+        local value = 0
+
+        if status == false then
+            value = -1
+        elseif status == true then
+            value = 1
+        end
+        ssControl.get_section(1).set_slot(1, {
+            value = {
+                type = "virtual",
+                name = "kj_sg_glyph_connect",
+                quality = "normal",
+                comparator = "=",
+            },
+            min = value,
+        })
+    end,
+
+    TurnSmokes = function(self, status)
+        if self.smokes then
+            for _, smoke in pairs(self.smokes) do
+                smoke.visible = status
+            end
+        end
+    end,
+}
+
+dhd = {
+    Initialize = function(self)
+        rendering.draw_animation{
+            animation = "kj_stargate_dhd_"..self.entity.direction,
+            animation_speed = 40/60,
+            time_to_live = 60,
+            target = self.pos,
+            surface = self.entity.surface,
+            render_layer = "object",
+        }
+        util.playSoundOnSurface(self.entity.surface, self.pos, "kj_stargate_dhd_connect", 1)
+        if self.stargate.destination and self.stargate.active then
+            self:SetButtonLight(true)
+            self:FetchAddress(self.stargate.destination)
+            self:SetGlyphs()
+        end
+    end,
+
+    SetButtonLight = function(self, status)
+        if status == true then
+            self.buttonLight = rendering.draw_sprite{
+                sprite = "kj_stargate_dhd_button_"..self.entity.direction,
+                target = self.pos,
+                surface = self.entity.surface,
+                render_layer = "object",
+            }
+        else
+            if self.buttonLight then self.buttonLight.destroy() end
+        end
+    end,
+
+    FetchAddress = function(self, otherGate)
+        local sName = otherGate.entity.surface.name
+        self.address, self.addressLetters = util.lettersFromAddress(storage.addresses[sName], "poo_"..poo[sName], "poo_"..poo[self.entity.surface.name])
+        --we display the address of the contrary gate
+    end,
+
+    SetGlyphs = function(self)
+        for i, glyph in ipairs(self.glyphs) do
+            glyph.animation_offset = charLookup[self.address[i]]
+        end
+    end,
+
+    ResetGlyphs = function(self)
+        for _, glyph in pairs(self.glyphs) do
+            glyph.animation_offset = 0
+        end
+        self.address = {}
+        self.addressLetters = {}
+    end,
+
+
+    GetAddress = function(self)
+        return table.concat(self.address)
+    end,
+
+	Connect = function(self, dhdSurface)
+        --if string exists, then connect, otherwise empty table and make fail sound
+        local selfAddress = self:GetAddress()
+        local result = false
+        local surface
+        for s, address in pairs(storage.addresses) do
+            if selfAddress == address.."poo_"..(poo[dhdSurface] or "") then
+                surface = s
+                result = true
+            end
+        end
+
+        local gate = findRandomGateOnSurface(surface)
+        if gate == nil then result = false end
+        if dhdSurface == surface then result = false end --cant connect to same surface
+        if storage.stargate[surface] == nil then result = false end --no gates on that surface
+        --i have decided to allow multiple gate connections between surf a and b because it is canon
+
+        if result == true then
+            self.stargate:Connect(findRandomGateOnSurface(surface))
+        else
+            if self.stargate then
+                if self.stargate.destination == nil then
+                    if self.stargate.chevrons.valid then
+                        self.stargate.chevrons.animation_offset = 0
+                    end
+                end
+                util.playSoundOnSurface(self.entity.surface, self.stargate.pos, "kj_stargate_fail")
+            else
+                util.playSoundOnSurface(self.entity.surface, self.pos, "kj_stargate_fail")
+            end
+            self:ResetGlyphs()
+            self:CloseGUIs()
+        end
+	end,
+
+    Disconnect = function(self)
+        self.stargate:Disconnect()
+    end,
+
+    TrackIdling = function(self)
+        storage.tasks.busyDhds[self.id] = {tick = game.tick + 20*60, dhd = self}
+    end,
+
+    OpenedGUI = function(self, glyphTableUI)
+        self.openedUIs = self.openedUIs or {}
+        table.insert(self.openedUIs, glyphTableUI)
+    end,
+
+    CloseGUIs = function(self)
+        if self.openedUIs == nil then return end
+        for _, GUI in ipairs(self.openedUIs) do
+            if GUI.valid then
+                GUI.parent.parent.parent.parent.parent.destroy()
+            end
+        end
+    end,
+
+    Reset = function(self)
+        self.entity.minable_flag = true
+        self:SetButtonLight(false)
+        self:CloseGUIs()
+        if self.address then
+            self:ResetGlyphs()
+        end
+    end,
+}
+
+function deactivateGate(gate, override)
+    if gate.dhd then
+        gate.dhd:Reset()
+    end
+    gate.chevrons.animation_offset = 0
+    gate.childs.soundEnt.destroy()
+    if gate.animation then
+        gate.animation.destroy()
+    end
+    gate.entity.minable_flag = true
+    gate.active = false
+    if not gate.manual then
+        gate.entity.electric_buffer_size = 10^9
+    end
+    if override then
+        gate.safeToTravel = false
+        gate.destination = nil
+        storage.tasks.eventHorizons[gate.id] = nil
+    else
+        util.playSoundOnSurface(gate.entity.surface, gate.pos, "kj_stargate_close")
+        gate.childs.eHShort = gate.entity.surface.create_entity {
+            name = "kj_stargate_eventHorizon_short",
+            position = util.vector2Add(gate.pos, {x = 0, y = (gate.manual and 0.5 or 0.45)}),
+        }
+        gate.childs.wooshBckw = gate.entity.surface.create_entity {
+            name = "kj_stargate_eventHorizon_woosh_backward",
+            position = util.vector2Add(gate.pos, {x = 0, y = (gate.manual and 0.5 or 0.45)}),
+        }
+
+        --check for already existing turnoffs, so it doesn't get edged to eternity in case of an error
+        local tick = game.tick
+        if storage.tasks.delayedTurnOffs[gate.id] == nil then
+            tick = tick + 105
+        else
+            tick = math.min(tick + 105, storage.tasks.delayedTurnOffs[gate.id].tick)
+        end
+        storage.tasks.delayedTurnOffs[gate.id] = {tick = tick, gate = gate}
+    end
+end
+
+function activateGate(gate)
+    if gate.dhd then
+        gate.dhd.entity.minable_flag = false
+        gate.dhd:SetButtonLight(true)
+        gate.dhd:CloseGUIs()
+        if storage.tasks.busyDhds and storage.tasks.busyDhds[gate.dhd.id] then
+            storage.tasks.busyDhds[gate.dhd.id] = nil
+        end
+    end
+    gate.active = true
+    gate.childs.soundEnt = gate.entity.surface.create_entity{
+        name = sgNames.sound,
+        position = gate.pos,
+    }
+    gate.childs.soundEnt.destructible = false
+    gate.entity.minable_flag = false
+    gate.chevrons.animation_offset = 7
+
+    storage.tasks.eventHorizons[gate.id] = {tick = game.tick + 1.5*60-5, gate = gate}
+
+    util.playSoundOnSurface(gate.entity.surface, gate.pos, "kj_stargate_open")
+
+    gate.childs.eHwoosh = gate.entity.surface.create_entity {
+        name = "kj_stargate_eventHorizon_woosh",
+        position = util.vector2Add(gate.pos, {x = 0, y = (gate.manual and 0.5 or 0.45)}),
+    }
+    if not gate.childs.iris or (gate.childs.iris and gate.childs.iris.power_switch_state == false) then
+        gate.childs.woosh = gate.entity.surface.create_entity {
+            name = "kj_stargate_woosh",
+            position = util.vector2Add(gate.pos, {x = 0, y = entOffY.w}),
+        }
+        gate.childs.wooshGlow = gate.entity.surface.create_entity {
+            name = "kj_stargate_woosh_glow"..(gate.manual and "" or "_s"),
+            position = util.vector2Add(gate.pos, {x = 0, y = entOffY.wg}),
+        }
+    end
+end
+
+function findRandomGateOnSurface(surface)
+    local gates = {}
+    if not storage.stargate[surface] then return nil end
+    for _, gate in pairs(storage.stargate[surface]) do
+        if gate.active == false then
+            table.insert(gates, gate)
+        end
+    end
+
+    if #gates ~= 0 then
+        return gates[math.random(#gates)]
+    else
+        return nil
+    end
+end
+
+function addAddressToGlobal(surface, address)
+    if surface.platform ~= nil then return end
+    storage.addresses[surface.name] = storage.addresses[surface.name] or address
+end
+
+function checkForAddressInGlobal(add)
+    for _, address in pairs(storage.addresses) do
+        if address == add then
+            return true
+        end
+    end
+
+    return false
+end
+
+function generateAddress(surface)
+    --setting up rng
+    local mapSeed = surface.map_gen_settings.seed
+    local hash, resultString = "", ""
+    local generator
+    local result, used = {}, {}
+
+    repeat
+        hash = util.hashFnv1a(mapSeed..surface.name..hash)
+        generator = game.create_random_generator(hash)
+        game.print(surface.name.. " - Game Seed: "..mapSeed.." - Custom Seed: "..hash)
+
+        for i = 1, 6 do
+            local char
+            repeat
+                local index = generator(1, #chevronChars)
+                char = chevronChars[index]
+            until not used[char]
+
+            result[i] = char
+            used[char] = true
+        end
+        resultString = table.concat(result)
+    until checkForAddressInGlobal(resultString) == false
+
+    game.print("Address: "..resultString..util.getSignalFromChar(resultString, true))
+    return resultString
+end
+
+function findFreeTeleportArea(gate, name, pos)
+    local teleportSpaces = {
+        {
+            {{0, 0}, {0, 0}},
+            {{-2, -0.5}, {2, 1}},
+            {{-1, 1}, {1, 3}},
+            {{-4, 1}, {4, 3}},
+            3
+        },
+        {
+            {{0, 0}, {0, 0}},
+            {{-1, -0.5}, {1, 1}},
+            {{-1, 1}, {1, 5}},
+            {{-5, 0}, {5, 6}},
+            4
+        },
+    }
+    local type = 1
+    local surface = gate.entity.surface
+    if not gate.manual then
+        type = 2
+    end
+    local teleportPosition
+    local i = 0
+
+    repeat
+        i = i + 1
+        teleportPosition = surface.find_non_colliding_position_in_box(name,
+            {util.vector2Add(pos, teleportSpaces[type][i][1]), util.vector2Add(pos, teleportSpaces[type][i][2])}, 0.01)
+    until teleportPosition ~= nil or i == 4
+
+    if teleportPosition == nil then
+        teleportPosition = surface.find_non_colliding_position(name, util.vector2Add(pos, {0, teleportSpaces[type][5]}), teleportSpaces[type][5] + 0.5, 0.01)
+    end
+    if teleportPosition == nil then
+        teleportPosition = pos
+    end
+
+    return teleportPosition
+end
+
+function gateTransit(gate, player, vehicle)
+    local pos = util.vector2Add(gate.pos, {x = 0, y = entOffY.sg})
+    local surface = gate.entity.surface
+    util.playSoundOnSurface(player.surface, player.position, "kj_stargate_enter")
+
+    if gate.childs.iris ~= nil and gate.childs.iris.power_switch_state == true then
+        player.character.die("neutral", gate.childs.iris)
+        if vehicle ~= nil then vehicle.die("neutral", gate.childs.iris) end
+
+        util.playSoundOnSurface(gate.entity.surface, gate.pos, util.randomSound("kj_stargate_iris_hit_", 3))
+    else
+        player.teleport(
+            findFreeTeleportArea(gate, player.character.name, pos),
+            surface
+        )
+        player.opened = nil
+
+        if vehicle ~= nil and vehicle.name ~= "kj_stargate_ring" then
+            local speed = vehicle.speed
+            local collBox = vehicle.prototype.collision_box
+            local extraDistance = (math.abs(collBox.left_top.y) + math.abs(collBox.right_bottom.y)) / 2
+            vehicle.teleport(
+                findFreeTeleportArea(gate, vehicle.name, util.vector2Add(pos, {x = 0, y = extraDistance + 0.25})),
+                surface
+            )
+            --flip car in certain value ranges
+            vehicle.orientation = (vehicle.orientation < 0.25 or vehicle.orientation > 0.75) and 0.5 or 0
+            vehicle.speed = speed
+            vehicle.set_driver(player)
+
+            --local modus = (vehicle.orientation == 0) and defines.riding.acceleration.reversing or defines.riding.acceleration.accelerating
+            player.riding_state = {acceleration = defines.riding.acceleration.nothing, direction = defines.riding.direction.straight}
+
+            local duration = math.max(1, (1 / math.abs(speed)))
+            table.insert(storage.tasks.vehicles, {tick = game.tick + duration, vehicle = vehicle})
+
+            storage.ignoredVehicles[vehicle.unit_number] = game.tick + 10
+        else
+            local duration = math.max(5, (1 / player.character_running_speed) * 2.25)
+            table.insert(storage.tasks.players, {tick = game.tick + duration, player = player})
+        end
+
+        table.insert(storage.tasks.delayedSounds, {
+            tick = game.tick + 5,
+            surface = surface,
+            position = gate.pos,
+            sound = "kj_stargate_enter"
+        })
+    end
+
+    local activeGate = storage.tasks.activeGates[gate.id]
+    if activeGate then
+        activeGate.tick = math.min(activeGate.tick + 3 * 60, activeGate.maxTick)
+    end
+end
