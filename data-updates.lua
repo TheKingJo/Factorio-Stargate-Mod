@@ -40,3 +40,6 @@ for _, dmgType in pairs(data.raw["damage-type"]) do
     })
     ::continue::
 end
+
+data.raw["ammo-turret"]["gun-turret"].attack_parameters.range = 6
+data.raw["unit"]["enemy_erm_redarmy--human-miner--4"].max_health = 300

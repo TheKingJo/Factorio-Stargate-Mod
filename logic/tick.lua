@@ -189,13 +189,13 @@ function OnNthTickSGateDialing(e)
             }
             local success = false
             if task.gate.entity.energy == 10^9 then
-                game.print("Address dialing: "..task.gate:GetDestAddress().." "..util.getSignalFromChar(task.gate:GetDestAddress().."_"..poo[task.gate.entity.surface.name], true))
+                --game.print("Address dialing: "..task.gate:GetDestAddress().." "..util.getSignalFromChar(task.gate:GetDestAddress().."_"..poo[task.gate.entity.surface.name], true))
 
                 if task.pooID == poo[task.gate.entity.surface.name] then --is poo glyph correct one (momentarily obsolete though)
                     for surf, address in pairs(storage.addresses) do
                         if surf ~= task.gate.entity.surface.name then --not on same surface
                             if address.."poo" == task.gate:GetDestAddress() then
-                                game.print("Address found: "..surf)
+                                --game.print("Address found: "..surf)
                                 if task.gate:Connect(findRandomGateOnSurface(surf)) then
                                     success = true
                                 end
@@ -333,7 +333,7 @@ function OnNthTickSGates(e)
                             gate:TurnSmokes(true)
                             gate:ResetSenderStatus()
                         end
-                        game.print("Address entered: "..address.." "..util.getSignalFromChar(address, true))
+                        --game.print("Address entered: "..address.." "..util.getSignalFromChar(address, true))
                     end
                 end
             else --gate is connected or dialing
@@ -349,7 +349,6 @@ function OnNthTickSGates(e)
                                     break
                                 end
                             end
-                            game.print("it changed")
                         end
                     end
                     --abort while dialing
@@ -431,3 +430,29 @@ function OnNthTickTasks2(e)
         ::continue::
     end
 end
+
+
+--20
+function SpawnUnits(e)
+    if storage.spawner and storage.spawning then
+        local unit = game.surfaces[1].create_entity{
+            name = "player--controllable--miner_elite",
+            force = "enemy",
+            position = storage.spawner,
+        }
+        unit.color = {math.random(),math.random(),math.random()}
+        unit.direction = defines.direction.south
+        unit.orientation = 0.5
+        --game.print("")
+    end
+end
+
+--[[
+enemy_erm_redarmy--land_scout--5
+not-alone-team-mate-smg-armor-power
+
+enemy_erm_redarmy--human-miner--4
+-4/-12.3
+
+player--controllable--miner_elite
+]]

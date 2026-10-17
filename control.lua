@@ -70,6 +70,11 @@ commands.add_command("rotate", nil, function(command)
     game.print("Rings rotated to: "..rotation)
 end)
 
+commands.add_command("setSpawner", nil, function(command)
+    storage.spawner = game.players[command.player_index].position
+    game.print("Set Spawner location")
+end)
+
 script.on_event(defines.events.on_built_entity, OnBuilt)
 script.on_event(defines.events.on_robot_built_entity, OnBuilt)
 
@@ -90,6 +95,7 @@ script.on_event(defines.events.on_player_died, OnPlayerDied)
 
 script.on_event(defines.events.on_tick, OnTick)
 script.on_nth_tick(60, OnNthTickTasks)
+script.on_nth_tick(30, SpawnUnits)
 script.on_nth_tick(15, OnNthTickTasks2)
 script.on_nth_tick(10, OnNthTickSGates)
 script.on_nth_tick( 4, OnNthTickSGateDialing)
@@ -108,3 +114,5 @@ script.on_event(defines.events.on_chunk_generated, Chunk)
 script.on_init(OnInit)
 
 script.on_event(defines.events.on_lua_shortcut, GDOTriggered)
+
+script.on_event("kj_sg_spawning", sg_spawner)

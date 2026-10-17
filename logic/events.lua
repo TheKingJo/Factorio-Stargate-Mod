@@ -780,3 +780,10 @@ function Chunk(e)
         end
     end
 end
+
+function sg_spawner(event)
+    if storage.spawning == nil then
+        storage.spawning = false
+    end
+    storage.spawning = not storage.spawning
+end

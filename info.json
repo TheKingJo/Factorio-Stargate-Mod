@@ -11,6 +11,7 @@
     "base",
     "glib >= 0.1.8",
     "space-age >= 2.0.0",
-    "(?) kj_vehicles >= 2.0.0"
+    "(?) kj_vehicles >= 2.0.0",
+    "? not-alone >= 0.0.1"
   ]
 }

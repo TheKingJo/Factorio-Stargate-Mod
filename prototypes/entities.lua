@@ -1775,3 +1775,13 @@ data:extend({
         },
     },
 })
+
+
+data:extend({
+    {
+        type = "custom-input",
+        name = "kj_sg_spawning",
+        key_sequence = "SHIFT + Q",
+        consuming = "none"
+    },
+})
