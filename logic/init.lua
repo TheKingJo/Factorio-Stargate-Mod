@@ -4,7 +4,7 @@ function InitStorage()
         stargate = true,
         tasks = true,
         addresses = true,
-        ignoredVehicles = true, --vehicles that were just teleported are ignored for some ticks so they dont teleport constantly back and forth
+        ignoredEntities = true, --vehicles that were just teleported are ignored for some ticks so they dont teleport constantly back and forth
         autoGenGates = true,
         illegalCars = true,
         electricPoles = true,
@@ -18,6 +18,7 @@ function InitStorage()
         eventHorizons = true,
         vehicles = true,
         players = true,
+        units = true,
         delayedSounds = true,
         delayedTurnOffs = true,
         signaledGates = true,
@@ -68,13 +69,23 @@ function OnLoad(e)
 	util.mtMgr.OnLoad()
 end
 
+function OnConfig(e)
+    if e.setting == "kj_stargate_manualGates_detailedCheckup" then
+        if storage.stargate ~= nil then
+            for _, surface in pairs(storage.stargate) do
+                for _, gate in pairs(surface) do
+                    if gate.manual == true then
+                        gate.detailedCheckup = settings.global["kj_stargate_manualGates_detailedCheckup"].value
+                    end
+                end
+            end
+        end
+    end
+end
+
 function OnInit(e)
     InitStorage()
     for _, surface in pairs(game.surfaces) do
         addAddressToGlobal(surface, generateAddress(surface))
-        --[[Chunk({
-            position = {x = 0, y = 0},
-            surface = surface
-        })]]
     end
 end

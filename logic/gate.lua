@@ -504,24 +504,31 @@ end
 function gateTransit(gate, player, vehicle)
     local pos = util.vector2Add(gate.pos, {x = 0, y = entOffY.sg})
     local surface = gate.entity.surface
-    util.playSoundOnSurface(player.surface, player.position, "kj_stargate_enter")
+    if not player then
+        util.playSoundOnSurface(vehicle.surface, vehicle.position, util.randomSound("kj_stargate_enter-", 3))
+    else
+        util.playSoundOnSurface(player.surface, player.position, util.randomSound("kj_stargate_enter-", 3))
+    end
 
     if gate.childs.iris ~= nil and gate.childs.iris.power_switch_state == true then
-        player.character.die("neutral", gate.childs.iris)
+        if player ~= nil then player.character.die("neutral", gate.childs.iris) end
         if vehicle ~= nil then vehicle.die("neutral", gate.childs.iris) end
 
         util.playSoundOnSurface(gate.entity.surface, gate.pos, util.randomSound("kj_stargate_iris_hit_", 3))
     else
-        player.teleport(
-            findFreeTeleportArea(gate, player.character.name, pos),
-            surface
-        )
-        player.opened = nil
+        if player ~= nil then
+            player.teleport(
+                findFreeTeleportArea(gate, player.character.name, pos),
+                surface
+            )
+            player.opened = nil
+        end
 
         if vehicle ~= nil and vehicle.name ~= "kj_stargate_ring" then
             local speed = vehicle.speed
             local collBox = vehicle.prototype.collision_box
             local extraDistance = (math.abs(collBox.left_top.y) + math.abs(collBox.right_bottom.y)) / 2
+
             vehicle.teleport(
                 findFreeTeleportArea(gate, vehicle.name, util.vector2Add(pos, {x = 0, y = extraDistance + 0.25})),
                 surface
@@ -529,15 +536,15 @@ function gateTransit(gate, player, vehicle)
             --flip car in certain value ranges
             vehicle.orientation = (vehicle.orientation < 0.25 or vehicle.orientation > 0.75) and 0.5 or 0
             vehicle.speed = speed
-            vehicle.set_driver(player)
-
-            --local modus = (vehicle.orientation == 0) and defines.riding.acceleration.reversing or defines.riding.acceleration.accelerating
-            player.riding_state = {acceleration = defines.riding.acceleration.nothing, direction = defines.riding.direction.straight}
+            if player ~= nil then
+                vehicle.set_driver(player)
+                player.riding_state = {acceleration = defines.riding.acceleration.nothing, direction = defines.riding.direction.straight}
+            end
 
             local duration = math.max(1, (1 / math.abs(speed)))
             table.insert(storage.tasks.vehicles, {tick = game.tick + duration, vehicle = vehicle})
 
-            storage.ignoredVehicles[vehicle.unit_number] = game.tick + 10
+            storage.ignoredEntities[vehicle.unit_number] = game.tick + 10
         else
             local duration = math.max(5, (1 / player.character_running_speed) * 2.25)
             table.insert(storage.tasks.players, {tick = game.tick + duration, player = player})
@@ -547,8 +554,62 @@ function gateTransit(gate, player, vehicle)
             tick = game.tick + 5,
             surface = surface,
             position = gate.pos,
-            sound = "kj_stargate_enter"
+            sound = util.randomSound("kj_stargate_enter-", 3)
+
         })
+    end
+
+    local activeGate = storage.tasks.activeGates[gate.id]
+    if activeGate then
+        activeGate.tick = math.min(activeGate.tick + 3 * 60, activeGate.maxTick)
+    end
+end
+
+function gateTransitUnit(gate, unit)
+    local pos = util.vector2Add(gate.pos, {x = 0, y = entOffY.sg})
+    local surface = gate.entity.surface
+    util.playSoundOnSurface(unit.surface, unit.position, util.randomSound("kj_stargate_enter-", 3))
+
+    if gate.childs.iris ~= nil and gate.childs.iris.power_switch_state == true then
+        unit.die("neutral", gate.childs.iris)
+
+        util.playSoundOnSurface(gate.entity.surface, gate.pos, util.randomSound("kj_stargate_iris_hit_", 3))
+    else
+        --if unit.name no in a list of forbidden units then
+            local speed = unit.speed
+            local collBox = unit.prototype.collision_box
+            local extraDistance = (math.abs(collBox.left_top.y) + math.abs(collBox.right_bottom.y)) / 2
+            local position = findFreeTeleportArea(gate, unit.name, util.vector2Add(pos, {x = 0, y = extraDistance + 0.25}))
+
+            local newUnit = unit.clone({
+                position = position,
+                surface = surface,
+                force = unit.force,
+            })
+            --flip unit in certain value ranges
+            newUnit.orientation = (unit.orientation < 0.25 or unit.orientation > 0.75) and 0.5 or 0
+            newUnit.speed = speed
+            newUnit.health = unit.health
+
+            newUnit.commandable.set_command({
+                type = defines.command.go_to_location,
+                destination = util.vector2Add(position, {0, 4}),
+                distraction = defines.distraction.none,
+            })
+
+            storage.ignoredEntities = storage.ignoredEntities or {}
+            storage.ignoredEntities[newUnit.unit_number] = game.tick + 10
+
+            unit.destroy()
+
+            table.insert(storage.tasks.delayedSounds, {
+                tick = game.tick + 5,
+                surface = surface,
+                position = gate.pos,
+                sound = util.randomSound("kj_stargate_enter-", 3)
+
+            })
+        --end
     end
 
     local activeGate = storage.tasks.activeGates[gate.id]

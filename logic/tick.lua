@@ -10,7 +10,7 @@ function OnTick(e)
     local eventHorizons = storage.tasks.eventHorizons
     local delayedTurnOffs = storage.tasks.delayedTurnOffs
 
-    if players ~= nil then
+    if players ~= nil and #players > 0 then
         for i = #players, 1, -1 do
             local player = players[i]
             if game.tick < player.tick then
@@ -23,7 +23,7 @@ function OnTick(e)
             end
         end
     end
-    if vehicles ~= nil then
+    if vehicles ~= nil and #vehicles > 0 then
         for i = #vehicles, 1, -1 do
             local vehicle = vehicles[i]
             if vehicle.vehicle.valid then
@@ -39,6 +39,7 @@ function OnTick(e)
             end
         end
     end
+
     if sounds ~= nil then
         for i = #sounds, 1, -1 do
             local sound = sounds[i]
@@ -96,15 +97,15 @@ end
 function OnNthTickPlayer(e)
     if not storage.stargate then return end
     for _, player in pairs(game.players) do
-        if not storage.stargate[player.surface.name] then return end
+        if not storage.stargate[player.surface.name] then goto continuePlayer end
 
         for gID, gate in pairs(storage.stargate[player.surface.name]) do
-            if gate.valid == true and gate.entity and gate.entity.valid then
-                if gate.safeToTravel == true and gate.destination then
+            if gate.safeToTravel == true and gate.destination then
+                if gate.valid == true and gate.entity and gate.entity.valid then
                     if not gate.childs.iris or (gate.childs.iris and gate.childs.iris.power_switch_state == false) then
                         local vehicle = player.physical_vehicle
-                        if (vehicle and vehicle.prototype.type == "spider-vehicle") then return end
-                        if util.getDistance(player.physical_position, gate.childs.tpArea.position) > 13 then goto continue end
+                        if (vehicle and vehicle.prototype.type == "spider-vehicle") then goto continueGate end
+                        if util.getDistance(player.physical_position, gate.childs.tpArea.position) > 13 then goto continueGate end
 
                         if vehicle == nil then --player not in vehicle
                             if player.character and util.boundingBoxesCollision(player.character.bounding_box, gate.childs.tpArea.bounding_box) then
@@ -112,22 +113,58 @@ function OnNthTickPlayer(e)
                                 gateTransit(gate.destination, player, vehicle)
                             end
                         else --player in vehicle
-                            if storage.illegalCars[vehicle.name] then return end
-                            local iV = storage.ignoredVehicles and storage.ignoredVehicles[vehicle.unit_number]
-                            if not iV or (iV and iV < game.tick) then
+                            if storage.illegalCars[vehicle.name] then goto continueGate end
+                            local iE = storage.ignoredEntities and storage.ignoredEntities[vehicle.unit_number]
+                            if not iE or (iE and iE < game.tick) then
                                 if util.rotatedBoxInsideBoundingBox(vehicle.bounding_box, vehicle.orientation, gate.childs.tpArea.bounding_box) == true then
 
                                     gateTransit(gate.destination, player, vehicle)
-                                    iV = nil
+                                    iE = nil
                                 end
                             end
                         end
                     end
+                else
+                    storage.stargate[player.surface.name][gID] = nil
                 end
-            else
-                storage.stargate[player.surface.name][gID] = nil
             end
-            ::continue::
+            ::continueGate::
+        end
+        ::continuePlayer::
+    end
+    for sName, surface in pairs(storage.stargate) do
+        for gID, gate in pairs(surface) do
+            if gate.detailedCheckup == true and gate.valid == true and gate.entity and gate.entity.valid and gate.safeToTravel == true and gate.destination then
+                if not gate.childs.iris or (gate.childs.iris and gate.childs.iris.power_switch_state == false) then
+                    --search near area for cars, units, robots?
+                    local cars = game.surfaces[sName].find_entities_filtered({position = gate.pos, radius = 5, type = "car"})
+                    local units = game.surfaces[sName].find_entities_filtered({position = gate.pos, radius = 5, type = "unit"})
+                    --local robots = game.surfaces[sName].find_entities_filtered{position = gate.pos, radius = 10, type = "robot"}
+
+                    for _, car in pairs(cars) do
+                        if storage.illegalCars[car.name] or car.name == "kj_stargate_ring" then goto continue end
+                            local iE = storage.ignoredEntities and storage.ignoredEntities[car.unit_number]
+                            if not iE or (iE and iE < game.tick) then
+                                if util.rotatedBoxInsideBoundingBox(car.bounding_box, car.orientation, gate.childs.tpArea.bounding_box) == true then
+
+                                    gateTransit(gate.destination, nil, car)
+                                    iE = nil
+                                end
+                            end
+                        ::continue::
+                    end
+                    for _, unit in pairs(units) do
+                        local iE = storage.ignoredEntities and storage.ignoredEntities[unit.unit_number]
+                        if not iE or (iE and iE < game.tick) then
+                            if util.rotatedBoxInsideBoundingBox(unit.bounding_box, unit.orientation, gate.childs.tpArea.bounding_box) == true then
+
+                                gateTransitUnit(gate.destination, unit)
+                                iE = nil
+                            end
+                        end
+                    end
+                end
+            end
         end
     end
 end
@@ -293,6 +330,13 @@ function OnNthTickSGates(e)
                                         break
                                     end
                                 end
+                                if signal.signal.name == "signal-speed" then
+                                    if signal.count == 1 then
+                                        gate.detailedCheckup = true
+                                    else
+                                        gate.detailedCheckup = false
+                                    end
+                                end
                             end
                         end
 
@@ -364,7 +408,19 @@ function OnNthTickSGates(e)
                     if gate.sAnim2 then gate.sAnim2.destroy() end
                     util.playSoundOnSurface(gate.entity.surface, gate.pos, "kj_stargate_s_fail")
                 end
-                --either address is false or abort signal was there
+
+                --either address is false or signals changed
+                if receiver.get_signals_changed(1, game.tick - 10) == true then
+                    signal = receiver.get_signal({type = "virtual", name = "signal-speed"}, 1)
+                    if signal then
+                        if signal == 1 then
+                            gate.detailedCheckup = true
+                        else
+                            gate.detailedCheckup = false
+                        end
+                    end
+                end
+
                 if success == false or receiver.get_signal({type = "virtual", name = "kj_sg_glyph_connect"}, 1) == -1 then
                     gate.childs.ringSound.power_switch_state = false
                     gate.entity.minable_flag = true
@@ -429,5 +485,18 @@ function OnNthTickTasks2(e)
             player_index = GUI.player_index,
         }, true)
         ::continue::
+    end
+end
+
+--30*60
+--for cleanup
+---ignoredEntities can stack endlessly otherwise
+function OnNthTickCleanup(e)
+    if not storage.ignoredEntities then return end
+
+    for iD, entity in pairs(storage.ignoredEntities) do
+        if entity < game.tick + 10 then
+            storage.ignoredEntities[iD] = nil
+        end
     end
 end

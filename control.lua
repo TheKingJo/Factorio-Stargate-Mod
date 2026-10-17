@@ -38,7 +38,7 @@ end)
 commands.add_command("instantDial", nil, function(command)
     local state = strToBool[command.parameter]
     if state == nil then
-        state = false
+        state = not storage.instantDial
     end
     storage.instantDial = state
     game.print("Instant Dialing: "..tostring(state))
@@ -47,7 +47,7 @@ end)
 commands.add_command("infCon", nil, function(command)
     local state = strToBool[command.parameter]
     if state == nil then
-        state = false
+        state = storage.instantDial
     end
     storage.infCon = state
     game.print("Infinite connections: "..tostring(state))
@@ -70,12 +70,12 @@ commands.add_command("rotate", nil, function(command)
     game.print("Rings rotated to: "..rotation)
 end)
 
-script.on_event(defines.events.on_built_entity, OnBuilt)
-script.on_event(defines.events.on_robot_built_entity, OnBuilt)
-
-
 script.on_load(OnLoad)
 script.on_configuration_changed(InitStorage)
+script.on_event(defines.events.on_runtime_mod_setting_changed, OnConfig)
+
+script.on_event(defines.events.on_built_entity, OnBuilt)
+script.on_event(defines.events.on_robot_built_entity, OnBuilt)
 
 script.on_event(defines.events.on_player_mined_entity, OnRemoved)
 script.on_event(defines.events.on_robot_mined_entity, OnRemoved)
@@ -89,6 +89,7 @@ script.on_event(defines.events.on_player_changed_position, OnPlayerChangedPos)
 script.on_event(defines.events.on_player_died, OnPlayerDied)
 
 script.on_event(defines.events.on_tick, OnTick)
+script.on_nth_tick(30*60, OnNthTickCleanup)
 script.on_nth_tick(60, OnNthTickTasks)
 script.on_nth_tick(15, OnNthTickTasks2)
 script.on_nth_tick(10, OnNthTickSGates)

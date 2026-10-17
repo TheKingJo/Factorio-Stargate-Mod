@@ -390,6 +390,7 @@ function OnBuilt(e)
             destination = nil,
             chevrons = chevrons,
             safeToTravel = false,
+            detailedCheckup = false,
         }
         local obj = util.addToGlobal("stargate", entity, content, true)
         if iris == true then
@@ -520,6 +521,7 @@ function OnBuilt(e)
             destination = nil,
             chevrons = chevrons,
             safeToTravel = false,
+            detailedCheckup = true,
         }
         util.addToGlobal("stargate", entity, content)
 

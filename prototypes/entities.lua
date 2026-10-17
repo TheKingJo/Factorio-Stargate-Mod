@@ -451,7 +451,7 @@ data:extend({
                     size = 832,
                     shift = {0, -0.5},
                     scale = 0.5,
-                    filename = modname.."/graphics/s_gate.png",
+                    filename = modname.."/graphics/entities/stargate/s_gate.png",
                 },
                 {
                     size = 992,
@@ -505,7 +505,7 @@ data:extend({
                     size = 832,
                     shift = {0, -0.5},
                     scale = 0.5,
-                    filename = modname.."/graphics/s_gate.png",
+                    filename = modname.."/graphics/entities/stargate/s_gate.png",
                 },
                 {
                     size = 992,
@@ -654,7 +654,7 @@ data:extend({
                 size = 832,
                 shift = {0, 1.4},
                 scale = 0.5,
-                filename = modname.."/graphics/s_gate.png",
+                filename = modname.."/graphics/entities/stargate/s_gate.png",
             },
             {
                 size = 992,
