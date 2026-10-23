@@ -369,20 +369,34 @@ function deactivateGate(gate, override)
     if not gate.manual then
         gate:SetEnergy("high")
     end
+    storage.tasks.eventHorizons[gate.id] = nil
+
+    if gate.childs.eHwoosh then
+        gate.childs.eHwoosh.destroy()
+    end
+    if gate.childs.woosh then
+        gate.childs.woosh.destroy()
+    end
+    if gate.childs.wooshGlow then
+        gate.childs.wooshGlow.destroy()
+    end
+
     if override then
         gate.safeToTravel = false
         gate.destination = nil
-        storage.tasks.eventHorizons[gate.id] = nil
     else
         util.playSoundOnSurface(gate.entity.surface, gate.pos, "kj_stargate_close")
-        gate.childs.eHShort = gate.entity.surface.create_entity {
-            name = "kj_stargate_eventHorizon_short",
-            position = util.vector2Add(gate.pos, {x = 0, y = (gate.manual and 0.5 or 0.45)}),
-        }
-        gate.childs.wooshBckw = gate.entity.surface.create_entity {
-            name = "kj_stargate_eventHorizon_woosh_backward",
-            position = util.vector2Add(gate.pos, {x = 0, y = (gate.manual and 0.5 or 0.45)}),
-        }
+
+        if gate.safeToTravel == true then
+            gate.childs.eHShort = gate.entity.surface.create_entity {
+                name = "kj_stargate_eventHorizon_short",
+                position = util.vector2Add(gate.pos, {x = 0, y = (gate.manual and 0.5 or 0.45)}),
+            }
+            gate.childs.wooshBckw = gate.entity.surface.create_entity {
+                name = "kj_stargate_eventHorizon_woosh_backward",
+                position = util.vector2Add(gate.pos, {x = 0, y = (gate.manual and 0.5 or 0.45)}),
+            }
+        end
 
         --check for already existing turnoffs, so it doesn't get edged to eternity in case of an error
         local tick = game.tick

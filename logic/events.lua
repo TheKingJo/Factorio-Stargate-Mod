@@ -573,10 +573,11 @@ function OnRemoved(e)
         end
 
         if sg.childs.iris then
-            local player = game.get_player(e.player_index)
+            --[[local player = game.get_player(e.player_index)
             if player and player.valid then
                 player.insert({name = sgNames.iris, count = 1})
-            end
+            end]]
+            --TODO place iris item on the ground IF gate is not being fully destroyed by damage
         end
         util.removeFromGlobal("stargate", ent)
 
