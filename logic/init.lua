@@ -81,6 +81,17 @@ function OnConfig(e)
             end
         end
     end
+    if e.setting == "kj_stargate_twoWayTravel" then
+        if storage.stargate ~= nil then
+            for _, surface in pairs(storage.stargate) do
+                for _, gate in pairs(surface) do
+                    if settings.global["kj_stargate_twoWayTravel"].value == true then
+                        gate.travelDirection = "sender"
+                    end
+                end
+            end
+        end
+    end
 end
 
 function OnInit(e)

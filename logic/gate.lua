@@ -18,14 +18,25 @@ stargate = {
                 otherGate:Reset()
                 storage.tasks.signaledGates[otherGate.id] = nil
             end
-            activateGate(thisGate)
-            activateGate(otherGate)
+            activateGate(thisGate, true)
+            activateGate(otherGate, false)
             thisGate.destination = otherGate
             otherGate.destination = thisGate
 
+            if settings.global["kj_stargate_twoWayTravel"].value == true then
+                otherGate:SetSignalSenderStatus(true)
+                local address = util.stringToArray(storage.addresses[thisGate.entity.surface.name])
+                table.insert(address, "poo")
+                otherGate:RefreshRecentAddressesInSender(address)
+            end
+
             if otherGate.dhd then
-                otherGate.dhd:FetchAddress(thisGate)
-                otherGate.dhd:SetGlyphs()
+                if settings.global["kj_stargate_twoWayTravel"].value == true then
+                    otherGate.dhd:FetchAddress(thisGate)
+                    otherGate.dhd:SetGlyphs()
+                    otherGate.dhd:SetButtonLight(true)
+                    otherGate.dhd.entity.minable_flag = false
+                end
             end
 
             storage.tasks.activeGates[thisGate.id] = {tick = game.tick + 20*60, maxTick = game.tick + 60*60, stargate = thisGate}
@@ -39,6 +50,8 @@ stargate = {
         if dest then
             deactivateGate(self, override)
             deactivateGate(dest, override)
+
+            dest:SetSignalSenderStatus()
 
             storage.tasks.activeGates[self.id] = nil
         end
@@ -105,9 +118,10 @@ stargate = {
         end
     end,
 
-    RefreshRecentAddressesInSender = function(self)
+    RefreshRecentAddressesInSender = function(self, addressOverride)
+        if not self.childs.signalSender then return end
         local ssControl = self.childs.signalSender.get_control_behavior()
-        table.insert(self.recentAddresses, 1, self.destAddress)
+        table.insert(self.recentAddresses, 1, addressOverride or self.destAddress)
 
         if #self.recentAddresses > 5 then
             for i = 6, #self.recentAddresses do
@@ -152,8 +166,8 @@ stargate = {
         end
     end,
 
-    ResetSenderStatus = function(self)
-        self:SetSenderStatus()
+    ReSetSignalSenderStatus = function(self)
+        self:SetSignalSenderStatus()
     end,
 
     SetEnergyStatus = function(self)
@@ -169,7 +183,8 @@ stargate = {
         })
     end,
 
-    SetSenderStatus = function(self, status)
+    SetSignalSenderStatus = function(self, status)
+        if not self.childs.signalSender then return end
         local ssControl = self.childs.signalSender.get_control_behavior()
         local value = 0
 
@@ -196,6 +211,25 @@ stargate = {
             end
         end
     end,
+
+    SetEnergy = function(self, state)
+        if state == "high" then
+           self.entity.electric_buffer_size = 10^9
+        elseif state == "Low" then
+            self.entity.electric_buffer_size = 10^7
+        end
+    end,
+
+    CheckEnergy = function(self, state)
+        if state == "high" then
+           --return self.entity.energy == 10^9 --TODO take this one
+           return self.entity.energy >= 0
+        elseif state == "low" then
+           return self.entity.energy >= 10^7
+        elseif state == "too low" then
+            return self.entity.energy < 10^7
+        end
+    end,
 }
 
 dhd = {
@@ -209,7 +243,7 @@ dhd = {
             render_layer = "object",
         }
         util.playSoundOnSurface(self.entity.surface, self.pos, "kj_stargate_dhd_connect", 1)
-        if self.stargate.destination and self.stargate.active then
+        if self.stargate.destination and self.stargate.active and self.stargate.travelDirection == "sender" then
             self:SetButtonLight(true)
             self:FetchAddress(self.stargate.destination)
             self:SetGlyphs()
@@ -248,7 +282,6 @@ dhd = {
         self.address = {}
         self.addressLetters = {}
     end,
-
 
     GetAddress = function(self)
         return table.concat(self.address)
@@ -334,7 +367,7 @@ function deactivateGate(gate, override)
     gate.entity.minable_flag = true
     gate.active = false
     if not gate.manual then
-        gate.entity.electric_buffer_size = 10^9
+        gate:SetEnergy("high")
     end
     if override then
         gate.safeToTravel = false
@@ -362,13 +395,18 @@ function deactivateGate(gate, override)
     end
 end
 
-function activateGate(gate)
+function activateGate(gate, pov)
     if gate.dhd then
-        gate.dhd.entity.minable_flag = false
-        gate.dhd:SetButtonLight(true)
         gate.dhd:CloseGUIs()
         if storage.tasks.busyDhds and storage.tasks.busyDhds[gate.dhd.id] then
             storage.tasks.busyDhds[gate.dhd.id] = nil
+        end
+    end
+    if pov ~= nil then
+        if pov == true or settings.global["kj_stargate_twoWayTravel"].value == true then
+            gate.travelDirection = "sender"
+        else
+            gate.travelDirection = "receiver"
         end
     end
     gate.active = true

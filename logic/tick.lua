@@ -85,6 +85,7 @@ function OnTick(e)
             if game.tick > dTO.tick then
                 dTO.gate.safeToTravel = false
                 dTO.gate.destination = nil
+                dTO.gate.travelDirection = ""
                 storage.tasks.delayedTurnOffs[id] = nil
             end
         end
@@ -110,7 +111,11 @@ function OnNthTickPlayer(e)
                         if vehicle == nil then --player not in vehicle
                             if player.character and util.boundingBoxesCollision(player.character.bounding_box, gate.childs.tpArea.bounding_box) then
 
-                                gateTransit(gate.destination, player, vehicle)
+                                if gate.travelDirection == "sender" then
+                                    gateTransit(gate.destination, player, vehicle)
+                                else
+                                    player.character.die("neutral", player.character)
+                                end
                             end
                         else --player in vehicle
                             if storage.illegalCars[vehicle.name] then goto continueGate end
@@ -118,7 +123,12 @@ function OnNthTickPlayer(e)
                             if not iE or (iE and iE < game.tick) then
                                 if util.rotatedBoxInsideBoundingBox(vehicle.bounding_box, vehicle.orientation, gate.childs.tpArea.bounding_box) == true then
 
-                                    gateTransit(gate.destination, player, vehicle)
+                                    if gate.travelDirection == "sender" then
+                                        gateTransit(gate.destination, player, vehicle)
+                                    else
+                                        player.character.die("neutral", player)
+                                        vehicle.character.die("neutral", player)
+                                    end
                                     iE = nil
                                 end
                             end
@@ -147,7 +157,11 @@ function OnNthTickPlayer(e)
                             if not iE or (iE and iE < game.tick) then
                                 if util.rotatedBoxInsideBoundingBox(car.bounding_box, car.orientation, gate.childs.tpArea.bounding_box) == true then
 
-                                    gateTransit(gate.destination, nil, car)
+                                    if gate.travelDirection == "sender" then
+                                        gateTransit(gate.destination, nil, car)
+                                    else
+                                        car.character.die("neutral", car)
+                                    end
                                     iE = nil
                                 end
                             end
@@ -158,7 +172,11 @@ function OnNthTickPlayer(e)
                         if not iE or (iE and iE < game.tick) then
                             if util.rotatedBoxInsideBoundingBox(unit.bounding_box, unit.orientation, gate.childs.tpArea.bounding_box) == true then
 
-                                gateTransitUnit(gate.destination, unit)
+                                if gate.travelDirection == "sender" then
+                                    gateTransitUnit(gate.destination, unit)
+                                else
+                                    unit.character.die("neutral", unit)
+                                end
                                 iE = nil
                             end
                         end
@@ -225,7 +243,7 @@ function OnNthTickSGateDialing(e)
                 direction = defines.riding.direction.straight,
             }
             local success = false
-            if task.gate.entity.energy == 10^9 then
+            if task.gate:CheckEnergy("high") then
                 game.print("Address dialing: "..task.gate:GetDestAddress().." "..util.getSignalFromChar(task.gate:GetDestAddress().."_"..poo[task.gate.entity.surface.name], true))
 
                 if task.pooID == poo[task.gate.entity.surface.name] then --is poo glyph correct one (momentarily obsolete though)
@@ -256,10 +274,10 @@ function OnNthTickSGateDialing(e)
             end
 
             if success == true then
-                task.gate:SetSenderStatus(true)
-                task.gate.entity.electric_buffer_size = 10^7
+                task.gate:SetSignalSenderStatus(true)
+                task.gate:SetEnergy("low")
             else
-                task.gate:SetSenderStatus(false)
+                task.gate:SetSignalSenderStatus(false)
                 task.gate.entity.minable_flag = true
                 task.gate.chevrons.animation_offset = 0
                 util.playSoundOnSurface(task.gate.entity.surface, task.gate.pos, "kj_stargate_fail")
@@ -289,7 +307,7 @@ function OnNthTickSGates(e)
 
             if gate.active == false and storage.tasks.signaledGates[gate.id] == nil then --gate is inactive and also not dialing
                 local signals = receiver.get_signals(1)
-                if gate.safeToTravel == false and signals ~= nil and game.tick > (gate.senderLastTick or 0) and gate.entity.energy >= 10^7 then
+                if gate.safeToTravel == false and signals ~= nil and game.tick > (gate.senderLastTick or 0) and gate:CheckEnergy("low") then
                     if receiver.get_signals_changed(1, game.tick - 10) == true then
                         local address, pooGlyphID = "", ""
                         local addressLetters = {}
@@ -375,7 +393,7 @@ function OnNthTickSGates(e)
                             gate.entity.minable_flag = false
                             storage.tasks.signaledGates[gate.id] = task
                             gate:TurnSmokes(true)
-                            gate:ResetSenderStatus()
+                            gate:ReSetSignalSenderStatus()
                         end
                         game.print("Address entered: "..address.." "..util.getSignalFromChar(address, true))
                     end
@@ -397,7 +415,7 @@ function OnNthTickSGates(e)
                         end
                     end
                     --abort while dialing
-                    if gate.entity.energy < 10^7 or receiver.get_signal({type = "virtual", name = "kj_sg_glyph_connect"}, 1) == -1 then
+                    if gate:CheckEnergy("too low") or receiver.get_signal({type = "virtual", name = "kj_sg_glyph_connect"}, 1) == -1 then
                         success = false
                     end
                 end

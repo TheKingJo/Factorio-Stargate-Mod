@@ -391,6 +391,7 @@ function OnBuilt(e)
             chevrons = chevrons,
             safeToTravel = false,
             detailedCheckup = false,
+            travelDirection = "",
         }
         local obj = util.addToGlobal("stargate", entity, content, true)
         if iris == true then
@@ -522,6 +523,7 @@ function OnBuilt(e)
             chevrons = chevrons,
             safeToTravel = false,
             detailedCheckup = true,
+            travelDirection = "",
         }
         util.addToGlobal("stargate", entity, content)
 
@@ -618,13 +620,15 @@ function GuiOpened(e)
         end
 
         if refs.glyphs then
-            local surface = e.entity.surface.name
+            local surface, state = e.entity.surface.name, false
             dhd:OpenedGUI(refs.glyphs)
             glib.add(refs.glyphs, sg_guis.dhd_letter("poo_"..poo[surface], surface, dhd.id, dhd.addressLetters["poo_"..poo[surface]]))
             for _, char in ipairs(chevronChars) do
                 glib.add(refs.glyphs, sg_guis.dhd_letter(char, surface, dhd.id, dhd.addressLetters[char]))
             end
-            glib.add(refs.glyphs, sg_guis.dhd_letter("connect", surface, dhd.id, dhd.stargate.active))
+
+            if dhd.stargate.travelDirection == "sender" and dhd.stargate.active == true then state = true end
+            glib.add(refs.glyphs, sg_guis.dhd_letter("connect", surface, dhd.id, state))
         end
 
         gui.force_auto_center()

@@ -11,6 +11,15 @@ local oppositeEntity = {
     stargate = "dhd",
 }
 
+function functions.stringToArray(str)
+    local t = {}
+    for i = 1, #str do
+        t[i] = str:sub(i, i)
+    end
+
+    return t
+end
+
 function functions.glyphFromOrientation(orientation)
     return ringChars[(math.floor((1 - orientation) * 39 + 0.5) % 39) + 1] or "poo"
 end

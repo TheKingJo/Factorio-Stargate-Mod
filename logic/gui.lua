@@ -259,7 +259,9 @@ function handlers.dhd_letter_click(event)
                     util.playSoundOnSurface(gate.entity.surface, gate.pos, "kj_stargate_dhdc")
                     dhd:Connect(dhdSurface)
                 else
-                    dhd:Disconnect()
+                    if gate.travelDirection == "sender" then
+                        dhd:Disconnect()
+                    end
                 end
             elseif gate.active == false and gate.safeToTravel == false then
                 if element.toggled == false then --clicked letter button
