@@ -61,20 +61,22 @@ function OnTick(e)
                     surface = eH.gate.entity.surface,
                     render_layer = "object",
                 }
-                eH.gate.childs.dmg1 = eH.gate.entity.surface.create_entity {
-                    name = "kj_stargate_woosh_dmg",
-                    position = effectPos1,
-                    force = "enemy",
-                    target = effectPos1,
-                    speed = 1,
-                }
-                eH.gate.childs.dmg2 = eH.gate.entity.surface.create_entity {
-                    name = "kj_stargate_woosh_dmg",
-                    position = effectPos2,
-                    force = "enemy",
-                    target = effectPos2,
-                    speed = 1,
-                }
+                if not eH.gate.childs.iris or (eH.gate.childs.iris and eH.gate.childs.iris.power_switch_state == false) then
+                    eH.gate.childs.dmg1 = eH.gate.entity.surface.create_entity {
+                        name = "kj_stargate_woosh_dmg",
+                        position = effectPos1,
+                        force = "enemy",
+                        target = effectPos1,
+                        speed = 1,
+                    }
+                    eH.gate.childs.dmg2 = eH.gate.entity.surface.create_entity {
+                        name = "kj_stargate_woosh_dmg",
+                        position = effectPos2,
+                        force = "enemy",
+                        target = effectPos2,
+                        speed = 1,
+                    }
+                end
                 eH.gate.safeToTravel = true
                 storage.tasks.eventHorizons[id] = nil
             end
@@ -126,8 +128,8 @@ function OnNthTickPlayer(e)
                                     if gate.travelDirection == "sender" then
                                         gateTransit(gate.destination, player, vehicle)
                                     else
-                                        player.character.die("neutral", player)
-                                        vehicle.character.die("neutral", player)
+                                        player.character.die("neutral", player.character)
+                                        vehicle.die("neutral", player.character)
                                     end
                                     iE = nil
                                 end
@@ -160,7 +162,7 @@ function OnNthTickPlayer(e)
                                     if gate.travelDirection == "sender" then
                                         gateTransit(gate.destination, nil, car)
                                     else
-                                        car.character.die("neutral", car)
+                                        car.die("neutral", car)
                                     end
                                     iE = nil
                                 end
@@ -175,7 +177,7 @@ function OnNthTickPlayer(e)
                                 if gate.travelDirection == "sender" then
                                     gateTransitUnit(gate.destination, unit)
                                 else
-                                    unit.character.die("neutral", unit)
+                                    unit.die("neutral", unit)
                                 end
                                 iE = nil
                             end
@@ -439,7 +441,7 @@ function OnNthTickSGates(e)
                     end
                 end
 
-                if success == false or receiver.get_signal({type = "virtual", name = "kj_sg_glyph_connect"}, 1) == -1 then
+                if success == false or (gate.travelDirection == "sender" and receiver.get_signal({type = "virtual", name = "kj_sg_glyph_connect"}, 1) == -1) then
                     gate.childs.ringSound.power_switch_state = false
                     gate.entity.minable_flag = true
 
