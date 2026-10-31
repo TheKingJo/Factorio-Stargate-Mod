@@ -214,20 +214,20 @@ stargate = {
 
     SetEnergy = function(self, state)
         if state == "high" then
-           self.entity.electric_buffer_size = 10^9
+           self.entity.electric_buffer_size = 50^9
         elseif state == "Low" then
-            self.entity.electric_buffer_size = 10^7
+            self.entity.electric_buffer_size = 10^8
         end
     end,
 
     CheckEnergy = function(self, state)
         if state == "high" then
-           --return self.entity.energy == 10^9 --TODO take this one
+           --return self.entity.energy == 50^9 --TODO take this one
            return self.entity.energy >= 0
         elseif state == "low" then
-           return self.entity.energy >= 10^7
+           return self.entity.energy >= 10^8
         elseif state == "too low" then
-            return self.entity.energy < 10^7
+            return self.entity.energy < 10^8
         end
     end,
 }

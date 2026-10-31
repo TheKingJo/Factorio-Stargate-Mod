@@ -268,7 +268,8 @@ function OnBuilt(e)
             child.destructible = false
         end
 
-        entity.power_usage = 10^7/60
+        entity.power_usage = 10^8/60
+        entity.electric_interface_mode = defines.electric_interface_mode.tertiary_input
 
         childs.poleVisibleRight = surface.create_entity{
             name = sgNames.pole.."visible_right",
