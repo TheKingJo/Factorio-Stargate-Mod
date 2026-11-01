@@ -10,7 +10,8 @@ function InitStorage()
         electricPoles = true,
         corpses = true,
         irisedGates = true,
-        openGUIs = {GDO = {}, GDOIris = {}},
+        openGUIs = {GDO = {}, GDOIris = {}, AddBk = {}},
+        addressBook = true,
     }
     local tasks = {
         activeGates = true,
@@ -98,5 +99,12 @@ function OnInit(e)
     InitStorage()
     for _, surface in pairs(game.surfaces) do
         addAddressToGlobal(surface, generateAddress(surface))
+    end
+
+    for _, force in pairs(game.forces) do
+        storage.addressBook[force.name] = storage.addressBook[force.name] or {}
+        for _, surface in pairs(game.surfaces) do
+            util.forceSurfaceSetup(force, surface)
+        end
     end
 end

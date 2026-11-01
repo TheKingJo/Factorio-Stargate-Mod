@@ -1,5 +1,67 @@
+function LuaShortCut(e)
+    if e.prototype_name == "kj_stargate_gdo" then
+        GDOTriggered(e)
+    else
+        AddressBookTriggered(e)
+    end
+end
+
+function AddressBookTriggered(e, refresh)
+    local player = game.players[e.player_index]
+    local gates = storage.addressBook[player.force.name]
+    local gui, refs = player.gui.screen.addBk, nil
+    if not gui then
+        gui, refs = glib.add(player.gui.screen, sg_guis.addBk_frame())
+
+        gui.force_auto_center()
+        gui.bring_to_front()
+        player.opened = gui
+        table.insert(storage.openGUIs.AddBk, gui)
+    else
+        gui.visible = true
+        refs = {gates = gui.children[2].children[1].children[1].children[1].gates}
+        if refresh and refresh == true then
+            --[[for _, child in pairs(refs.gates.children) do
+                local irisID = child.tags.irisID
+
+                if irisID then
+                    local state, iris = "on", storage.irisedGates[tonumber(irisID)].childs.iris
+                    if iris.power_switch_state == true then
+                        state = "iris"
+                    end
+                    child.children[1].children[1].sprite = "kj_sg_gate_"..state
+                end
+            end]]
+        else
+            refs.gates.clear()
+        end
+    end
+
+    if refs and refs.gates and not refresh then
+        local count = 0
+        for surface, state in pairs(gates) do
+            if state > 0 then
+                glib.add(refs.gates, sg_guis.addBk_address(surface, state))
+                count = count + 1
+            end
+        end
+        if count == 0 then
+            glib.add(refs.gates, {
+                args = {type = "frame", style = "bordered_frame"},
+                style_mods = {horizontal_align = "left"},
+                children = {{
+                    args = {type = "flow", direction = "horizontal"},
+                    style_mods = {horizontally_stretchable = true, horizontal_align = "center"},
+                    children = {{
+                        args = {type = "label", style = "frame_title", caption = {"addBk_empty"}},
+                    }}
+                }}
+            })
+        end
+    end
+end
+
 function GDOTriggered(e, refresh)
-    if e.prototype_name ~= "kj_stargate_gdo" then return end
     local player, gates = game.players[e.player_index], {}
     local entities = game.surfaces[player.surface_index].find_entities_filtered{
         position = player.position,
@@ -787,4 +849,31 @@ function Chunk(e)
             game.print("Couldn't place stargate and dhd on "..surface.name.."! Starting area too crowded.")
         end
     end
+end
+
+function OnSurfaceCreated(e)
+    local surface = game.surfaces[e.surface_index]
+    addAddressToGlobal(surface, generateAddress(surface))
+
+    for _, force in pairs(game.forces) do
+        util.forceSurfaceSetup(force, surface)
+    end
+end
+
+function OnForceCreated(e)
+    local force = e.force
+
+    for _, surface in pairs(game.surfaces) do
+        util.forceSurfaceSetup(force, surface)
+    end
+end
+
+function OnForceMerged(e)
+    storage.addressBook[e.source_name] = nil
+end
+
+function OnPlayerChangedSurface(e)
+    if not e.surface_index then return end
+    local player = game.players[e.player_index]
+    util.forceSurfaceSetup(player.force, player.surface)
 end

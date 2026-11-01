@@ -177,6 +177,99 @@ function guis.gdo_code(irisID, code, events) --ABDEF
     }
 end
 
+function guis.addBk_frame(events) --addBk
+    return {
+        args = {type = "frame", name = "addBk", direction = "vertical"},
+        _closed = events and events.frame or handlers.default_close,
+        children = {
+            {
+                args = {type = "flow", name = "header"},
+                ref = false,
+                drag_target = "addBk",
+                children = {{
+                    args = {type = "label", caption = {"addBk"}, style = "frame_title", ignored_by_interaction = true},
+                }, {
+                    args = {type = "empty-widget", style = "draggable_space_header", ignored_by_interaction = true},
+                    style_mods = {horizontally_stretchable = true, height = 24},
+                }, {
+                    args = {type = "sprite-button", style = "close_button", sprite = "utility/close"},
+                    _click = events and events.button or handlers.default_close_button,
+                }},
+            },
+            {
+                args = {type = "frame", style = "inside_shallow_frame"},
+                children = {{
+                    args = {type = "flow", direction = "vertical"},
+                    style_mods = {vertical_spacing = 10},
+                    children = {{
+                        args = {type = "frame", style = "filter_frame"},
+                            style_mods = {natural_height = 50},
+                        children = {{
+                            args = {type = "scroll-pane", style = "deep_scroll_pane"},
+                            children = {{
+                                args = {type = "flow", name = "gates", direction = "vertical"},
+                                style_mods = {horizontally_stretchable = true},
+                            }},
+                        }},
+                    }},
+                }}
+            }
+        }
+    }
+end
+
+function guis.addBk_address(surface, addState, events) --surface
+    local element
+    if addState == 1 then
+        element = {
+            args = {type = "label", caption = {"", {"addBk_unknown"}}},
+            style_mods = {top_padding = 5},
+        }
+    elseif addState == 2 or addState == 3 then
+        local address, letters = util.stringToArray(storage.addresses[surface]), {}
+        if addState == 2 then
+            address = util.shuffleArray(address, surface)
+        end
+
+        for i, letter in ipairs(address) do
+            if addState == 3 then
+                table.insert(letters, {
+                    args = {type = "label", style = "frame_title", caption = i},
+                })
+            end
+            table.insert(letters, {
+                args = {type = "sprite", style = "image", sprite = "virtual-signal/kj_sg_glyph_"..letter},
+            })
+        end
+
+        element = {
+            args = {type = "flow", direction = "horizontal"},
+            style_mods = {horizontally_stretchable = true},
+            children = letters
+        }
+    end
+
+    return {
+        args = {type = "frame", name = surface, style = "bordered_frame"},
+        style_mods = {horizontal_align = "left", horizontally_stretchable = true},
+        children = {
+            {
+                args = {type = "flow", direction = "horizontal"},
+                style_mods = {horizontally_stretchable = true},
+                children = {{
+                        args = {type = "sprite", style = "image", sprite = "space-location/"..surface},
+                        style_mods = {vertical_align = "center", right_padding = 10},
+                    }, {
+                        args = {type = "label", style = "frame_title",
+                        caption = {"", {"space-location-name."..surface}, }},
+                        style_mods = {vertical_align = "center", right_padding = 10},
+                    }, element
+                }
+            }
+        },
+    }
+end
+
 function handlers.default_close(event)
     event.element.destroy()
 end

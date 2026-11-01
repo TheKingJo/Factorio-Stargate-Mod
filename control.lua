@@ -15,9 +15,20 @@ if script.active_mods["kj_vehicles"] then
 end
 --seed: 163867536
 
+commands.add_command("updateAddressBooks", nil, function(command)
+    if command.parameter == nil then return end
+    local state = tonumber(command.parameter)
+    if type(state) ~= "number" or state < 0 or state > 3 then return end
+
+    for force, surfaces in pairs(storage.addressBook) do
+        for surface, _ in pairs(surfaces) do
+            storage.addressBook[force][surface] = state
+        end
+    end
+end)
+
 --/printAddress surface?
 commands.add_command("printAddress", nil, function(command)
-    --if command.player_index == nil then return end
     local surface = command.parameter
 
     if surface ~= nil then
@@ -84,6 +95,7 @@ script.on_event(defines.events.on_entity_died, OnRemoved)
 script.on_event(defines.events.on_entity_damaged , OnDamaged)
 script.on_event(defines.events.on_post_entity_died, OnCorpsed)
 
+script.on_event(defines.events.on_player_changed_surface, OnPlayerChangedSurface)
 script.on_event(defines.events.on_player_driving_changed_state, OnPlayerEnteredVehicle)
 script.on_event(defines.events.on_player_changed_position, OnPlayerChangedPos)
 script.on_event(defines.events.on_player_died, OnPlayerDied)
@@ -96,16 +108,15 @@ script.on_nth_tick(10, OnNthTickSGates)
 script.on_nth_tick( 4, OnNthTickSGateDialing)
 script.on_nth_tick( 2, OnNthTickPlayer)
 
-script.on_event(defines.events.on_surface_created,
-    function(event)
-        local surface = game.surfaces[event.surface_index]
-        addAddressToGlobal(surface, generateAddress(surface))
-    end
-)
+script.on_event(defines.events.on_surface_created, OnSurfaceCreated)
+
+script.on_event(defines.events.on_force_created, OnForceCreated)
+script.on_event(defines.events.on_forces_merged, OnForceMerged)
 
 script.on_event(defines.events.on_gui_opened, GuiOpened)
+
 script.on_event(defines.events.on_chunk_generated, Chunk)
 
 script.on_init(OnInit)
 
-script.on_event(defines.events.on_lua_shortcut, GDOTriggered)
+script.on_event(defines.events.on_lua_shortcut, LuaShortCut)

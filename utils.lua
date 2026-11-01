@@ -11,6 +11,27 @@ local oppositeEntity = {
     stargate = "dhd",
 }
 
+function functions.shuffleArray(array, seed)
+    local hash, result = 0, {}
+    for c = 1, #seed do
+        hash = (hash * 31 + string.byte(seed, c)) % 2147483647
+    end
+
+    local rng = game.create_random_generator(hash)
+
+    for k, v in ipairs(array) do
+        result[k] = v
+    end
+
+    -- Fisher-Yates Shuffle
+    for n = #result, 2, -1 do
+        local j = rng(n)
+        result[n], result[j] = result[j], result[n]
+    end
+
+    return result
+end
+
 function functions.stringToArray(str)
     local t = {}
     for i = 1, #str do
@@ -460,6 +481,18 @@ end
 
 function functions.randomSound(name, number)
     return name..math.random(1, number)
+end
+
+function functions.forceSurfaceSetup(force, surface, state)
+    storage.addressBook[force.name] = storage.addressBook[force.name] or {}
+    storage.addressBook[force.name][surface.name] = storage.addressBook[force.name][surface.name] or 0
+    --0 = locked
+    --1 = unlocked
+    --2 = unlocked, address known
+    --3 = unlocked, address known, address order known
+    if force.is_space_location_unlocked(surface.name) then
+        storage.addressBook[force.name][surface.name] = math.max(state or 1, storage.addressBook[force.name][surface.name])
+    end
 end
 
 functions.mtMgr =
