@@ -350,7 +350,7 @@ function handlers.dhd_letter_click(event)
             if char == "connect" then
                 if gate.active == false then
                     util.playSoundOnSurface(gate.entity.surface, gate.pos, "kj_stargate_dhdc")
-                    dhd:Connect(dhdSurface)
+                    dhd:Connect(dhdSurface, game.players[event.player_index])
                 else
                     if gate.travelDirection == "sender" then
                         dhd:Disconnect()

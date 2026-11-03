@@ -2,7 +2,7 @@ stargate = {
     Initialize = function(self)
     end,
 
-	Connect = function(thisGate, otherGate)
+	Connect = function(thisGate, otherGate, player)
         if otherGate == nil then return nil end
         if otherGate.destination ~= nil then --other gate has connection
             if thisGate.dhd then
@@ -22,6 +22,8 @@ stargate = {
             activateGate(otherGate, false)
             thisGate.destination = otherGate
             otherGate.destination = thisGate
+
+            OnGateEstablished(thisGate, otherGate.entity.surface.name, player)
 
             if settings.global["kj_stargate_twoWayTravel"].value == true then
                 otherGate:SetSignalSenderStatus(true)
@@ -287,7 +289,7 @@ dhd = {
         return table.concat(self.address)
     end,
 
-	Connect = function(self, dhdSurface)
+	Connect = function(self, dhdSurface, player)
         --if string exists, then connect, otherwise empty table and make fail sound
         local selfAddress = self:GetAddress()
         local result = false
@@ -306,7 +308,7 @@ dhd = {
         --i have decided to allow multiple gate connections between surf a and b because it is canon
 
         if result == true then
-            self.stargate:Connect(findRandomGateOnSurface(surface))
+            self.stargate:Connect(findRandomGateOnSurface(surface), player)
         else
             if self.stargate then
                 if self.stargate.destination == nil then
@@ -668,4 +670,35 @@ function gateTransitUnit(gate, unit)
     if activeGate then
         activeGate.tick = math.min(activeGate.tick + 3 * 60, activeGate.maxTick)
     end
+end
+
+function OnGateEstablished(gate, surface, player)
+    local childs, force = gate.childs, nil
+
+    if not player then
+        local wireConsR = childs.poleVisibleRight.get_wire_connector(1)
+        local wireConsL = childs.poleVisibleLeft.get_wire_connector(1)
+
+        if wireConsR.connection_count > 1 then
+            for _, connection in ipairs(wireConsR.connections) do
+                if connection.target.owner ~= childs.poleVisibleMiddle and (childs.iris and connection.target.owner ~= childs.iris) then
+                    force = connection.target.owner.force.name
+                end
+            end
+        end
+        if wireConsL.connection_count > 1 then
+            for _, connection in ipairs(wireConsL.connections) do
+                if connection.target.owner ~= childs.poleVisibleMiddle and (childs.iris and connection.target.owner ~= childs.iris) then
+                    force = connection.target.owner.force.name
+                end
+            end
+        end
+    else
+        force = player.force.name
+    end
+
+    if force == nil then
+        game.print("Error?")
+    end
+    storage.addressBook[force][surface] = 3
 end
