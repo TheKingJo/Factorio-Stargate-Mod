@@ -180,7 +180,7 @@ end
 function guis.addBk_frame(events) --addBk
     return {
         args = {type = "frame", name = "addBk", direction = "vertical"},
-        _closed = events and events.frame or handlers.default_close,
+        --_closed = events and events.frame or handlers.default_close,
         children = {
             {
                 args = {type = "flow", name = "header"},
@@ -203,7 +203,7 @@ function guis.addBk_frame(events) --addBk
                     style_mods = {vertical_spacing = 10},
                     children = {{
                         args = {type = "frame", style = "filter_frame"},
-                            style_mods = {natural_height = 50},
+                        style_mods = {natural_height = 50},
                         children = {{
                             args = {type = "scroll-pane", style = "deep_scroll_pane"},
                             children = {{
@@ -218,7 +218,7 @@ function guis.addBk_frame(events) --addBk
     }
 end
 
-function guis.addBk_address(surface, addState, events) --surface
+function guis.addBk_address(surface, addState) --surface
     local element
     if addState == 1 then
         element = {
@@ -226,17 +226,16 @@ function guis.addBk_address(surface, addState, events) --surface
             style_mods = {top_padding = 5},
         }
     elseif addState == 2 or addState == 3 then
-        local address, letters = util.stringToArray(storage.addresses[surface]), {}
+        local address, letters, index = util.stringToArray(storage.addresses[surface]), {}, nil
         if addState == 2 then
+            index = "?"
             address = util.shuffleArray(address, surface)
         end
 
         for i, letter in ipairs(address) do
-            if addState == 3 then
-                table.insert(letters, {
-                    args = {type = "label", style = "frame_title", caption = i},
-                })
-            end
+            table.insert(letters, {
+                args = {type = "label", style = "frame_title", caption = index or i},
+            })
             table.insert(letters, {
                 args = {type = "sprite", style = "image", sprite = "virtual-signal/kj_sg_glyph_"..letter},
             })

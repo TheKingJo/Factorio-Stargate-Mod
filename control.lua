@@ -23,6 +23,7 @@ commands.add_command("updateAddressBooks", nil, function(command)
     for force, surfaces in pairs(storage.addressBook) do
         for surface, _ in pairs(surfaces) do
             storage.addressBook[force][surface] = state
+            RefreshAllAddBks(force, surface, state)
         end
     end
 end)
@@ -120,3 +121,7 @@ script.on_event(defines.events.on_chunk_generated, Chunk)
 script.on_init(OnInit)
 
 script.on_event(defines.events.on_lua_shortcut, LuaShortCut)
+script.on_event("kj_stargate_addressBook", LuaShortCut)
+script.on_event("kj_stargate_gdo", LuaShortCut)
+
+--TODO on surface deleted coverage ig

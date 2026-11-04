@@ -701,4 +701,5 @@ function OnGateEstablished(gate, surface, player)
         game.print("Error?")
     end
     storage.addressBook[force][surface] = 3
+    RefreshAllAddBks(force, surface, 3)
 end

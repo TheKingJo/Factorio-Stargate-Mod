@@ -1,7 +1,15 @@
 function LuaShortCut(e)
-    if e.prototype_name == "kj_stargate_gdo" then
+    local name
+
+    if e.prototype_name then
+        name = e.prototype_name
+    elseif e.input_name then
+        name = e.input_name
+    end
+
+    if name == "kj_stargate_gdo" then
         GDOTriggered(e)
-    else
+    elseif name == "kj_stargate_addressBook" then
         AddressBookTriggered(e)
     end
 end
@@ -10,9 +18,9 @@ function AddressBookTriggered(e, refresh)
     local player = game.players[e.player_index]
     local gates = storage.addressBook[player.force.name]
     local gui, refs = player.gui.screen.addBk, nil
+
     if not gui then
         gui, refs = glib.add(player.gui.screen, sg_guis.addBk_frame())
-
         gui.force_auto_center()
         gui.bring_to_front()
         player.opened = gui
@@ -21,17 +29,17 @@ function AddressBookTriggered(e, refresh)
         gui.visible = true
         refs = {gates = gui.children[2].children[1].children[1].children[1].gates}
         if refresh and refresh == true then
-            --[[for _, child in pairs(refs.gates.children) do
-                local irisID = child.tags.irisID
+            local surface = e.surface
+            local ogIndex = refs.gates[surface].get_index_in_parent()
 
-                if irisID then
-                    local state, iris = "on", storage.irisedGates[tonumber(irisID)].childs.iris
-                    if iris.power_switch_state == true then
-                        state = "iris"
-                    end
-                    child.children[1].children[1].sprite = "kj_sg_gate_"..state
-                end
-            end]]
+            refs.gates[surface].destroy()
+            local newSurface = glib.add(refs.gates, sg_guis.addBk_address(surface, e.state))
+            local current_index = newSurface.get_index_in_parent()
+
+            while current_index > ogIndex do
+                refs.gates.swap_children(current_index, current_index - 1)
+                current_index = current_index - 1
+            end
         else
             refs.gates.clear()
         end
@@ -58,6 +66,32 @@ function AddressBookTriggered(e, refresh)
                 }}
             })
         end
+    end
+end
+
+function RefreshAllAddBks(force, surface, state)
+    if #storage.openGUIs.AddBk == 0 then return end
+    for i = #storage.openGUIs.AddBk, 1, -1 do
+        local GUI = storage.openGUIs.AddBk[i]
+
+        if not GUI then goto continue end
+        if not GUI.valid then
+            table.remove(storage.openGUIs.AddBk, i)
+            goto continue
+        end
+        if not GUI.visible then
+            goto continue
+        end
+        if force == game.players[GUI.player_index].force.name then
+            AddressBookTriggered({
+                prototype_name = "kj_stargate_addressBook",
+                player_index = GUI.player_index,
+                surface = surface,
+                state = state,
+            }, state ~= nil)
+        end
+
+        ::continue::
     end
 end
 
@@ -857,6 +891,7 @@ function OnSurfaceCreated(e)
 
     for _, force in pairs(game.forces) do
         util.forceSurfaceSetup(force, surface)
+        RefreshAllAddBks(force.name, surface)
     end
 end
 
