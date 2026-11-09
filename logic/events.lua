@@ -709,24 +709,35 @@ function GuiOpened(e)
             return
         end
 
-        local gui = player.gui.screen.dhd
-        local refs
-        if not gui then
-            gui, refs = glib.add(player.gui.screen, sg_guis.dhd_frame_new())
-        else
-            gui.visible = true
-        end
+        local gui, refs = player.gui.screen.dhd, nil
+
+        if gui then gui.destroy() end --always rebuild, old buttons may carry tags of another dhd
+        gui, refs = glib.add(player.gui.screen, sg_guis.dhd_frame_new())
 
         if refs.glyphs then
-            local surface, state = e.entity.surface.name, false
+            local surface, state, connectCell, keys = e.entity.surface.name, false, sg_guis.dhd_grid_info.at[3][3], {}
             dhd:OpenedGUI(refs.glyphs)
-            glib.add(refs.glyphs, sg_guis.dhd_letter("poo_"..poo[surface], surface, dhd.id, dhd.addressLetters["poo_"..poo[surface]]))
-            for _, char in ipairs(chevronChars) do
-                glib.add(refs.glyphs, sg_guis.dhd_letter(char, surface, dhd.id, dhd.addressLetters[char]))
-            end
 
             if dhd.stargate.travelDirection == "sender" and dhd.stargate.active == true then state = true end
-            glib.add(refs.glyphs, sg_guis.dhd_letter("connect", surface, dhd.id, state))
+            glib.add(refs["cell_"..connectCell], sg_guis.dhd_letter({"connect", surface, dhd.id, state, true}))
+
+            for _, char in ipairs(chevronChars) do
+                table.insert(keys, char)
+            end
+            table.insert(keys, 11, "poo_"..poo[surface])
+
+            --cells that stay empty
+            local cell = 0
+            for _, char in ipairs(keys) do
+                cell = cell + 1
+                while skipCells[cell] do --fill placeholders until the next char cell
+                    if cell ~= connectCell then
+                        glib.add(refs["cell_"..cell], sg_guis.dhd_letter({}, true))
+                    end
+                    cell = cell + 1
+                end
+                glib.add(refs["cell_"..cell], sg_guis.dhd_letter({char, surface, dhd.id, dhd.addressLetters[char], dhdGridSizes[cell]}))
+            end
         end
 
         gui.force_auto_center()
@@ -838,6 +849,13 @@ function OnPlayerChangedPos(e)
             prototype_name = "kj_stargate_gdo",
             player_index = e.player_index,
         })
+    end
+end
+
+function OnPlayerChangedForce(e)
+    local gui = game.players[e.player_index].gui.screen.addBk
+    if gui then
+        gui.destroy()
     end
 end
 

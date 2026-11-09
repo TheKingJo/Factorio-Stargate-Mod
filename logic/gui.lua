@@ -3,9 +3,71 @@ local guis = {}
 local handlers = {}
 util = require("utils")
 
----@param name string
----@param caption LocalisedString
----@param events? {frame: GuiEventHandler?, button: GuiEventHandler?}
+--DHD Grid framework
+--layout = rows (cells:
+--  MACRO = one big cell (flow) (1 cell index)
+--  QUAD  = 2x2 single cells (flows in flows)  (4 cell indices) (from left to right, top to bottom)
+--  name = cell_<index>
+local function grid_cell(index, padding)
+    local mods
+    if padding then mods = {right_padding = 5} end
+
+    return {
+        args = {type = "flow", name = "cell_"..index},
+        style_mods = mods,
+    }
+end
+
+---@return GuiElemDef def
+---@return {count: integer, at: integer[][]} info count = number of cells, at[row][col] = cell index
+function guis.dhd_frame_grid(layout)
+    local index, info, rows = 0, {count = 0, at = {}}, {}
+
+    local function next_cell(padding)
+        index = index + 1
+        return grid_cell(index, padding)
+    end
+
+    for r, row in ipairs(layout) do
+        info.at[r] = {}
+        local columns = {}
+
+        for c, kind in ipairs(row) do
+            info.at[r][c] = index + 1
+
+            if kind == "MACRO" then
+                table.insert(columns, next_cell(c < 5))
+            elseif kind == "QUAD" then
+                local tl, tr, bl, br = next_cell(), next_cell(), next_cell(), next_cell()
+
+                table.insert(columns, {
+                    args = {type = "flow", direction = "vertical"},
+                    style_mods = {right_padding = 0},
+                    children = {
+                        {args = {type = "flow", direction = "horizontal"}, children = {tl, tr}},
+                        {args = {type = "flow", direction = "horizontal"}, children = {bl, br}},
+                    },
+                })
+            end
+        end
+
+        table.insert(rows, {
+            args = {type = "flow", direction = "horizontal"},
+            style_mods = {bottom_padding = 3},
+            children = columns
+        })
+    end
+
+    info.count = index
+    return {args = {type = "flow", name = "glyphs", direction = "vertical"}, children = rows}, info
+end
+
+--DHD layout: row 1/5 and 2/4 are identical
+local dhd_row_outer  =  {"MACRO", "MACRO", "MACRO", "MACRO", "MACRO"}
+local dhd_row_center =  {"MACRO", "QUAD",  "MACRO", "QUAD",  "MACRO"}
+local dhd_row_innerBot= {"MACRO", "MACRO", "QUAD",  "MACRO", "MACRO"}
+guis.dhd_grid_def, guis.dhd_grid_info = guis.dhd_frame_grid({dhd_row_outer, dhd_row_center, dhd_row_center, dhd_row_innerBot, dhd_row_outer})
+
 function guis.dhd_frame_new(events)
     return {
         args = {type = "frame", name = "dhd", direction = "vertical"},
@@ -31,27 +93,39 @@ function guis.dhd_frame_new(events)
                 children = {{
                     args = {type = "frame", style = "filter_frame"},
                     style_mods = {natural_height = 224},
-                    children = {{
-                        args = {type = "scroll-pane", style = "deep_slots_scroll_pane"},
-                        style_mods = {minimal_width = 400, minimal_height = 200},
-                        children = {{
-                            args = {type = "table", name = "glyphs", column_count = 10},
-                        }},
-                    }},
+                    children = {guis.dhd_grid_def},
                 }},
             }}
         }}
     }
 end
 
-function guis.dhd_letter(letter, dhdSurface, dhdID, toggled) --letter
-    return {
-        args = {type = "sprite-button", name = letter, sprite = "kj_sg_glyph_"..letter,
-            tags = {surface = dhdSurface, dhdID = dhdID, letter = letter}
-        },
-        elem_mods = {toggled = toggled or false},
-        _click = handlers.dhd_letter_click,
-    }
+function guis.dhd_letter(param, blank) --param = {letter, dhdSurface, dhdID, toggled, bigButton}
+    if not blank then
+        local style, letter, dhdSurface, dhdID, toggled, bigButton = nil, param[1], param[2], param[3], param[4], param[5]
+
+        if bigButton then
+            if bigButton == true then
+                style = "big_slot_button"
+            elseif bigButton == "wide" then
+                style = "frame_button"
+            end
+        end
+
+        return {
+            args = {type = "sprite-button", name = letter, sprite = "kj_sg_glyph_"..letter,
+                tags = {surface = dhdSurface, dhdID = dhdID, letter = letter},
+                style = style,
+            },
+            elem_mods = {toggled = toggled or false},
+            _click = handlers.dhd_letter_click,
+        }
+    else
+        return {
+            args = {type = "sprite-button", sprite = "virtual-signal/signal-black", enabled = false},
+            elem_mods = {toggled = false},
+        }
+    end
 end
 
 function guis.gdo_frame(events)

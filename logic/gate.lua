@@ -342,7 +342,7 @@ dhd = {
         if self.openedUIs == nil then return end
         for _, GUI in ipairs(self.openedUIs) do
             if GUI.valid then
-                GUI.parent.parent.parent.parent.parent.destroy()
+                GUI.parent.parent.parent.parent.destroy()
             end
         end
     end,

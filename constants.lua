@@ -98,6 +98,16 @@ ringChars = {
       "a","b","c","d","e","f","g","h","i","j","k","l","m","n","o","p","q","r","s"
 }
 
+--true = big
+dhdGridSizes = {
+    true,  true,  true,  true,  true,
+    true,  false, false, false, false,  true,  false, false, false, false,  true,
+    true,  false, false, false, false,  true,  false, false, false, false,  true,
+    true,  true,  false, false, false, false,  true,  true,
+    true,  true,  true,  true,  true,
+}
+skipCells = {[22] = true}
+
 ringCharPos = {}
 for i, char in ipairs(ringChars) do
     ringCharPos[char] = i
