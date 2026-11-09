@@ -1,5 +1,5 @@
 function InitStorage()
-    local names = {
+    local properties = {
         dhd = true,
         stargate = true,
         tasks = true,
@@ -24,11 +24,11 @@ function InitStorage()
         delayedTurnOffs = true,
         signaledGates = true,
     }
-    for name, value in pairs(names) do
+    for prop, value in pairs(properties) do
         if value == true then
-            storage[name] = storage[name] or {}
+            storage[prop] = storage[prop] or {}
         else
-            storage[name] = storage[name] or value
+            storage[prop] = storage[prop] or value
         end
     end
     for task, _ in pairs(tasks) do
@@ -49,6 +49,8 @@ function InitStorage()
     end
     storage.illegalCars["heli-entity-_-"] = true
     storage.illegalCars["scout-heli-entity-_-"] = true
+
+    Sky.initStorage()
 end
 
 function OnLoad(e)
@@ -107,4 +109,5 @@ function OnInit(e)
             util.forceSurfaceSetup(force, surface)
         end
     end
+    Sky.initStorage()
 end

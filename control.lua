@@ -6,6 +6,7 @@ require("logic.gate")
 require("logic.events")
 require("logic.tick")
 require("logic.init")
+require("logic.sky")
 sg_guis = require("logic.gui")
 mod_gui = require("mod-gui")
 glib = require("__glib__/glib")
@@ -111,6 +112,7 @@ script.on_nth_tick( 4, OnNthTickSGateDialing)
 script.on_nth_tick( 2, OnNthTickPlayer)
 
 script.on_event(defines.events.on_surface_created, OnSurfaceCreated)
+script.on_event(defines.events.on_pre_surface_deleted, Sky.onPreSurfaceDeleted)
 
 script.on_event(defines.events.on_force_created, OnForceCreated)
 script.on_event(defines.events.on_forces_merged, OnForceMerged)
@@ -125,4 +127,6 @@ script.on_event(defines.events.on_lua_shortcut, LuaShortCut)
 script.on_event("kj_stargate_addressBook", LuaShortCut)
 script.on_event("kj_stargate_gdo", LuaShortCut)
 
---TODO on surface deleted coverage ig
+Sky.registerCommands()
+
+--TODO on_surface_deleted case implementen ig

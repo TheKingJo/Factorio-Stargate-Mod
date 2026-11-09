@@ -140,13 +140,13 @@ stargate = {
             local section = ssControl.add_section()
             for j, char in ipairs(address) do
                 if char == "poo" then
-                    char = char.."_"..poo[self.entity.surface.name]
+                    char = char.."_"..POO[self.entity.surface.name]
                 end
                 section.set_slot(j, {
                     value = {
                         type = "virtual",
                         name = "kj_sg_glyph_"..char,
-                        quality = qualities[i],
+                        quality = QUALITIES[i],
                         comparator = "=",
                     },
                     min = j,
@@ -267,7 +267,7 @@ dhd = {
 
     FetchAddress = function(self, otherGate)
         local sName = otherGate.entity.surface.name
-        self.address, self.addressLetters = util.lettersFromAddress(storage.addresses[sName], "poo_"..poo[sName], "poo_"..poo[self.entity.surface.name])
+        self.address, self.addressLetters = util.lettersFromAddress(storage.addresses[sName], "poo_"..POO[sName], "poo_"..POO[self.entity.surface.name])
         --we display the address of the contrary gate
     end,
 
@@ -295,7 +295,7 @@ dhd = {
         local result = false
         local surface
         for s, address in pairs(storage.addresses) do
-            if selfAddress == address.."poo_"..(poo[dhdSurface] or "") then
+            if selfAddress == address.."poo_"..(POO[dhdSurface] or "") then
                 surface = s
                 result = true
             end
@@ -427,7 +427,7 @@ function activateGate(gate, pov)
     end
     gate.active = true
     gate.childs.soundEnt = gate.entity.surface.create_entity{
-        name = sgNames.sound,
+        name = SGNAMES.sound,
         position = gate.pos,
     }
     gate.childs.soundEnt.destructible = false

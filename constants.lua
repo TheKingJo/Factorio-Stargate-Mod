@@ -1,12 +1,12 @@
 --ringGlyphDistances = {}
-poo = {
+POO = {
     nauvis = 1,
     gleba = 5,
     aquilo = 2,
     vulcanus = 4,
     fulgora = 3,
 }
-sgNames = {
+SGNAMES = {
     placement = "kj_stargate_placement",
     placementSignaled = "kj_stargate_signaled_placement",
     placementSignaledIris = "kj_stargate_signaled_iris_placement",
@@ -31,7 +31,13 @@ sgNames = {
 
     dhdName = "kj_dhd"
 }
-qualities = {
+skyNames = {
+    surface = "kj_sg_sky",
+    tile = "kj_sg_sky_tile",
+    star = "kj_sg_sky_star",
+    radar = "kj_sg_sky_radar",
+}
+QUALITIES = {
     "normal",
     "uncommon",
     "rare",

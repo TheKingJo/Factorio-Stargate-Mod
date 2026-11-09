@@ -484,6 +484,7 @@ function functions.randomSound(name, number)
 end
 
 function functions.forceSurfaceSetup(force, surface, state)
+    if functions.isSkySurface(surface) then return end
     storage.addressBook[force.name] = storage.addressBook[force.name] or {}
     storage.addressBook[force.name][surface.name] = storage.addressBook[force.name][surface.name] or 0
     --0 = locked
@@ -493,6 +494,10 @@ function functions.forceSurfaceSetup(force, surface, state)
     if force.is_space_location_unlocked(surface.name) then
         storage.addressBook[force.name][surface.name] = math.max(state or 1, storage.addressBook[force.name][surface.name])
     end
+end
+
+function functions.isSkySurface(surface)
+    return surface ~= nil and surface.name == skyNames.surface
 end
 
 functions.mtMgr =

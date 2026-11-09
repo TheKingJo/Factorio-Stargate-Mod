@@ -362,8 +362,8 @@ function handlers.gdo_send_code(event)
         section.set_slot(3, {
             value = {
                 type = "entity",
-                name = sgNames.iris,
-                quality = qualities[1],
+                name = SGNAMES.iris,
+                quality = QUALITIES[1],
                 comparator = "=",
             },
             min = -1,

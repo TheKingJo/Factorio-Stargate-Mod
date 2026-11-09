@@ -246,9 +246,9 @@ function OnNthTickSGateDialing(e)
             }
             local success = false
             if task.gate:CheckEnergy("high") then
-                game.print("Address dialing: "..task.gate:GetDestAddress().." "..util.getSignalFromChar(task.gate:GetDestAddress().."_"..poo[task.gate.entity.surface.name], true))
+                game.print("Address dialing: "..task.gate:GetDestAddress().." "..util.getSignalFromChar(task.gate:GetDestAddress().."_"..POO[task.gate.entity.surface.name], true))
 
-                if task.pooID == poo[task.gate.entity.surface.name] then --is poo glyph correct one (momentarily obsolete though)
+                if task.pooID == POO[task.gate.entity.surface.name] then --is poo glyph correct one (momentarily obsolete though)
                     for surf, address in pairs(storage.addresses) do
                         if surf ~= task.gate.entity.surface.name then --not on same surface
                             if address.."poo" == task.gate:GetDestAddress() then
@@ -326,12 +326,12 @@ function OnNthTickSGates(e)
 
                             if charLookup[glyph] ~= nil then --signal is a glyph
                                 if letterIndex == signal.count then --glyph has correct count
-                                    if glyph ~= "poo_"..poo[surfaceName] then --glyph is a letter, gets concat to address
+                                    if glyph ~= "poo_"..POO[surfaceName] then --glyph is a letter, gets concat to address
                                         table.insert(addressLetters, glyph)
                                         address = address..glyph
                                     else
-                                        if letterIndex == 7 and tonumber(glyph:match("_(%d+)$")) == poo[surfaceName] then --is poo glyph same as surface
-                                            pooGlyphID = poo[surfaceName]
+                                        if letterIndex == 7 and tonumber(glyph:match("_(%d+)$")) == POO[surfaceName] then --is poo glyph same as surface
+                                            pooGlyphID = POO[surfaceName]
                                             table.insert(addressLetters, "poo")
                                             successful = true
                                         end
