@@ -36,6 +36,7 @@ skyNames = {
     tile = "kj_sg_sky_tile",
     star = "kj_sg_sky_star",
     radar = "kj_sg_sky_radar",
+    observatory = "kj_sg_observatory",
 }
 QUALITIES = {
     "normal",

@@ -153,7 +153,7 @@ function OnBuilt(e)
         if iris == true then
             childs.iris = surface.create_entity{
                 name = SGNAMES.iris,
-                force = game.get_player(e.player_index).force,
+                force = game.players(e.player_index).force,
                 position = util.vector2Add(pos, {x = 0, y = -2}),
             }
             childs.iris.minable_flag = false
@@ -468,7 +468,7 @@ function OnRemoved(e)
         end
 
         if sg.childs.iris then
-            --[[local player = game.get_player(e.player_index)
+            --[[local player = game.players(e.player_index)
             if player and player.valid then
                 player.insert({name = SGNAMES.iris, count = 1})
             end]]
@@ -489,6 +489,8 @@ function OnRemoved(e)
             --util.playSoundOnSurface(ent.surface, stargate.pos, "kj_stargate_close")
             --if stargate.animation then stargate.animation.destroy() end
         end
+    elseif ent.name == skyNames.observatory then
+        Sky.OnObservatoryRemoved(ent)
     elseif e.cause and e.cause.name == SGNAMES.iris then
         if settings.global["kj_stargate_realistic_death"].value == true then
             table.insert(storage.corpses, {tick = e.tick, name = ent.name})
@@ -499,9 +501,10 @@ end
 function GuiOpened(e)
     local player = game.players[e.player_index]
     if not e.entity then return end
+    local ent = e.entity
 
-    if e.entity.name == SGNAMES.dhdName then
-        local dhd, dhdID = util.findInGlobal("dhd", e.entity)
+    if ent.name == SGNAMES.dhdName then
+        local dhd, dhdID = util.findInGlobal("dhd", ent)
         if dhd == nil or dhd.stargate == nil then
             player.opened = nil
             return
@@ -513,7 +516,7 @@ function GuiOpened(e)
         gui, refs = glib.add(player.gui.screen, sg_guis.dhd_frame_new())
 
         if refs.glyphs then
-            local surface, state, connectCell, keys = e.entity.surface.name, false, sg_guis.dhd_grid_info.at[3][3], {}
+            local surface, state, connectCell, keys = ent.surface.name, false, sg_guis.dhd_grid_info.at[3][3], {}
             dhd:OpenedGUI(refs.glyphs)
 
             if dhd.stargate.travelDirection == "sender" and dhd.stargate.active == true then state = true end
@@ -542,14 +545,22 @@ function GuiOpened(e)
         gui.bring_to_front()
         player.opened = gui
 
-    elseif e.entity.name == SGNAMES.entitySignaled then
+    elseif ent.name == SGNAMES.entitySignaled then
         player.opened = nil
 
-    elseif e.entity.type == "power-switch" then
+    elseif ent.name == skyNames.observatory then
+        player.opened = nil
+        if ent.surface_index == player.physical_surface_index
+            and util.getDistance(ent.position, player.physical_position) < 5
+            and ent.energy >= 10^7 then
+            Sky.enter(player, ent)
+        end
+
+    elseif ent.type == "power-switch" then
         GUI.GDOIris({
-            name = e.entity.name,
+            name = ent.name,
             player_index = e.player_index,
-            unit_number = e.entity.unit_number,
+            unit_number = ent.unit_number,
         })
     end
 end
@@ -619,6 +630,7 @@ function OnDamaged(e)
 end
 
 function OnPlayerDied(e)
+    Sky.OnPlayerGone(e)
     local player = game.players[e.player_index]
     local gui = player.gui.screen.gdo
     if gui then
@@ -732,6 +744,7 @@ function OnForceMerged(e)
 end
 
 function OnPlayerChangedSurface(e)
+    Sky.OnPlayerChangedSurface(e)
     if not e.surface_index then return end
     local player = game.players[e.player_index]
     util.forceSurfaceSetup(player.force, player.surface)

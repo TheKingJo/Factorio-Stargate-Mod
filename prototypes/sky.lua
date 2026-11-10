@@ -1,3 +1,5 @@
+local modname = "__kj_stargate__"
+
 local skyTile = table.deepcopy(data.raw.tile["empty-space"] or data.raw.tile["out-of-map"])
 skyTile.name = "kj_sg_sky_tile"
 skyTile.hidden = true
@@ -58,4 +60,130 @@ radar.radius_minimap_visualisation_color = nil
 radar.circuit_connector = nil
 radar.circuit_wire_max_distance = 0
 
-data:extend({skyTile, star, radar})
+local observatory = table.deepcopy(data.raw.accumulator["accumulator"])
+
+
+local observatoryItem = table.deepcopy(data.raw.item["accumulator"])
+observatoryItem.name = "kj_sg_observatory"
+observatoryItem.place_result = "kj_sg_observatory"
+observatoryItem.subgroup = "transport"
+observatoryItem.order = "5"
+local observatoryRecipe = {
+    type = "recipe",
+    name = "kj_sg_observatory",
+    enabled = true,
+    energy_required = 0.1,
+    ingredients = {},
+    results = {{type = "item", name = "kj_sg_observatory", amount = 1}},
+}
+
+data:extend({
+    {
+        type = "electric-energy-interface",
+        name = "kj_sg_observatory",
+        icon = modname.."/graphics/s_icon.png",
+        icon_size = 128,
+        dying_explosion = "big-explosion",
+        collision_box = {{-2.3, -2.3}, {2.3, 2.3}},
+        selection_box = {{-2.5, -2.5}, {2.5, 2.5}},
+        minable = {
+            mining_time = 5,
+            results = {
+                {type = "item", name = "kj_sg_observatory", amount = 1},
+            }
+        },
+        flags = {"not-on-map", "placeable-neutral", "not-flammable"},
+        max_health = 500,
+        is_military_target  = false,
+        gui_mode = "all",
+        energy_source = {
+            type = "electric",
+            usage_priority = "secondary-input",
+            buffer_capacity = "10MJ",
+            drain = "10MW",
+            input_flow_limit = "100MW",
+            output_flow_limit = "100W",
+        },
+        animation = {
+            layers =
+            {
+                {
+                    filename = "__space-exploration-graphics-4__/graphics/entity/telescope-xray/telescope-xray.png",
+                    priority = "high",
+                    width = 360,
+                    height = 404,
+                    frame_count = 1,
+                    line_length = 8,
+                    shift = util.by_pixel(6, -13),
+                    animation_speed = 1,
+                    scale = 0.5,
+                    y = 404*2,
+                },
+                {
+                    filename = "__base__/graphics/entity/pipe-covers/pipe-cover-south.png",
+                    priority = "extra-high",
+                    width = 128,
+                    height = 128,
+                    scale = 0.5,
+                    shift = {0, 3},
+                },
+                {
+                    filename = "__base__/graphics/entity/pipe-covers/pipe-cover-east.png",
+                    priority = "extra-high",
+                    width = 128,
+                    height = 128,
+                    scale = 0.5,
+                    shift = {3, 0},
+                },
+                {
+                    filename = "__base__/graphics/entity/pipe-covers/pipe-cover-west.png",
+                    priority = "extra-high",
+                    width = 128,
+                    height = 128,
+                    scale = 0.5,
+                    shift = util.by_pixel(-3*32+1, 1),
+                },
+                {
+                    filename = "__base__/graphics/entity/pipe-covers/pipe-cover-west-shadow.png",
+                    priority = "extra-high",
+                    width = 128,
+                    height = 128,
+                    scale = 0.5,
+                    shift = util.by_pixel(-3*32+1, 1),
+                    draw_as_shadow = true
+                },
+                {
+                    filename = "__base__/graphics/entity/pipe-covers/pipe-cover-east-shadow.png",
+                    priority = "extra-high",
+                    width = 128,
+                    height = 128,
+                    scale = 0.5,
+                    shift = {3, 0},
+                    draw_as_shadow = true
+                },
+                {
+                    filename = "__base__/graphics/entity/pipe-covers/pipe-cover-south-shadow.png",
+                    priority = "extra-high",
+                    width = 128,
+                    height = 128,
+                    scale = 0.5,
+                    shift = {0, 3},
+                    draw_as_shadow = true,
+                },
+                {
+                    draw_as_shadow = true,
+                    filename = "__space-exploration-graphics-4__/graphics/entity/telescope-xray/telescope-xray-shadow.png",
+                    priority = "high",
+                    width = 464,
+                    height = 278,
+                    frame_count = 1,
+                    line_length = 8,
+                    shift = util.by_pixel(33, 10),
+                    animation_speed = 1,
+                    scale = 0.5,
+                    y = 278*2,
+                },
+            },
+        }
+    },
+skyTile, star, radar, observatory, observatoryItem, observatoryRecipe})

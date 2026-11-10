@@ -16,6 +16,7 @@ function Sky.initStorage()
         nextRow = 0,
         forceCols = true, --[forceName] = next free column index
         areas = true,     --[forceName][planetName] = area
+        sessions = true,  --[player_index] = {area, character, observatory}
     }
 
     for prop, value in pairs(properties) do
@@ -44,7 +45,7 @@ function Sky.getSurface(create)
     })
     surface.generate_with_lab_tiles = true
     surface.freeze_daytime = true
-    surface.daytime = 0.5
+    surface.daytime = 0
     surface.show_clouds = false
 
     for _, force in pairs(game.forces) do
@@ -98,7 +99,7 @@ function Sky.getArea(force, planetName, create)
 
     area.radar = surface.create_entity{name = skyNames.radar, position = area.center, force = force}
     area.radar.destructible = false
-    force.chart(surface, area.area)
+    area.radar.disabled_by_script = true --only active while someone looks at this area
 
     sky.areas[forceN] = sky.areas[forceN] or {}
     sky.areas[forceN][planetName] = area
@@ -115,14 +116,31 @@ local function destroyArea(area)
     end
 end
 
---re-chart only the areas the force still owns, so deleted areas vanish from its map
+--re-chart only the areas currently viewed by players of the force, everything else vanishes from its map
 local function rechartForce(force)
     local surface = Sky.getSurface(false)
     if not surface or not force or not force.valid then return end
     force.clear_chart(surface)
 
-    for _, area in pairs(storage.sky.areas[force.name] or {}) do
-        force.chart(surface, area.area)
+    for _, session in pairs(storage.sky.sessions) do
+        local area = session.area
+        if area.force == force.name and storage.sky.areas[force.name] and storage.sky.areas[force.name][area.planet] == area then
+            force.chart(surface, area.area)
+        end
+    end
+end
+
+local function isAreaViewed(area)
+    for _, session in pairs(storage.sky.sessions) do
+        if session.area == area then return true end
+    end
+
+    return false
+end
+
+local function setRadar(area, state)
+    if area.radar and area.radar.valid then
+        area.radar.disabled_by_script = not state
     end
 end
 
@@ -135,7 +153,79 @@ function Sky.view(player, area)
         surface = surface,
         position = area.center,
     })
+
     return ok, err
+end
+
+---player enters the sky through an observatory
+function Sky.enter(player, observatory)
+    local character = player.character
+    if not character then return end
+    if storage.sky.sessions[player.index] then return end
+    local planet = observatory.surface
+
+    if not Sky.isValidPlanet(planet) then
+        player.print("Hier ist kein Himmel zu sehen.")
+        return
+    end
+
+    local area = Sky.getArea(player.force, planet.name, true)
+    local surface = Sky.getSurface(true)
+
+    --character hides inside the observatory, enemies have to destroy it first
+    character.teleport(observatory.position)
+
+    storage.sky.sessions[player.index] = {
+        area = area,
+        character = character,
+        observatory = observatory,
+    }
+
+    setRadar(area, true)
+    player.force.chart(surface, area.area)
+
+    local ok, err = Sky.view(player, area)
+    if not ok then
+        player.print("Sky view fehlgeschlagen: "..tostring(err))
+        Sky.exit(player.index)
+    end
+end
+
+function Sky.exit(playerIndex)
+    local session = storage.sky.sessions[playerIndex]
+    if not session then return end
+    storage.sky.sessions[playerIndex] = nil
+
+    local area = session.area
+    if not isAreaViewed(area) then
+        setRadar(area, false)
+    end
+    rechartForce(game.forces[area.force])
+
+    --put character back in front of observatory
+    local character, observatory = session.character, session.observatory
+    if character and character.valid then
+        local pos = character.position
+        if observatory and observatory.valid then
+            pos = {x = observatory.position.x, y = observatory.bounding_box.right_bottom.y + 0.5}
+        end
+        pos = character.surface.find_non_colliding_position(character.name, pos, 10, 0.5) or pos
+        character.teleport(pos)
+    end
+
+    local player = game.players(playerIndex)
+    if player and player.valid and player.controller_type == defines.controllers.remote and util.isSkySurface(player.surface) then
+        player.exit_remote_view()
+    end
+end
+
+--ends all sessions bound to an observatory
+function Sky.OnObservatoryRemoved(entity)
+    for playerIndex, session in pairs(storage.sky.sessions) do
+        if session.observatory == entity then
+            Sky.exit(playerIndex)
+        end
+    end
 end
 
 --------------------------------------------------------------------------------
@@ -164,6 +254,10 @@ function Sky.OnForceCreated(e)
 end
 
 function Sky.OnForcesMerged(e)
+    for playerIndex, session in pairs(storage.sky.sessions) do
+        if session.area.force == e.source_name then Sky.exit(playerIndex) end
+    end
+
     local areas = storage.sky.areas[e.source_name]
     if not areas then return end
 
@@ -178,9 +272,14 @@ function Sky.OnPreSurfaceDeleted(e)
     if not surface then return end
 
     if util.isSkySurface(surface) then
+        for playerIndex, _ in pairs(storage.sky.sessions) do Sky.exit(playerIndex) end
         storage.sky = nil
         Sky.initStorage()
         return
+    end
+
+    for playerIndex, session in pairs(storage.sky.sessions) do
+        if session.area.planet == surface.name then Sky.exit(playerIndex) end
     end
 
     for forceN, areas in pairs(storage.sky.areas) do
@@ -191,6 +290,34 @@ function Sky.OnPreSurfaceDeleted(e)
             rechartForce(game.forces[forceN])
         end
     end
+end
+
+--------------------------------------------------------------------------------
+--session watchers
+--------------------------------------------------------------------------------
+
+--player left remote view (escape, map key, clicking on character...)
+function Sky.OnPlayerControllerChanged(e)
+    if not storage.sky.sessions[e.player_index] then return end
+    local player = game.players(e.player_index)
+
+    if player.controller_type ~= defines.controllers.remote then
+        Sky.exit(e.player_index)
+    end
+end
+
+--player switched to another surface inside remote view
+function Sky.OnPlayerChangedSurface(e)
+    if not storage.sky.sessions[e.player_index] then return end
+    local player = game.players(e.player_index)
+
+    if not util.isSkySurface(player.surface) then
+        Sky.exit(e.player_index)
+    end
+end
+
+function Sky.OnPlayerGone(e)
+    Sky.exit(e.player_index)
 end
 
 --------------------------------------------------------------------------------
@@ -215,7 +342,7 @@ end
 function Sky.registerCommands()
     --/sky [unhide] - view the sky area of the planet the player physically on
     commands.add_command("sky", nil, function(command)
-        local player = game.get_player(command.player_index)
+        local player = game.players(command.player_index)
         if not player then return end
         local planet = player.physical_surface
         if not Sky.isValidPlanet(planet) then player.print("Kein gültiger Planet: "..planet.name) return end
@@ -231,7 +358,7 @@ function Sky.registerCommands()
 
     --/skyStars [n] - spawn n random test stars into your area of current planet
     commands.add_command("skyStars", nil, function(command)
-        local player = game.get_player(command.player_index)
+        local player = game.players(command.player_index)
         if not player then return end
         local planet = player.physical_surface
         if not Sky.isValidPlanet(planet) then return end
