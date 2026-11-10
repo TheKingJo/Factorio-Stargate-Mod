@@ -4,10 +4,11 @@ require("constants")
 require("util")
 require("logic.gate")
 require("logic.events")
+require("logic.GUI")
 require("logic.tick")
 require("logic.init")
 require("logic.sky")
-sg_guis = require("logic.gui")
+sg_guis = require("logic.guis")
 mod_gui = require("mod-gui")
 glib = require("__glib__/glib")
 
@@ -24,7 +25,7 @@ commands.add_command("updateAddressBooks", nil, function(command)
     for force, surfaces in pairs(storage.addressBook) do
         for surface, _ in pairs(surfaces) do
             storage.addressBook[force][surface] = state
-            RefreshAllAddBks(force, surface, state)
+            GUI.RefreshAllAddBks(force, surface, state)
         end
     end
 end)

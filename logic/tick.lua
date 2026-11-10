@@ -114,7 +114,7 @@ function OnNthTickPlayer(e)
                             if player.character and util.boundingBoxesCollision(player.character.bounding_box, gate.childs.tpArea.bounding_box) then
 
                                 if gate.travelDirection == "sender" then
-                                    gateTransit(gate.destination, player, vehicle)
+                                    Gate.gateTransit(gate.destination, player, vehicle)
                                 else
                                     player.character.die("neutral", player.character)
                                 end
@@ -126,7 +126,7 @@ function OnNthTickPlayer(e)
                                 if util.rotatedBoxInsideBoundingBox(vehicle.bounding_box, vehicle.orientation, gate.childs.tpArea.bounding_box) == true then
 
                                     if gate.travelDirection == "sender" then
-                                        gateTransit(gate.destination, player, vehicle)
+                                        Gate.gateTransit(gate.destination, player, vehicle)
                                     else
                                         player.character.die("neutral", player.character)
                                         vehicle.die("neutral", player.character)
@@ -160,7 +160,7 @@ function OnNthTickPlayer(e)
                                 if util.rotatedBoxInsideBoundingBox(car.bounding_box, car.orientation, gate.childs.tpArea.bounding_box) == true then
 
                                     if gate.travelDirection == "sender" then
-                                        gateTransit(gate.destination, nil, car)
+                                        Gate.gateTransit(gate.destination, nil, car)
                                     else
                                         car.die("neutral", car)
                                     end
@@ -175,7 +175,7 @@ function OnNthTickPlayer(e)
                             if util.rotatedBoxInsideBoundingBox(unit.bounding_box, unit.orientation, gate.childs.tpArea.bounding_box) == true then
 
                                 if gate.travelDirection == "sender" then
-                                    gateTransitUnit(gate.destination, unit)
+                                    Gate.gateTransitUnit(gate.destination, unit)
                                 else
                                     unit.die("neutral", unit)
                                 end
@@ -253,7 +253,7 @@ function OnNthTickSGateDialing(e)
                         if surf ~= task.gate.entity.surface.name then --not on same surface
                             if address.."poo" == task.gate:GetDestAddress() then
                                 game.print("Address found: "..surf)
-                                if task.gate:Connect(findRandomGateOnSurface(surf)) then
+                                if task.gate:Connect(Gate.findRandomGateOnSurface(surf)) then
                                     success = true
                                 end
                             end
@@ -500,7 +500,7 @@ function OnNthTickTasks2(e)
             goto continue
         end
 
-        GDOTriggered({
+        GUI.GDOTriggered({
             prototype_name = "kj_stargate_gdo",
             player_index = GUI.player_index,
         }, true)

@@ -1,472 +1,203 @@
-local glib = require("__glib__/glib")
-local guis = {}
-local handlers = {}
-util = require("utils")
+GUI = {}
 
---DHD Grid framework
---layout = rows (cells:
---  MACRO = one big cell (flow) (1 cell index)
---  QUAD  = 2x2 single cells (flows in flows)  (4 cell indices) (from left to right, top to bottom)
---  name = cell_<index>
-local function grid_cell(index, padding)
-    local mods
-    if padding then mods = {right_padding = 5} end
+function GUI.AddressBookTriggered(e, refresh)
+    local player = game.players[e.player_index]
+    local gates = storage.addressBook[player.force.name]
+    local gui, refs = player.gui.screen.addBk, nil
 
-    return {
-        args = {type = "flow", name = "cell_"..index},
-        style_mods = mods,
-    }
-end
-
----@return GuiElemDef def
----@return {count: integer, at: integer[][]} info count = number of cells, at[row][col] = cell index
-function guis.dhd_frame_grid(layout)
-    local index, info, rows = 0, {count = 0, at = {}}, {}
-
-    local function next_cell(padding)
-        index = index + 1
-        return grid_cell(index, padding)
-    end
-
-    for r, row in ipairs(layout) do
-        info.at[r] = {}
-        local columns = {}
-
-        for c, kind in ipairs(row) do
-            info.at[r][c] = index + 1
-
-            if kind == "MACRO" then
-                table.insert(columns, next_cell(c < 5))
-            elseif kind == "QUAD" then
-                local tl, tr, bl, br = next_cell(), next_cell(), next_cell(), next_cell()
-
-                table.insert(columns, {
-                    args = {type = "flow", direction = "vertical"},
-                    style_mods = {right_padding = 0},
-                    children = {
-                        {args = {type = "flow", direction = "horizontal"}, children = {tl, tr}},
-                        {args = {type = "flow", direction = "horizontal"}, children = {bl, br}},
-                    },
-                })
-            end
-        end
-
-        table.insert(rows, {
-            args = {type = "flow", direction = "horizontal"},
-            style_mods = {bottom_padding = 3},
-            children = columns
-        })
-    end
-
-    info.count = index
-    return {args = {type = "flow", name = "glyphs", direction = "vertical"}, children = rows}, info
-end
-
---DHD layout: row 1/5 and 2/4 are identical
-local dhd_row_outer  =  {"MACRO", "MACRO", "MACRO", "MACRO", "MACRO"}
-local dhd_row_center =  {"MACRO", "QUAD",  "MACRO", "QUAD",  "MACRO"}
-local dhd_row_innerBot= {"MACRO", "MACRO", "QUAD",  "MACRO", "MACRO"}
-guis.dhd_grid_def, guis.dhd_grid_info = guis.dhd_frame_grid({dhd_row_outer, dhd_row_center, dhd_row_center, dhd_row_innerBot, dhd_row_outer})
-
-function guis.dhd_frame_new(events)
-    return {
-        args = {type = "frame", name = "dhd", direction = "vertical"},
-        _closed = events and events.frame or handlers.default_close,
-        children = {{
-            args = {type = "flow", name = "header"},
-            ref = false,
-            drag_target = "dhd",
-            children = {{
-                args = {type = "label", caption = {"dhd"}, style = "frame_title", ignored_by_interaction = true},
-            }, {
-                args = {type = "empty-widget", style = "draggable_space_header", ignored_by_interaction = true},
-                style_mods = {horizontally_stretchable = true, height = 24},
-            }, {
-                args = {type = "sprite-button", style = "close_button", sprite = "utility/close"},
-                _click = events and events.button or handlers.default_close_button,
-            }},
-        }, {
-            args = {type = "frame", style = "inside_shallow_frame"},
-            children = {{
-                args = {type = "flow", direction = "vertical"},
-                style_mods = {vertical_spacing = 0},
-                children = {{
-                    args = {type = "frame", style = "filter_frame"},
-                    style_mods = {natural_height = 224},
-                    children = {guis.dhd_grid_def},
-                }},
-            }}
-        }}
-    }
-end
-
-function guis.dhd_letter(param, blank) --param = {letter, dhdSurface, dhdID, toggled, bigButton}
-    if not blank then
-        local style, letter, dhdSurface, dhdID, toggled, bigButton = nil, param[1], param[2], param[3], param[4], param[5]
-
-        if bigButton then
-            if bigButton == true then
-                style = "big_slot_button"
-            elseif bigButton == "wide" then
-                style = "frame_button"
-            end
-        end
-
-        return {
-            args = {type = "sprite-button", name = letter, sprite = "kj_sg_glyph_"..letter,
-                tags = {surface = dhdSurface, dhdID = dhdID, letter = letter},
-                style = style,
-            },
-            elem_mods = {toggled = toggled or false},
-            _click = handlers.dhd_letter_click,
-        }
+    if not gui then
+        gui, refs = glib.add(player.gui.screen, sg_guis.addBk_frame())
+        gui.force_auto_center()
+        gui.bring_to_front()
+        player.opened = gui
+        table.insert(storage.openGUIs.AddBk, gui)
     else
-        return {
-            args = {type = "sprite-button", sprite = "virtual-signal/signal-black", enabled = false},
-            elem_mods = {toggled = false},
-        }
-    end
-end
+        gui.visible = true
+        refs = {gates = gui.children[2].children[1].children[1].children[1].gates}
+        if refresh and refresh == true then
+            local surface = e.surface
+            local ogIndex = refs.gates[surface].get_index_in_parent()
 
-function guis.gdo_frame(events)
-    return {
-        args = {type = "frame", name = "gdo", direction = "vertical"},
-        _closed = events and events.frame or handlers.default_close,
-        children = {
-            {
-                args = {type = "flow", name = "header"},
-                ref = false,
-                drag_target = "gdo",
-                children = {{
-                    args = {type = "label", caption = {"gdo"}, style = "frame_title", ignored_by_interaction = true},
-                }, {
-                    args = {type = "sprite-button", style = "close_button", sprite = "utility/close"},
-                    _click = events and events.button or handlers.default_close_button,
-                }},
-            },
-            {
-                args = {type = "frame", style = "inside_shallow_frame"},
-                children = {{
-                    args = {type = "flow", direction = "vertical"},
-                    style_mods = {vertical_spacing = 10},
-                    children = {{
-                        args = {type = "frame", style = "filter_frame"},
-                            style_mods = {natural_height = 50},
-                        children = {{
-                            args = {type = "scroll-pane", style = "deep_scroll_pane"},
-                            style_mods = {horizontally_stretchable = true},
-                            children = {{
-                                args = {type = "flow", name = "gates", direction = "vertical"},
-                                style_mods = {horizontally_stretchable = true},
-                            }},
-                        }},
-                    }},
-                }}
-            }
-        }
-    }
-end
+            refs.gates[surface].destroy()
+            local newSurface = glib.add(refs.gates, sg_guis.addBk_address(surface, e.state))
+            local current_index = newSurface.get_index_in_parent()
 
-function guis.gdo_gate(gateSurface, gateID, iris, events) --gdo_gate
-    local state = "on"
-    if iris and iris.power_switch_state == true then
-        state = "iris"
-    end
-
-    return {
-        args = {type = "frame", name = "gdo_gate", style = "bordered_frame", tags = {irisID = gateID}},
-        style_mods = {horizontal_align = "left", horizontally_stretchable = true},
-        children = {
-            {
-                args = {type = "flow", direction = "horizontal"},
-                style_mods = {horizontally_stretchable = true},
-                children = {{
-                        args = {type = "sprite", style = "image", sprite = "kj_sg_gate_"..state},
-                        style_mods = {vertical_align = "center", right_padding = 10},
-                    }, {
-                        args = {type = "label", style = "frame_title",
-                        caption = {"", {"gdoGui1"}, {"space-location-name."..gateSurface}, }},
-                        style_mods = {vertical_align = "center"},
-                    }, {
-                        args = {type = "textfield", name = "code", style = "stretchable_textfield"},
-                    }, {
-                        args = {type = "sprite-button", style = "item_and_count_select_confirm", sprite = "utility/enter", tooltip = {"gdoGui4"}},
-                        _click = events and events.button or handlers.gdo_send_code,
-                    }
-                }
-            }
-        },
-    }
-end
-
-function guis.gdo_iris_frame(irisID, events) --gdo_iris
-    return {
-        args = {type = "frame", name = "gdo_iris", direction = "vertical", anchor = {
-            gui = defines.relative_gui_type.power_switch_gui,
-            position = defines.relative_gui_position.left,
-        }, tags = {irisID = irisID}},
-        style_mods = {natural_width = 200},
-        children = {
-            {
-                args = {type = "flow", name = "header"}, ref = false,
-                children = {{
-                        args = {type = "label", caption = {"gdoGuiIris1"}, style = "frame_title", ignored_by_interaction = true},
-                    }, {
-                        args = {type = "sprite-button", style = "item_and_count_select_confirm", sprite = "utility/add", tooltip = {"gdoGuiIris3"}},
-                        _click = events and events.button or handlers.gdo_add_code,
-                    }
-                },
-            },
-            {
-                args = {type = "frame", style = "inside_shallow_frame"},
-                children = {{
-                    args = {type = "flow", direction = "vertical"},
-                    style_mods = {vertical_spacing = 10},
-                    children = {{
-                        args = {type = "frame", style = "filter_frame"},
-                        style_mods = {horizontally_stretchable = true},
-                        children = {{
-                            args = {type = "flow", name = "gdos", direction = "vertical", tags = {irisID = irisID}},
-                            style_mods = {horizontally_stretchable = true},
-                        }},
-                    }},
-                }}
-            }
-        }
-    }
-end
-
-function guis.gdo_code(irisID, code, events) --ABDEF
-    return {
-        args = {type = "flow", name = code, direction = "horizontal", tags = {irisID = irisID, code = code}},
-        style_mods = {horizontally_stretchable = true},
-        children = {{
-                args = {type = "textfield", text = code, style = "stretchable_textfield"},
-                _text_changed = events and events.button or handlers.gdo_change_code,
-            }, {
-                args = {type = "sprite-button", style = "close_button", sprite = "utility/close", tooltip = {"gdoGuiIris2"}},
-                _click = events and events.button or handlers.gdo_delete_code,
-            }
-        }
-    }
-end
-
-function guis.addBk_frame(events) --addBk
-    return {
-        args = {type = "frame", name = "addBk", direction = "vertical"},
-        --_closed = events and events.frame or handlers.default_close,
-        children = {
-            {
-                args = {type = "flow", name = "header"},
-                ref = false,
-                drag_target = "addBk",
-                children = {{
-                    args = {type = "label", caption = {"addBk"}, style = "frame_title", ignored_by_interaction = true},
-                }, {
-                    args = {type = "empty-widget", style = "draggable_space_header", ignored_by_interaction = true},
-                    style_mods = {horizontally_stretchable = true, height = 24},
-                }, {
-                    args = {type = "sprite-button", style = "close_button", sprite = "utility/close"},
-                    _click = events and events.button or handlers.default_close_button,
-                }},
-            },
-            {
-                args = {type = "frame", style = "inside_shallow_frame"},
-                children = {{
-                    args = {type = "flow", direction = "vertical"},
-                    style_mods = {vertical_spacing = 10},
-                    children = {{
-                        args = {type = "frame", style = "filter_frame"},
-                        style_mods = {natural_height = 50},
-                        children = {{
-                            args = {type = "scroll-pane", style = "deep_scroll_pane"},
-                            children = {{
-                                args = {type = "flow", name = "gates", direction = "vertical"},
-                                style_mods = {horizontally_stretchable = true},
-                            }},
-                        }},
-                    }},
-                }}
-            }
-        }
-    }
-end
-
-function guis.addBk_address(surface, addState) --surface
-    local element
-    if addState == 1 then
-        element = {
-            args = {type = "label", caption = {"", {"addBk_unknown"}}},
-            style_mods = {top_padding = 5},
-        }
-    elseif addState == 2 or addState == 3 then
-        local address, letters, index = util.stringToArray(storage.addresses[surface]), {}, nil
-        if addState == 2 then
-            index = "?"
-            address = util.shuffleArray(address, surface)
-        end
-
-        for i, letter in ipairs(address) do
-            table.insert(letters, {
-                args = {type = "label", style = "frame_title", caption = index or i},
-            })
-            table.insert(letters, {
-                args = {type = "sprite", style = "image", sprite = "virtual-signal/kj_sg_glyph_"..letter},
-            })
-        end
-
-        element = {
-            args = {type = "flow", direction = "horizontal"},
-            style_mods = {horizontally_stretchable = true},
-            children = letters
-        }
-    end
-
-    return {
-        args = {type = "frame", name = surface, style = "bordered_frame"},
-        style_mods = {horizontal_align = "left", horizontally_stretchable = true},
-        children = {
-            {
-                args = {type = "flow", direction = "horizontal"},
-                style_mods = {horizontally_stretchable = true},
-                children = {{
-                        args = {type = "sprite", style = "image", sprite = "space-location/"..surface},
-                        style_mods = {vertical_align = "center", right_padding = 10},
-                    }, {
-                        args = {type = "label", style = "frame_title",
-                        caption = {"", {"space-location-name."..surface}, }},
-                        style_mods = {vertical_align = "center", right_padding = 10},
-                    }, element
-                }
-            }
-        },
-    }
-end
-
-function handlers.default_close(event)
-    event.element.destroy()
-end
-
-function handlers.default_close_button(event)
-    event.element.parent.parent.destroy()
-end
-
-function handlers.gdo_send_code(event)
-    local code = event.element.parent.code.text
-    if code == "" then return end
-    local irisID = event.element.parent.parent.tags.irisID
-    local irisedGate = storage.irisedGates[tonumber(irisID)]
-
-    if irisedGate.gdos[code] == true then
-        local section = irisedGate.childs.signalSender.get_control_behavior().get_section(1)
-        section.set_slot(3, {
-            value = {
-                type = "entity",
-                name = SGNAMES.iris,
-                quality = QUALITIES[1],
-                comparator = "=",
-            },
-            min = -1,
-        })
-        irisedGate:SetIris(false)
-        GDOTriggered({
-            prototype_name = "kj_stargate_gdo",
-            player_index = event.player_index,
-        }, true)
-    end
-end
-
-function handlers.gdo_add_code(event)
-    local irisID = event.element.parent.parent.tags.irisID
-    local code, j = "", 1
-    repeat
-        for i = 1, 6 do
-            local chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
-            local pos = math.random(1, #chars)
-            code = code..chars:sub(pos, pos)
-        end
-        j = j + 1
-    until storage.irisedGates[tonumber(irisID)].gdos[code] == nil or j == 1000
-
-    storage.irisedGates[tonumber(irisID)].gdos[code] = true
-
-    RefreshAllGDOIris({add = code, player_index = event.player_index})
-end
-
-function handlers.gdo_change_code(event)
-    local irisID = event.element.parent.tags.irisID
-    local oldCode = event.element.parent.name
-    local newCode = event.text
-
-    storage.irisedGates[tonumber(irisID)].gdos[oldCode] = nil
-    storage.irisedGates[tonumber(irisID)].gdos[newCode] = true
-
-    RefreshAllGDOIris({change = {oldCode, newCode}, player_index = event.player_index})
-end
-
-function handlers.gdo_delete_code(event)
-    local irisID = event.element.parent.tags.irisID
-    local code = event.element.parent.name
-    storage.irisedGates[tonumber(irisID)].gdos[code] = nil
-
-    RefreshAllGDOIris({delete = code, player_index = event.player_index})
-end
-
-function handlers.dhd_letter_click(event)
-    if event.button == defines.mouse_button_type.left then
-        local element = event.element
-        local dhdSurface, dhdID, char = element.tags.surface, element.tags.dhdID, element.tags.letter
-        local dhd = util.findIDInGlobal("dhd", dhdSurface, dhdID)
-
-        if dhd then
-            local gate = dhd.stargate
-            if char == "connect" then
-                if gate.active == false then
-                    util.playSoundOnSurface(gate.entity.surface, gate.pos, "kj_stargate_dhdc")
-                    dhd:Connect(dhdSurface, game.players[event.player_index])
-                else
-                    if gate.travelDirection == "sender" then
-                        dhd:Disconnect()
-                    end
-                end
-            elseif gate.active == false and gate.safeToTravel == false then
-                if element.toggled == false then --clicked letter button
-                    if #dhd.address < 7 then
-                        element.toggled = not element.toggled
-                        util.playSoundOnSurface(dhd.entity.surface, gate.pos, util.randomSound("kj_stargate_dhd", 7))
-                        dhd.glyphs[(#dhd.address or 0) + 1].animation_offset = charLookup[char]
-                        dhd.addressLetters[char] = true
-                        table.insert(dhd.address, char)
-                        gate.chevrons.animation_offset = gate.chevrons.animation_offset + 1
-                    end
-                else --unclicked letter button
-                    local index = util.deleteFromITable(dhd.address, char)
-                    if dhd.glyphs[index] == nil then
-                        dhd:CloseGUIs()
-                        return
-                    end
-                    dhd.glyphs[index].destroy() --prüfen ob existiert, und wenn nicht GUI schließen
-                    element.toggled = not element.toggled
-                    util.playSoundOnSurface(gate.entity.surface, gate.pos, util.randomSound("kj_stargate_dhd", 7))
-                    dhd.addressLetters[char] = nil
-                    table.remove(dhd.glyphs, index)
-                    table.insert(dhd.glyphs, rendering.draw_animation{
-                        animation = "kj_stargate_dhd_"..dhd.entity.direction,
-                        animation_speed = 0,
-                        target = dhd.pos,
-                        surface = dhd.entity.surface,
-                        render_layer = "object",
-                    })
-                    gate.chevrons.animation_offset = math.max(gate.chevrons.animation_offset - 1, 0)
-                end
-                dhd:TrackIdling()
+            while current_index > ogIndex do
+                refs.gates.swap_children(current_index, current_index - 1)
+                current_index = current_index - 1
             end
         else
-            game.print("dhd not found")
+            refs.gates.clear()
+        end
+    end
+
+    if refs and refs.gates and not refresh then
+        local count = 0
+        for surface, state in pairs(gates) do
+            if state > 0 then
+                glib.add(refs.gates, sg_guis.addBk_address(surface, state))
+                count = count + 1
+            end
+        end
+        if count == 0 then
+            glib.add(refs.gates, {
+                args = {type = "frame", style = "bordered_frame"},
+                style_mods = {horizontal_align = "left"},
+                children = {{
+                    args = {type = "flow", direction = "horizontal"},
+                    style_mods = {horizontally_stretchable = true, horizontal_align = "center"},
+                    children = {{
+                        args = {type = "label", style = "frame_title", caption = {"addBk_empty"}},
+                    }}
+                }}
+            })
         end
     end
 end
 
-glib.register_handlers(handlers)
+function GUI.RefreshAllAddBks(force, surface, state)
+    if #storage.openGUIs.AddBk == 0 then return end
+    for i = #storage.openGUIs.AddBk, 1, -1 do
+        local GUI = storage.openGUIs.AddBk[i]
 
-return guis
+        if not GUI then goto continue end
+        if not GUI.valid then
+            table.remove(storage.openGUIs.AddBk, i)
+            goto continue
+        end
+        if not GUI.visible then
+            goto continue
+        end
+        if force == game.players[GUI.player_index].force.name then
+            GUI.AddressBookTriggered({
+                prototype_name = "kj_stargate_addressBook",
+                player_index = GUI.player_index,
+                surface = surface,
+                state = state,
+            }, state ~= nil)
+        end
+
+        ::continue::
+    end
+end
+
+function GUI.GDOTriggered(e, refresh)
+    local player, gates = game.players[e.player_index], {}
+    local entities = game.surfaces[player.surface_index].find_entities_filtered{
+        position = player.position,
+        radius = 10,
+        name = {SGNAMES.entity, SGNAMES.entitySignaled}
+    }
+
+    for _, entity in pairs(entities) do
+        local gate = storage["stargate"][entity.surface.name][entity.unit_number]
+
+        if gate.active and gate.destination and gate.destination.manual == false then
+            gates[gate.destination.childs.iris.unit_number] = gate.destination
+        end
+    end
+
+    local gui, refs = player.gui.screen.gdo, nil
+    if not gui then
+        gui, refs = glib.add(player.gui.screen, sg_guis.gdo_frame())
+
+        gui.force_auto_center()
+        gui.bring_to_front()
+        player.opened = gui
+        table.insert(storage.openGUIs.GDO, gui)
+    else
+        gui.visible = true
+        refs = {gates = gui.children[2].children[1].children[1].children[1].gates}
+        if refresh and refresh == true then
+            for _, child in pairs(refs.gates.children) do
+                local irisID = child.tags.irisID
+
+                if irisID then
+                    local state, iris = "on", storage.irisedGates[tonumber(irisID)].childs.iris
+                    if iris.power_switch_state == true then
+                        state = "iris"
+                    end
+                    child.children[1].children[1].sprite = "kj_sg_gate_"..state
+                end
+            end
+        else
+            refs.gates.clear()
+        end
+    end
+
+    if refs and refs.gates and not refresh then
+        if not next(gates) then
+            glib.add(refs.gates, {
+                args = {type = "frame", style = "bordered_frame"},
+                style_mods = {horizontal_align = "left"},
+                children = {{
+                    args = {type = "flow", direction = "horizontal"},
+                    style_mods = {horizontally_stretchable = true, horizontal_align = "center"},
+                    children = {{
+                        args = {type = "label", style = "frame_title", caption = {"gdoGui3"}},
+                    }}
+                }}
+            })
+        else
+            for id, gate in pairs(gates) do
+                glib.add(refs.gates, sg_guis.gdo_gate(gate.entity.surface.name, id, gate.childs.iris))
+            end
+        end
+    end
+end
+
+function GUI.RefreshAllGDOIris(mode)
+    if #storage.openGUIs.GUI.GDOIris == 0 then return end
+
+    for i = #storage.openGUIs.GUI.GDOIris, 1, -1 do
+        local GUI = storage.openGUIs.GUI.GDOIris[i]
+
+        if not GUI then goto continue end
+        if not GUI.valid then
+            table.remove(storage.openGUIs.GUI.GDOIris, i)
+            goto continue
+        end
+        if not GUI.visible then goto continue end
+
+        local gui = game.players[GUI.player_index].gui.relative.gdo_iris.children[2].children[1].children[1].gdos
+
+        if mode.change then
+            gui[mode.change[1]].name = mode.change[2]
+            gui[mode.change[1]].text = mode.change[2]
+
+        elseif mode.add then
+            glib.add(gui, sg_guis.gdo_code(gui.tags.irisID, mode.add))
+
+        elseif mode.delete then
+            gui[mode.delete].destroy()
+        end
+        ::continue::
+    end
+end
+
+function GUI.GDOIris(data)
+    local player = game.players[data.player_index]
+    local gui, refs = player.gui.relative.gdo_iris, nil
+
+    if data.name == SGNAMES.iris then
+        local irisID = data.unit_number or gui.tags.irisID
+        local gate = storage.irisedGates[irisID]
+
+        if not gui then
+            gui, refs = glib.add(player.gui.relative, sg_guis.gdo_iris_frame(irisID))
+
+            table.insert(storage.openGUIs.GUI.GDOIris, gui)
+        else
+            refs = {gdos = gui.children[2].children[1].children[1].gdos}
+        end
+
+        if refs and refs.gdos then
+            refs.gdos.clear()
+            for code, _ in pairs(gate.gdos) do
+                glib.add(refs.gdos, sg_guis.gdo_code(irisID, code))
+            end
+        end
+    else
+        if gui then gui.destroy() end --no gdo gui in other power switches
+    end
+end

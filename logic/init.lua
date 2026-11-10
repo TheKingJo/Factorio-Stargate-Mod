@@ -100,7 +100,7 @@ end
 function OnInit(e)
     InitStorage()
     for _, surface in pairs(game.surfaces) do
-        addAddressToGlobal(surface, generateAddress(surface))
+        Address.addAddressToGlobal(surface, Address.generateAddress(surface))
     end
 
     for _, force in pairs(game.forces) do

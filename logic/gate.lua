@@ -18,12 +18,12 @@ stargate = {
                 otherGate:Reset()
                 storage.tasks.signaledGates[otherGate.id] = nil
             end
-            activateGate(thisGate, true)
-            activateGate(otherGate, false)
+            Gate.activateGate(thisGate, true)
+            Gate.activateGate(otherGate, false)
             thisGate.destination = otherGate
             otherGate.destination = thisGate
 
-            OnGateEstablished(thisGate, otherGate.entity.surface.name, player)
+            Gate.OnGateEstablished(thisGate, otherGate.entity.surface.name, player)
 
             if settings.global["kj_stargate_twoWayTravel"].value == true then
                 otherGate:SetSignalSenderStatus(true)
@@ -50,8 +50,8 @@ stargate = {
     Disconnect = function(self, override)
         local dest = self.destination
         if dest then
-            deactivateGate(self, override)
-            deactivateGate(dest, override)
+            Gate.deactivateGate(self, override)
+            Gate.deactivateGate(dest, override)
 
             dest:SetSignalSenderStatus()
 
@@ -160,7 +160,7 @@ stargate = {
         self.childs.iris.power_switch_state = state
         for _, GUI in pairs(storage.openGUIs.GDO) do
             if GUI and GUI.valid then
-                GDOTriggered({
+                GUI.GDOTriggered({
                     prototype_name = "kj_stargate_gdo",
                     player_index = GUI.player_index,
                 }, true)
@@ -301,14 +301,14 @@ dhd = {
             end
         end
 
-        local gate = findRandomGateOnSurface(surface)
+        local gate = Gate.findRandomGateOnSurface(surface)
         if gate == nil then result = false end
         if dhdSurface == surface then result = false end --cant connect to same surface
         if storage.stargate[surface] == nil then result = false end --no gates on that surface
         --i have decided to allow multiple gate connections between surf a and b because it is canon
 
         if result == true then
-            self.stargate:Connect(findRandomGateOnSurface(surface), player)
+            self.stargate:Connect(Gate.findRandomGateOnSurface(surface), player)
         else
             if self.stargate then
                 if self.stargate.destination == nil then
@@ -357,7 +357,54 @@ dhd = {
     end,
 }
 
-function deactivateGate(gate, override)
+Gate = {}
+Address = {}
+
+function Address.addAddressToGlobal(surface, address)
+    if surface.platform ~= nil then return end
+    storage.addresses[surface.name] = storage.addresses[surface.name] or address
+end
+
+function Address.checkForAddressInGlobal(add)
+    for _, address in pairs(storage.addresses) do
+        if address == add then
+            return true
+        end
+    end
+
+    return false
+end
+
+function Address.generateAddress(surface)
+    --setting up rng
+    local mapSeed = surface.map_gen_settings.seed
+    local hash, resultString = "", ""
+    local generator
+    local result, used = {}, {}
+
+    repeat
+        hash = util.hashFnv1a(mapSeed..surface.name..hash)
+        generator = game.create_random_generator(hash)
+        game.print(surface.name.. " - Game Seed: "..mapSeed.." - Custom Seed: "..hash)
+
+        for i = 1, 6 do
+            local char
+            repeat
+                local index = generator(1, #chevronChars)
+                char = chevronChars[index]
+            until not used[char]
+
+            result[i] = char
+            used[char] = true
+        end
+        resultString = table.concat(result)
+    until Address.checkForAddressInGlobal(resultString) == false
+
+    game.print("Address: "..resultString..util.getSignalFromChar(resultString, true))
+    return resultString
+end
+
+function Gate.deactivateGate(gate, override)
     if gate.dhd then
         gate.dhd:Reset()
     end
@@ -411,7 +458,7 @@ function deactivateGate(gate, override)
     end
 end
 
-function activateGate(gate, pov)
+function Gate.activateGate(gate, pov)
     if gate.dhd then
         gate.dhd:CloseGUIs()
         if storage.tasks.busyDhds and storage.tasks.busyDhds[gate.dhd.id] then
@@ -454,7 +501,7 @@ function activateGate(gate, pov)
     end
 end
 
-function findRandomGateOnSurface(surface)
+function Gate.findRandomGateOnSurface(surface)
     local gates = {}
     if not storage.stargate[surface] then return nil end
     for _, gate in pairs(storage.stargate[surface]) do
@@ -470,51 +517,7 @@ function findRandomGateOnSurface(surface)
     end
 end
 
-function addAddressToGlobal(surface, address)
-    if surface.platform ~= nil then return end
-    storage.addresses[surface.name] = storage.addresses[surface.name] or address
-end
-
-function checkForAddressInGlobal(add)
-    for _, address in pairs(storage.addresses) do
-        if address == add then
-            return true
-        end
-    end
-
-    return false
-end
-
-function generateAddress(surface)
-    --setting up rng
-    local mapSeed = surface.map_gen_settings.seed
-    local hash, resultString = "", ""
-    local generator
-    local result, used = {}, {}
-
-    repeat
-        hash = util.hashFnv1a(mapSeed..surface.name..hash)
-        generator = game.create_random_generator(hash)
-        game.print(surface.name.. " - Game Seed: "..mapSeed.." - Custom Seed: "..hash)
-
-        for i = 1, 6 do
-            local char
-            repeat
-                local index = generator(1, #chevronChars)
-                char = chevronChars[index]
-            until not used[char]
-
-            result[i] = char
-            used[char] = true
-        end
-        resultString = table.concat(result)
-    until checkForAddressInGlobal(resultString) == false
-
-    game.print("Address: "..resultString..util.getSignalFromChar(resultString, true))
-    return resultString
-end
-
-function findFreeTeleportArea(gate, name, pos)
+function Gate.findFreeTeleportArea(gate, name, pos)
     local teleportSpaces = {
         {
             {{0, 0}, {0, 0}},
@@ -555,7 +558,7 @@ function findFreeTeleportArea(gate, name, pos)
     return teleportPosition
 end
 
-function gateTransit(gate, player, vehicle)
+function Gate.gateTransit(gate, player, vehicle)
     local pos = util.vector2Add(gate.pos, {x = 0, y = entOffY.sg})
     local surface = gate.entity.surface
     if not player then
@@ -572,7 +575,7 @@ function gateTransit(gate, player, vehicle)
     else
         if player ~= nil then
             player.teleport(
-                findFreeTeleportArea(gate, player.character.name, pos),
+                Gate.findFreeTeleportArea(gate, player.character.name, pos),
                 surface
             )
             player.opened = nil
@@ -584,7 +587,7 @@ function gateTransit(gate, player, vehicle)
             local extraDistance = (math.abs(collBox.left_top.y) + math.abs(collBox.right_bottom.y)) / 2
 
             vehicle.teleport(
-                findFreeTeleportArea(gate, vehicle.name, util.vector2Add(pos, {x = 0, y = extraDistance + 0.25})),
+                Gate.findFreeTeleportArea(gate, vehicle.name, util.vector2Add(pos, {x = 0, y = extraDistance + 0.25})),
                 surface
             )
             --flip car in certain value ranges
@@ -619,7 +622,7 @@ function gateTransit(gate, player, vehicle)
     end
 end
 
-function gateTransitUnit(gate, unit)
+function Gate.gateTransitUnit(gate, unit)
     local pos = util.vector2Add(gate.pos, {x = 0, y = entOffY.sg})
     local surface = gate.entity.surface
     util.playSoundOnSurface(unit.surface, unit.position, util.randomSound("kj_stargate_enter-", 3))
@@ -633,7 +636,7 @@ function gateTransitUnit(gate, unit)
             local speed = unit.speed
             local collBox = unit.prototype.collision_box
             local extraDistance = (math.abs(collBox.left_top.y) + math.abs(collBox.right_bottom.y)) / 2
-            local position = findFreeTeleportArea(gate, unit.name, util.vector2Add(pos, {x = 0, y = extraDistance + 0.25}))
+            local position = Gate.findFreeTeleportArea(gate, unit.name, util.vector2Add(pos, {x = 0, y = extraDistance + 0.25}))
 
             local newUnit = unit.clone({
                 position = position,
@@ -672,7 +675,7 @@ function gateTransitUnit(gate, unit)
     end
 end
 
-function OnGateEstablished(gate, surface, player)
+function Gate.OnGateEstablished(gate, surface, player)
     local childs, force = gate.childs, nil
 
     if not player then
@@ -701,5 +704,5 @@ function OnGateEstablished(gate, surface, player)
         game.print("Error?")
     end
     storage.addressBook[force][surface] = 3
-    RefreshAllAddBks(force, surface, 3)
+    GUI.RefreshAllAddBks(force, surface, 3)
 end
