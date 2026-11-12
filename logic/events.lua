@@ -153,7 +153,7 @@ function OnBuilt(e)
         if iris == true then
             childs.iris = surface.create_entity{
                 name = SGNAMES.iris,
-                force = game.players(e.player_index).force,
+                force = game.players[e.player_index].force,
                 position = util.vector2Add(pos, {x = 0, y = -2}),
             }
             childs.iris.minable_flag = false
@@ -468,7 +468,7 @@ function OnRemoved(e)
         end
 
         if sg.childs.iris then
-            --[[local player = game.players(e.player_index)
+            --[[local player = game.players[e.player_index]
             if player and player.valid then
                 player.insert({name = SGNAMES.iris, count = 1})
             end]]

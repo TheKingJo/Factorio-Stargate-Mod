@@ -15,7 +15,7 @@ function Sky.initStorage()
         forceRows = true, --[forceName] = row index
         nextRow = 0,
         forceCols = true, --[forceName] = next free column index
-        areas = true,     --[forceName][planetName] = area
+        areas = true,     --[forceName][surfaceName] = area
         sessions = true,  --[player_index] = {area, character, observatory}
     }
 
@@ -160,21 +160,21 @@ end
 ---player enters the sky through an observatory
 function Sky.enter(player, observatory)
     local character = player.character
-    if not character then return end
     if storage.sky.sessions[player.index] then return end
-    local planet = observatory.surface
+    local surface = (observatory and observatory.surface) or player.surface
 
-    if not Sky.isValidPlanet(planet) then
-        player.print("Hier ist kein Himmel zu sehen.")
+    if not Sky.isValidPlanet(surface) then
+        player.print("There's no sky here.")
         return
     end
 
-    local area = Sky.getArea(player.force, planet.name, true)
+    local area = Sky.getArea(player.force, surface.name, true)
     local surface = Sky.getSurface(true)
 
     --character hides inside the observatory, enemies have to destroy it first
-    character.teleport(observatory.position)
-
+    if character and observatory then
+        character.teleport(observatory.position)
+    end
     storage.sky.sessions[player.index] = {
         area = area,
         character = character,
@@ -186,7 +186,7 @@ function Sky.enter(player, observatory)
 
     local ok, err = Sky.view(player, area)
     if not ok then
-        player.print("Sky view fehlgeschlagen: "..tostring(err))
+        player.print("Sky view failed: "..tostring(err))
         Sky.exit(player.index)
     end
 end
@@ -213,7 +213,7 @@ function Sky.exit(playerIndex)
         character.teleport(pos)
     end
 
-    local player = game.players(playerIndex)
+    local player = game.players[playerIndex]
     if player and player.valid and player.controller_type == defines.controllers.remote and util.isSkySurface(player.surface) then
         player.exit_remote_view()
     end
@@ -269,7 +269,6 @@ end
 
 function Sky.OnPreSurfaceDeleted(e)
     local surface = game.surfaces[e.surface_index]
-    if not surface then return end
 
     if util.isSkySurface(surface) then
         for playerIndex, _ in pairs(storage.sky.sessions) do Sky.exit(playerIndex) end
@@ -299,7 +298,7 @@ end
 --player left remote view (escape, map key, clicking on character...)
 function Sky.OnPlayerControllerChanged(e)
     if not storage.sky.sessions[e.player_index] then return end
-    local player = game.players(e.player_index)
+    local player = game.players[e.player_index]
 
     if player.controller_type ~= defines.controllers.remote then
         Sky.exit(e.player_index)
@@ -309,7 +308,7 @@ end
 --player switched to another surface inside remote view
 function Sky.OnPlayerChangedSurface(e)
     if not storage.sky.sessions[e.player_index] then return end
-    local player = game.players(e.player_index)
+    local player = game.players[e.player_index]
 
     if not util.isSkySurface(player.surface) then
         Sky.exit(e.player_index)
@@ -339,33 +338,48 @@ function Sky.spawnTestStars(area, count)
     end
 end
 
+function Sky.spawnStarSign(player, letter)
+    local force = player.force
+    local surface = player.surface
+    --local sky = Sky.getSurface(true)
+    if not starPositions[letter] then
+        player.print("That letter doesn't exist.")
+        return
+     end
+    --local area = storage.sky.areas[force][surface]
+
+    for _, pos in pairs(starPositions[letter]) do
+        local star = surface.create_entity{name = skyNames.star, position = util.vector2Add(player.position, pos), force = force}
+        star.destructible = false
+        player.print("Spanwed star sign: "..letter)
+        --table.insert(area.stars, star)
+    end
+end
+
 function Sky.registerCommands()
     --/sky [unhide] - view the sky area of the planet the player physically on
     commands.add_command("sky", nil, function(command)
-        local player = game.players(command.player_index)
-        if not player then return end
-        local planet = player.physical_surface
-        if not Sky.isValidPlanet(planet) then player.print("Kein gültiger Planet: "..planet.name) return end
-        local area = Sky.getArea(player.force, planet.name, true)
+        local player = game.players[command.player_index]
+        local surface = player.physical_surface
+        if not Sky.isValidPlanet(surface) then player.print("Not a valid planet: "..surface.name) return end
 
-        if command.parameter == "unhide" then
-            player.force.set_surface_hidden(Sky.getSurface(true), false)
-        end
-
-        local ok, err = Sky.view(player, area)
-        player.print("Sky area "..planet.name.." [col "..area.col..", row "..area.row.."]: "..(ok and "ok" or ("FEHLER: "..tostring(err))))
+        Sky.enter(player)
     end)
 
     --/skyStars [n] - spawn n random test stars into your area of current planet
     commands.add_command("skyStars", nil, function(command)
-        local player = game.players(command.player_index)
-        if not player then return end
-        local planet = player.physical_surface
-        if not Sky.isValidPlanet(planet) then return end
-        local area = Sky.getArea(player.force, planet.name, true)
+        local player = game.players[command.player_index]
+        local surface = player.physical_surface
+        if not Sky.isValidPlanet(surface) then return end
+        local area = Sky.getArea(player.force, surface.name, true)
 
         Sky.spawnTestStars(area, tonumber(command.parameter) or 10)
-        player.print("Sterne gespawnt: "..#area.stars)
+        player.print("Spanwed stars: "..#area.stars)
+    end)
+
+    --/skyStar [A-s] - spawn a star sign (glyph)
+    commands.add_command("skyStar", nil, function(command)
+        Sky.spawnStarSign(game.players[command.player_index], command.parameter)
     end)
 
     --/skyDelete - deletes the whole sky surface + storage
@@ -375,6 +389,31 @@ function Sky.registerCommands()
         storage.sky = nil
 
         Sky.initStorage()
-        game.print("Sky surface gelöscht")
+        game.print("Deleted sky surface")
+    end)
+
+    --/skySavePattern
+    commands.add_command("skySavePattern", nil, function(command)
+        local player = game.players[command.player_index]
+        local range, pos, surface = 50, player.position, player.surface
+        local area = {
+            left_top = {y = pos.y - range, x = pos.x - range},
+            right_bottom = {y = pos.y + range, x = pos.x + range}
+        }
+        local entities, positions = surface.find_entities_filtered{name = "kj_sg_sky_star", area = area}, {}
+
+        for _, entity in pairs(entities) do
+            positions[#positions + 1] = {
+                x = entity.position.x - pos.x,
+                y = entity.position.y - pos.y
+            }
+        end
+
+        local json = helpers.table_to_json(positions)
+        helpers.write_file("entity_positions.json", json, false, player.index )
+
+        player.print("Export done: "..#positions.." entities found.")
+
+        --helpers.json_to_table(json)
     end)
 end
