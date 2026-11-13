@@ -7,24 +7,6 @@ skyTile.autoplace = nil
 skyTile.map_color = {r = 0.02, g = 0.02, b = 0.06}
 skyTile.order = "z[kj-sky]"
 
-local star = table.deepcopy(data.raw.lamp["small-lamp"])
-star.name = "kj_sg_sky_star"
-star.hidden = true
-star.minable = nil
-star.placeable_by = nil
-star.next_upgrade = nil
-star.fast_replaceable_group = nil
-star.corpse = nil
-star.dying_explosion = nil
-star.flags = {"placeable-off-grid", "not-blueprintable", "not-deconstructable", "not-upgradable", "no-copy-paste", "not-rotatable"}
-star.collision_mask = {layers = {}}
-star.energy_source = {type = "void"}
-star.always_on = true
-star.circuit_wire_max_distance = 40
-star.map_color = {r = 1, g = 1, b = 1}
-star.friendly_map_color = {r = 1, g = 1, b = 1}
-star.light = {intensity = 0.6, size = 6, color = {r = 0.8, g = 0.9, b = 1}}
-
 local radar = table.deepcopy(data.raw.radar["radar"])
 radar.name = "kj_sg_sky_radar"
 radar.hidden = true
@@ -60,9 +42,6 @@ radar.radius_minimap_visualisation_color = nil
 radar.circuit_connector = nil
 radar.circuit_wire_max_distance = 0
 
-local observatory = table.deepcopy(data.raw.accumulator["accumulator"])
-
-
 local observatoryItem = table.deepcopy(data.raw.item["accumulator"])
 observatoryItem.name = "kj_sg_observatory"
 observatoryItem.place_result = "kj_sg_observatory"
@@ -78,6 +57,69 @@ local observatoryRecipe = {
 }
 
 data:extend({
+    {
+        type = "animation",
+        name = "kj_sg_star",
+        layers = {
+            {
+                filename = modname.."/graphics/entities/star.png",
+                priority = "high",
+                size = 512,
+                scale = 0.5,
+                blend_mode = "additive",
+                draw_as_glow = true,
+                frame_count = 16,
+                line_length = 4,
+                animation_speed = 1,
+                run_mode = "forward-then-backward",
+            },
+        }
+    },
+    {
+        type = "lamp",
+        name = "kj_sg_sky_star",
+        icon = "__base__/graphics/icons/small-lamp.png",
+        flags = {"placeable-off-grid", "not-blueprintable", "not-deconstructable", "not-upgradable", "no-copy-paste", "not-rotatable"},
+        hidden = true,
+        max_health = 100,
+        collision_box = {{-0.15, -0.15}, {0.15, 0.15}},
+        selection_box = {{-0.5, -0.5}, {0.5, 0.5}},
+        collision_mask = {layers = {}},
+        impact_category = "glass",
+        energy_source = {type = "void"},
+        energy_usage_per_tick = "5kW",
+        darkness_for_all_lamps_on = 0.5,
+        darkness_for_all_lamps_off = 0.3,
+        glow_size = 6,
+        glow_color_intensity = 1,
+        glow_render_mode = "multiplicative",
+        always_on = true,
+        map_color = {r = 1, g = 1, b = 1},
+        friendly_map_color = {r = 1, g = 1, b = 1},
+        light = {intensity = 0.6, size = 6, color = {r = 0.8, g = 0.9, b = 1}},
+
+        circuit_wire_max_distance = 40,
+        circuit_connector = {
+            points = {
+                shadow = {
+                    green = {0, 0},
+                    copper= {0, 0},
+                    red =   {0, 0},
+                },
+                wire = {
+                    green = {0, 0},
+                    copper= {0, 0},
+                    red =   {0, 0},
+                },
+            },
+            sprites = {
+                led_blue = util.empty_sprite(),
+                led_green = util.empty_sprite(),
+                led_light = {intensity = 0, size = 0},
+                led_red = util.empty_sprite(),
+            },
+        },
+    },
     {
         type = "electric-energy-interface",
         name = "kj_sg_observatory",
@@ -186,4 +228,4 @@ data:extend({
             },
         }
     },
-skyTile, star, radar, observatory, observatoryItem, observatoryRecipe})
+skyTile, radar, observatoryItem, observatoryRecipe})

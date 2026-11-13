@@ -556,6 +556,9 @@ function GuiOpened(e)
             Sky.enter(player, ent)
         end
 
+    elseif ent.name == skyNames.star then
+        player.opened = nil
+
     elseif ent.type == "power-switch" then
         GUI.GDOIris({
             name = ent.name,

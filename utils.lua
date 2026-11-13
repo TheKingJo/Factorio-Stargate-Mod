@@ -500,6 +500,10 @@ function functions.isSkySurface(surface)
     return surface ~= nil and surface.name == skyNames.surface
 end
 
+function  functions.rndFloat(min, max)
+    return min + math.random() * (max - min)
+end
+
 functions.mtMgr =
 {
     assignments = {},

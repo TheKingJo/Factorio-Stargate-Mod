@@ -15,7 +15,7 @@ function Sky.initStorage()
         forceRows = true, --[forceName] = row index
         nextRow = 0,
         forceCols = true, --[forceName] = next free column index
-        areas = true,     --[forceName][surfaceName] = area
+        planetAreas = true,     --[forceName][surfaceName] = area
         sessions = true,  --[player_index] = {area, character, observatory}
     }
 
@@ -64,13 +64,11 @@ function Sky.isValidPlanet(surface)
         and storage.addresses[surface.name] ~= nil
 end
 
----@param force LuaForce
----@param planetName string
 ---@param create boolean? allocate a new area if none exists
 function Sky.getArea(force, planetName, create)
     local sky, forceN = storage.sky, force.name
-    if sky.areas[forceN] and sky.areas[forceN][planetName] then
-        return sky.areas[forceN][planetName]
+    if sky.planetAreas[forceN] and sky.planetAreas[forceN][planetName] then
+        return sky.planetAreas[forceN][planetName]
     end
     if not create then return nil end
 
@@ -101,8 +99,8 @@ function Sky.getArea(force, planetName, create)
     area.radar.destructible = false
     area.radar.disabled_by_script = true --only active while someone looks at this area
 
-    sky.areas[forceN] = sky.areas[forceN] or {}
-    sky.areas[forceN][planetName] = area
+    sky.planetAreas[forceN] = sky.planetAreas[forceN] or {}
+    sky.planetAreas[forceN][planetName] = area
 
     return area
 end
@@ -116,7 +114,7 @@ local function destroyArea(area)
     end
 end
 
---re-chart only the areas currently viewed by players of the force, everything else vanishes from its map
+--re-chart only the planetAreas currently viewed by players of the force, everything else vanishes from its map
 local function rechartForce(force)
     local surface = Sky.getSurface(false)
     if not surface or not force or not force.valid then return end
@@ -124,7 +122,7 @@ local function rechartForce(force)
 
     for _, session in pairs(storage.sky.sessions) do
         local area = session.area
-        if area.force == force.name and storage.sky.areas[force.name] and storage.sky.areas[force.name][area.planet] == area then
+        if area.force == force.name and storage.sky.planetAreas[force.name] and storage.sky.planetAreas[force.name][area.planet] == area then
             force.chart(surface, area.area)
         end
     end
@@ -228,6 +226,21 @@ function Sky.OnObservatoryRemoved(entity)
     end
 end
 
+function Sky.drawStar(target, surface)
+    local scale = util.rndFloat(0.5, 1)
+    rendering.draw_animation{
+        animation = "kj_sg_star",
+        orientation = math.random(),
+        x_scale = scale,
+        y_scale = scale,
+        target = target,
+        surface = surface,
+        render_layer = "object",
+        animation_speed = util.rndFloat(0.15, 0.25),
+        tint = {util.rndFloat(0.75, 1), util.rndFloat(0.75, 1), util.rndFloat(0.75, 1), 1},
+    }
+end
+
 --------------------------------------------------------------------------------
 --events
 --------------------------------------------------------------------------------
@@ -258,13 +271,13 @@ function Sky.OnForcesMerged(e)
         if session.area.force == e.source_name then Sky.exit(playerIndex) end
     end
 
-    local areas = storage.sky.areas[e.source_name]
-    if not areas then return end
+    local planetAreas = storage.sky.planetAreas[e.source_name]
+    if not planetAreas then return end
 
-    for _, area in pairs(areas) do
+    for _, area in pairs(planetAreas) do
         destroyArea(area)
     end
-    storage.sky.areas[e.source_name] = nil --row stays reserved forever, slot is unusable from now on
+    storage.sky.planetAreas[e.source_name] = nil --row stays reserved forever, slot is unusable from now on
 end
 
 function Sky.OnPreSurfaceDeleted(e)
@@ -281,11 +294,10 @@ function Sky.OnPreSurfaceDeleted(e)
         if session.area.planet == surface.name then Sky.exit(playerIndex) end
     end
 
-    for forceN, areas in pairs(storage.sky.areas) do
-        local area = areas[surface.name]
-        if area then
-            destroyArea(area)
-            areas[surface.name] = nil
+    for forceN, planetAreas in pairs(storage.sky.planetAreas) do
+        if planetAreas[surface.name] then
+            destroyArea(planetAreas[surface.name])
+            planetAreas[surface.name] = nil
             rechartForce(game.forces[forceN])
         end
     end
@@ -333,6 +345,7 @@ function Sky.spawnTestStars(area, count)
             y = area.area.left_top.y + margin + math.random() * (AREA_SIZE - 2 * margin),
         }
         local star = surface.create_entity{name = skyNames.star, position = pos, force = area.force}
+        Sky.drawStar(star, surface)
         star.destructible = false
         table.insert(area.stars, star)
     end
@@ -346,10 +359,11 @@ function Sky.spawnStarSign(player, letter)
         player.print("That letter doesn't exist.")
         return
      end
-    --local area = storage.sky.areas[force][surface]
+    --local area = storage.sky.planetAreas[force][surface]
 
     for _, pos in pairs(starPositions[letter]) do
         local star = surface.create_entity{name = skyNames.star, position = util.vector2Add(player.position, pos), force = force}
+        Sky.drawStar(star, surface)
         star.destructible = false
         player.print("Spanwed star sign: "..letter)
         --table.insert(area.stars, star)
