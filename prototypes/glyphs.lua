@@ -23,6 +23,14 @@ for i, char in ipairs(chars) do
             type = "sprite",
             name = "kj_sg_glyph_"..char,
             filename = modname.."/graphics/glyphs/"..string.format("%04d", i+1)..".png",
+            scale = 0.5,
+            size = 128,
+        },
+        {
+            type = "sprite",
+            name = "kj_sg_glyph_mask_"..char,
+            filename = modname.."/graphics/glyphs/mask/"..string.format("%04d", i+1)..".png",
+            scale = 0.5,
             size = 128,
         },
     })

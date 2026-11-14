@@ -335,6 +335,10 @@ end
 --Debugging
 --------------------------------------------------------------------------------
 
+--TODO poisson verteilung der positionen der glyphen im areal
+-- mindestabstand, auch vom rand. suchen bis kombination gefunden
+-- ansonsten fallback mit kanten der oberen und unteren drei mit mitte
+
 function Sky.spawnTestStars(area, count)
     local surface = Sky.getSurface(true)
     local margin = 8
@@ -361,13 +365,26 @@ function Sky.spawnStarSign(player, letter)
      end
     --local area = storage.sky.planetAreas[force][surface]
 
+    local star
     for _, pos in pairs(starPositions[letter]) do
-        local star = surface.create_entity{name = skyNames.star, position = util.vector2Add(player.position, pos), force = force}
+        star = surface.create_entity{name = skyNames.star, position = util.vector2Add(player.position, {20*pos.x, -20*pos.y}), force = force}
         Sky.drawStar(star, surface)
         star.destructible = false
         player.print("Spanwed star sign: "..letter)
         --table.insert(area.stars, star)
     end
+
+    util.playSoundOnSurface(surface, player.position, "kj_stargate_found_glyph")
+    rendering.draw_sprite{
+        sprite = "kj_sg_glyph_mask_"..letter,
+        x_scale = 11,
+        y_scale = 11,
+        target = player.position,
+        surface = surface,
+        render_layer = "object-under",
+        tint = {0.1, 0.1, 0.1, 0},
+        light_mode = "glow",
+    }
 end
 
 function Sky.registerCommands()
