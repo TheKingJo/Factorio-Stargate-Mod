@@ -500,9 +500,114 @@ function functions.isSkySurface(surface)
     return surface ~= nil and surface.name == skyNames.surface
 end
 
-function  functions.rndFloat(min, max)
+function functions.rndFloat(min, max)
     return min + math.random() * (max - min)
 end
+
+
+--Poisson Disk Sampling (Bridson)
+--area = {left_top = {x, y}, right_bottom = {x, y}}
+--min_distance = minimal distance between 2 points
+--border_distance = minimal distance from border
+--attempts = attempts per point
+--thx chagtgpt
+function functions.poissonDiskSampling(area, min_distance, border_distance, attempts)
+    attempts = attempts or 30
+    border_distance = border_distance or min_distance
+
+    local x_min = area.left_top.x + border_distance
+    local y_min = area.left_top.y + border_distance
+    local x_max = area.right_bottom.x - border_distance
+    local y_max = area.right_bottom.y - border_distance
+
+    if x_min >= x_max or y_min >= y_max then
+        return {}
+    end
+
+    local cell_size = min_distance / math.sqrt(2)
+    local grid, active, points = {}, {}, {}
+    local grid_width = math.ceil((x_max - x_min) / cell_size)
+    local grid_height = math.ceil((y_max - y_min) / cell_size)
+
+    local function grid_index(x, y)
+        return math.floor((x - x_min) / cell_size),
+               math.floor((y - y_min) / cell_size)
+    end
+
+    local function is_valid(point)
+        if point.x < x_min or point.x > x_max
+        or point.y < y_min or point.y > y_max then
+            return false
+        end
+
+        local gx, gy = grid_index(point.x, point.y)
+
+        --Check neighbors
+        for ix = math.max(0, gx - 2), math.min(grid_width, gx + 2) do
+            for iy = math.max(0, gy - 2), math.min(grid_height, gy + 2) do
+                local other = grid[ix .. ":" .. iy]
+
+                if other then
+                    local dx = point.x - other.x
+                    local dy = point.y - other.y
+
+                    if dx * dx + dy * dy < min_distance * min_distance then
+                        return false
+                    end
+                end
+            end
+        end
+
+        return true
+    end
+
+    local function add_point(point)
+        local gx, gy = grid_index(point.x, point.y)
+
+        grid[gx .. ":" .. gy] = point
+
+        points[#points + 1] = point
+        active[#active + 1] = point
+    end
+
+    --Startpoint
+    add_point({
+        x = x_min + math.random() * (x_max - x_min),
+        y = y_min + math.random() * (y_max - y_min)
+    })
+
+    --Bridson Algorithm
+    while #active > 0 do
+        local index = math.random(#active)
+        local origin = active[index]
+        local found = false
+
+        for i = 1, attempts do
+            local angle = math.random() * math.pi * 2
+
+            --Uniformly within the annular region between r and 2r
+            local radius = min_distance * math.sqrt(1 + 3 * math.random())
+
+            local candidate = {
+                x = origin.x + math.cos(angle) * radius,
+                y = origin.y + math.sin(angle) * radius
+            }
+
+            if is_valid(candidate) then
+                add_point(candidate)
+                found = true
+                break
+            end
+        end
+
+        if not found then
+            table.remove(active, index)
+        end
+    end
+
+    return points
+end
+
 
 functions.mtMgr =
 {

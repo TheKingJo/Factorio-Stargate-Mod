@@ -551,7 +551,7 @@ function GuiOpened(e)
     elseif ent.name == skyNames.observatory then
         player.opened = nil
         if ent.surface_index == player.physical_surface_index
-            and util.getDistance(ent.position, player.physical_position) < 5
+            and util.getDistance(ent.position, player.physical_position) < 7
             and ent.energy >= 10^7 then
             Sky.enter(player, ent)
         end

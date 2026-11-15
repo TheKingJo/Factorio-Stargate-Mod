@@ -88,7 +88,7 @@ function Sky.getArea(force, planetName, create)
         row = row,
         area = {left_top = lt, right_bottom = {x = lt.x + AREA_SIZE, y = lt.y + AREA_SIZE}},
         center = {x = lt.x + AREA_SIZE / 2, y = lt.y + AREA_SIZE / 2},
-        stars = {},
+        glyphs = {},
     }
 
     local surface = Sky.getSurface(true)
@@ -101,6 +101,44 @@ function Sky.getArea(force, planetName, create)
 
     sky.planetAreas[forceN] = sky.planetAreas[forceN] or {}
     sky.planetAreas[forceN][planetName] = area
+
+    local glyphs
+    repeat
+        glyphs = util.poissonDiskSampling(area.area, 25, 15)
+    until #glyphs >= 6
+    game.print(#glyphs.." glyph positions found")
+
+    local address = util.stringToArray(storage.addresses[planetName])
+    for _, letter in ipairs(address) do
+        local i = math.random(#glyphs)
+        Sky.spawnGlyph(surface, planetName, glyphs[i], force, letter)
+
+       rendering.draw_sprite{
+            sprite = "kj_sg_glyph_mask_"..letter,
+            x_scale = 11,
+            y_scale = 11,
+            target = glyphs[i],
+            surface = surface,
+            render_layer = "object-under",
+            tint = {0.1, 0.1, 0.1, 0},
+            light_mode = "glow",
+        }
+        table.remove(glyphs, i)
+    end
+
+    local randomStars = {}
+    randomStars = util.poissonDiskSampling(area.area, 20, 3)
+    for _ = 1, 10, 1 do
+        --table.insert(randomStars, {x = math.random(area.area.left_top.x + 1.5, area.area.right_bottom.x - 1.5),
+                                   --y = math.random(area.area.left_top.y + 1.5, area.area.right_bottom.y - 1.5)})
+    end
+
+    for _, star in ipairs(randomStars) do
+        star = surface.create_entity{name = skyNames.star, position = star, force = force}
+        Sky.drawStar(star, surface)
+        star.destructible = false
+    end
+    game.print(#randomStars.." random stars")
 
     return area
 end
@@ -241,6 +279,31 @@ function Sky.drawStar(target, surface)
     }
 end
 
+function Sky.spawnGlyph(surface, planet, position, force, letter, debug)
+    local area
+    if not debug then
+        Sky.getSurface(true)
+        area = storage.sky.planetAreas[force.name][planet]
+        area.glyphs[letter] = {}
+    end
+
+    if not starPositions[letter] then
+        game.print("That letter doesn't exist.")
+        return
+     end
+
+    for _, pos in pairs(starPositions[letter]) do
+        local star = surface.create_entity{name = skyNames.star, position = util.vector2Add(position, {20*pos.x, -20*pos.y}), force = force}
+        Sky.drawStar(star, surface)
+        star.destructible = false
+        game.print("Spawned star sign: "..letter)
+
+        if not debug then
+            table.insert(area.glyphs[letter], star)
+        end
+    end
+end
+
 --------------------------------------------------------------------------------
 --events
 --------------------------------------------------------------------------------
@@ -351,30 +414,22 @@ function Sky.spawnTestStars(area, count)
         local star = surface.create_entity{name = skyNames.star, position = pos, force = area.force}
         Sky.drawStar(star, surface)
         star.destructible = false
-        table.insert(area.stars, star)
+        table.insert(area.glyphs, star)
     end
 end
 
-function Sky.spawnStarSign(player, letter)
+function Sky.spawnGlyphTest(player, letter)
     local force = player.force
     local surface = player.surface
-    --local sky = Sky.getSurface(true)
     if not starPositions[letter] then
         player.print("That letter doesn't exist.")
         return
      end
-    --local area = storage.sky.planetAreas[force][surface]
 
-    local star
-    for _, pos in pairs(starPositions[letter]) do
-        star = surface.create_entity{name = skyNames.star, position = util.vector2Add(player.position, {20*pos.x, -20*pos.y}), force = force}
-        Sky.drawStar(star, surface)
-        star.destructible = false
-        player.print("Spanwed star sign: "..letter)
-        --table.insert(area.stars, star)
-    end
-
+    Sky.spawnGlyph(surface, surface.name, player.position, force, letter, true)
+    game.print("Spawned glyph: "..letter)
     util.playSoundOnSurface(surface, player.position, "kj_stargate_found_glyph")
+
     rendering.draw_sprite{
         sprite = "kj_sg_glyph_mask_"..letter,
         x_scale = 11,
@@ -405,12 +460,12 @@ function Sky.registerCommands()
         local area = Sky.getArea(player.force, surface.name, true)
 
         Sky.spawnTestStars(area, tonumber(command.parameter) or 10)
-        player.print("Spanwed stars: "..#area.stars)
+        player.print("Spawned glyphs: "..#area.glyphs)
     end)
 
     --/skyStar [A-s] - spawn a star sign (glyph)
     commands.add_command("skyStar", nil, function(command)
-        Sky.spawnStarSign(game.players[command.player_index], command.parameter)
+        Sky.spawnGlyphTest(game.players[command.player_index], command.parameter)
     end)
 
     --/skyDelete - deletes the whole sky surface + storage
@@ -448,3 +503,5 @@ function Sky.registerCommands()
         --helpers.json_to_table(json)
     end)
 end
+
+--TODO verschiedene schwierigkeitsgrade spawnen unterschiedlich viele rndSterne
