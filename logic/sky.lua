@@ -66,13 +66,11 @@ function Sky.isValidPlanet(surface)
         and storage.addresses[surface.name] ~= nil
 end
 
----@param create boolean? allocate a new area if none exists
-function Sky.getArea(force, planet, create)
+function Sky.getArea(force, planet)
     local sky, forceN = storage.sky, force.name
     if sky.planetAreas[forceN] and sky.planetAreas[forceN][planet] then
         return sky.planetAreas[forceN][planet]
     end
-    if not create then return nil end
 
     if sky.forceRows[forceN] == nil then
         sky.forceRows[forceN] = sky.nextRow
@@ -96,10 +94,6 @@ function Sky.getArea(force, planet, create)
     local surface = Sky.getSurface(true)
     surface.request_to_generate_chunks(area.center, 1)
     surface.force_generate_chunk_requests()
-
-    area.radar = surface.create_entity{name = skyNames.radar, position = area.center, force = force}
-    area.radar.destructible = false
-    area.radar.disabled_by_script = true --only active while someone looks at this area
 
     sky.planetAreas[forceN] = sky.planetAreas[forceN] or {}
     sky.planetAreas[forceN][planet] = area
@@ -169,18 +163,11 @@ local function destroyArea(area)
     end
 end
 
---re-chart only the planetAreas currently viewed by players of the force, everything else vanishes from its map
-local function rechartForce(force)
-    local surface = Sky.getSurface(false)
-    if not surface or not force or not force.valid then return end
-    force.clear_chart(surface)
-
-    for _, session in pairs(storage.sky.sessions) do
-        local area = session.area
-        if area.force == force.name and storage.sky.planetAreas[force.name] and storage.sky.planetAreas[force.name][area.planet] == area then
-            force.chart(surface, area.area)
-        end
-    end
+local function reduceArea(area)
+    return {
+        left_top = {x = area.left_top.x + 1, y = area.left_top.y + 1},
+        right_bottom = {x = area.right_bottom.x - 1, y = area.right_bottom.y - 1}
+    }
 end
 
 local function isAreaViewed(area)
@@ -191,9 +178,39 @@ local function isAreaViewed(area)
     return false
 end
 
+local function unchartArea(force, area)
+    local surface = Sky.getSurface(false)
+    if not surface or not force or not force.valid then return end
+
+    local min_cx = math.floor(area.area.left_top.x / 32)
+    local max_cx = math.floor(area.area.right_bottom.x / 32)
+    local min_cy = math.floor(area.area.left_top.y / 32)
+    local max_cy = math.floor(area.area.right_bottom.y / 32)
+
+    for cx = min_cx, max_cx do
+        for cy = min_cy, max_cy do
+            force.unchart_chunk({x = cx, y = cy}, surface)
+        end
+    end
+end
+
 local function setRadar(area, state)
-    if area.radar and area.radar.valid then
-        area.radar.disabled_by_script = not state
+    local surface = Sky.getSurface(false)
+    if not surface then return end
+
+    if state then
+        if not area.radar or not area.radar.valid then
+            local force = game.forces[area.force]
+            area.radar = surface.create_entity{name = skyNames.radar, position = area.center, force = force}
+            area.radar.destructible = false
+        end
+        game.print("Spawned radar on "..area.planet)
+    else
+        if area.radar and area.radar.valid then
+            area.radar.destroy()
+            area.radar = nil
+            game.print("Destroyed radar on "..area.planet)
+        end
     end
 end
 
@@ -221,7 +238,7 @@ function Sky.enter(player, observatory)
         return
     end
 
-    local area = Sky.getArea(player.force, surface.name, true)
+    local area = Sky.getArea(player.force, surface.name)
     local surface = Sky.getSurface(true)
 
     --character hides inside the observatory, enemies have to destroy it first
@@ -235,7 +252,7 @@ function Sky.enter(player, observatory)
     }
 
     setRadar(area, true)
-    player.force.chart(surface, area.area)
+    player.force.chart(surface, reduceArea(area.area))
 
     local ok, err = Sky.view(player, area)
     if not ok then
@@ -250,10 +267,10 @@ function Sky.exit(playerIndex)
     storage.sky.sessions[playerIndex] = nil
 
     local area = session.area
-    if not isAreaViewed(area) then
-        setRadar(area, false)
+    local player = game.players[playerIndex]
+    if player and player.valid and player.controller_type == defines.controllers.remote and util.isSkySurface(player.surface) then
+        player.exit_remote_view()
     end
-    rechartForce(game.forces[area.force])
 
     --put character back in front of observatory
     local character, observatory = session.character, session.observatory
@@ -266,9 +283,9 @@ function Sky.exit(playerIndex)
         character.teleport(pos)
     end
 
-    local player = game.players[playerIndex]
-    if player and player.valid and player.controller_type == defines.controllers.remote and util.isSkySurface(player.surface) then
-        player.exit_remote_view()
+    if not isAreaViewed(area) then
+        setRadar(area, false)
+        unchartArea(game.forces[area.force], area)
     end
 end
 
@@ -381,6 +398,8 @@ function Sky.OnPreSurfaceDeleted(e)
         return
     end
 
+    --TODO löscht das hier einfach alles wenn eine surface gelöscht wird??
+
     for playerIndex, session in pairs(storage.sky.sessions) do
         if session.area.planet == surface.name then Sky.exit(playerIndex) end
     end
@@ -389,7 +408,7 @@ function Sky.OnPreSurfaceDeleted(e)
         if planetAreas[surface.name] then
             destroyArea(planetAreas[surface.name])
             planetAreas[surface.name] = nil
-            rechartForce(game.forces[forceN])
+            game.forces[forceN].clear_chart(Sky.getSurface(false))
         end
     end
 end
