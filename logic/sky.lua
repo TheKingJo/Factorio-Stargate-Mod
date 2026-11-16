@@ -12,11 +12,13 @@ local AREA_SIZE = AREA_CHUNKS * CHUNK
 function Sky.initStorage()
     storage.sky = storage.sky or {}
     local properties = {
-        forceRows = true, --[forceName] = row index
+        forceRows = true, --[forceN] = row index
         nextRow = 0,
-        forceCols = true, --[forceName] = next free column index
-        planetAreas = true,     --[forceName][surfaceName] = area
+        forceCols = true, --[forceN] = next free column index
+        planetAreas = true,     --[forceN][surfaceName] = area
         sessions = true,  --[player_index] = {area, character, observatory}
+        starLookup = true, --[star_unit_number] = {forceN = forceN, planet = planetName, letter = letter, nodeIndex = nodeIndex}
+        dirtyAreas = true, --[forceN] = {[planet] = true}
     }
 
     for prop, value in pairs(properties) do
@@ -65,10 +67,10 @@ function Sky.isValidPlanet(surface)
 end
 
 ---@param create boolean? allocate a new area if none exists
-function Sky.getArea(force, planetName, create)
+function Sky.getArea(force, planet, create)
     local sky, forceN = storage.sky, force.name
-    if sky.planetAreas[forceN] and sky.planetAreas[forceN][planetName] then
-        return sky.planetAreas[forceN][planetName]
+    if sky.planetAreas[forceN] and sky.planetAreas[forceN][planet] then
+        return sky.planetAreas[forceN][planet]
     end
     if not create then return nil end
 
@@ -82,7 +84,7 @@ function Sky.getArea(force, planetName, create)
 
     local lt = {x = col * STRIDE, y = row * STRIDE}
     local area = {
-        planet = planetName,
+        planet = planet,
         force = forceN,
         col = col,
         row = row,
@@ -100,7 +102,17 @@ function Sky.getArea(force, planetName, create)
     area.radar.disabled_by_script = true --only active while someone looks at this area
 
     sky.planetAreas[forceN] = sky.planetAreas[forceN] or {}
-    sky.planetAreas[forceN][planetName] = area
+    sky.planetAreas[forceN][planet] = area
+
+    area.title = rendering.draw_text{
+        text = {"", {"space-location-name."..planet}},
+        surface = surface,
+        target = {y = area.area.left_top.y, x = (area.area.right_bottom.x - area.area.left_top.x) / 2 + area.area.left_top.x},
+        color = {221/255, 127/255, 33/255, 1},
+        scale = 10,
+        force = force,
+        alignment = "center",
+    }
 
     local glyphs
     repeat
@@ -108,12 +120,12 @@ function Sky.getArea(force, planetName, create)
     until #glyphs >= 6
     game.print(#glyphs.." glyph positions found")
 
-    local address = util.stringToArray(storage.addresses[planetName])
+    local address = util.stringToArray(storage.addresses[planet])
     for _, letter in ipairs(address) do
         local i = math.random(#glyphs)
-        Sky.spawnGlyph(surface, planetName, glyphs[i], force, letter)
+        Sky.spawnGlyph(surface, planet, glyphs[i], force, letter)
 
-       rendering.draw_sprite{
+        local mask = rendering.draw_sprite{
             sprite = "kj_sg_glyph_mask_"..letter,
             x_scale = 11,
             y_scale = 11,
@@ -122,7 +134,12 @@ function Sky.getArea(force, planetName, create)
             render_layer = "object-under",
             tint = {0.1, 0.1, 0.1, 0},
             light_mode = "glow",
+            visible = false,
         }
+        if area.glyphs[letter] then
+            area.glyphs[letter].mask = mask
+            area.glyphs[letter].position = glyphs[i]
+        end
         table.remove(glyphs, i)
     end
 
@@ -284,7 +301,10 @@ function Sky.spawnGlyph(surface, planet, position, force, letter, debug)
     if not debug then
         Sky.getSurface(true)
         area = storage.sky.planetAreas[force.name][planet]
-        area.glyphs[letter] = {}
+        area.glyphs[letter] = {
+            stars = {},
+            solved = false,
+        }
     end
 
     if not starPositions[letter] then
@@ -292,14 +312,22 @@ function Sky.spawnGlyph(surface, planet, position, force, letter, debug)
         return
      end
 
-    for _, pos in pairs(starPositions[letter]) do
+    for nodeIdx, pos in pairs(starPositions[letter].points) do
         local star = surface.create_entity{name = skyNames.star, position = util.vector2Add(position, {20*pos.x, -20*pos.y}), force = force}
         Sky.drawStar(star, surface)
         star.destructible = false
         game.print("Spawned star sign: "..letter)
 
         if not debug then
-            table.insert(area.glyphs[letter], star)
+            table.insert(area.glyphs[letter].stars, star)
+            if storage.sky.starLookup then
+                storage.sky.starLookup[star.unit_number] = {
+                    forceN = force.name,
+                    planet = planet,
+                    letter = letter,
+                    nodeIndex = nodeIdx
+                }
+            end
         end
     end
 end
@@ -395,28 +423,245 @@ function Sky.OnPlayerGone(e)
 end
 
 --------------------------------------------------------------------------------
+--puzzle verification
+--------------------------------------------------------------------------------
+
+function Sky.markDirty(forceN, planet)
+    storage.sky.dirtyAreas = storage.sky.dirtyAreas or {}
+    storage.sky.dirtyAreas[forceN] = storage.sky.dirtyAreas[forceN] or {}
+    storage.sky.dirtyAreas[forceN][planet] = true
+end
+
+function Sky.OnSelectedEntityChanged(e)
+    local player = game.players[e.player_index]
+    --if not player or not player.valid then return end
+    if not util.isSkySurface(player.surface) then return end
+
+    local selected = player.selected
+    if selected and selected.valid and selected.name == skyNames.star then
+        local star = storage.sky.starLookup and storage.sky.starLookup[selected.unit_number]
+        if star then
+            Sky.markDirty(star.forceN, star.planet)
+        else
+            --might be a random star or unindexed star; find out which area it's in
+            for force, planetAreas in pairs(storage.sky.planetAreas or {}) do
+                for planet, area in pairs(planetAreas) do
+                    if util.positionInBoundingBox(selected.position, area.area) then
+                        Sky.markDirty(force, planet)
+                        return
+                    end
+                end
+            end
+        end
+    end
+end
+
+function Sky.checkGlyph(forceN, planet, letter, glyphData)
+    if glyphData.solved then return end
+    local pattern = starPositions[letter]
+    if not pattern or not pattern.edges then return end
+
+    local stars = glyphData.stars
+    if not stars or #stars == 0 then return end
+
+    --verify star validity
+    local starsInGlyph = {}
+    for nodeIdx, star in ipairs(stars) do
+        if not star.valid then return end
+        starsInGlyph[star.unit_number] = nodeIdx
+    end
+
+    local actualEdges = {}
+    local actualEdgeCount = 0
+
+    local function inspectConnector(conn)
+        if not conn then return end
+
+        for _, connection in ipairs(conn.connections or {}) do
+            local targetOwner = connection.target and connection.target.owner
+
+            if targetOwner and targetOwner.valid then
+                local targetNode = starsInGlyph[targetOwner.unit_number]
+                if not targetNode then
+                    --connected to random star or star from other glyph -> invalid!
+                    return
+                end
+            end
+        end
+        return true
+    end
+
+    for nodeIdx, star in ipairs(stars) do
+        local redConn = star.get_wire_connector(defines.wire_connector_id.circuit_red, true)
+        local greenConn = star.get_wire_connector(defines.wire_connector_id.circuit_green, true)
+
+        if not inspectConnector(redConn) or not inspectConnector(greenConn) then
+            return
+        end
+
+        local function addEdgesFromConnector(conn)
+            if not conn then return end
+
+            for _, connection in ipairs(conn.connections or {}) do
+                local targetOwner = connection.target and connection.target.owner
+
+                if targetOwner and targetOwner.valid then
+                    local targetNode = starsInGlyph[targetOwner.unit_number]
+
+                    if targetNode and targetNode ~= nodeIdx then
+                        local n1 = math.min(nodeIdx, targetNode)
+                        local n2 = math.max(nodeIdx, targetNode)
+                        local key = n1 .. "-" .. n2
+
+                        if not actualEdges[key] then
+                            actualEdges[key] = true
+                            actualEdgeCount = actualEdgeCount + 1
+                        end
+                    end
+                end
+            end
+        end
+
+        addEdgesFromConnector(redConn)
+        addEdgesFromConnector(greenConn)
+    end
+
+    --comparison of required edges
+    local reqEdges = {}
+    local reqCount = 0
+
+    for _, edge in ipairs(pattern.edges) do
+        local n1 = math.min(edge[1], edge[2])
+        local n2 = math.max(edge[1], edge[2])
+        local key = n1 .. "-" .. n2
+
+        if not reqEdges[key] then
+            reqEdges[key] = true
+            reqCount = reqCount + 1
+        end
+    end
+
+    if actualEdgeCount ~= reqCount then
+        return
+    end
+
+    for key, _ in pairs(reqEdges) do
+        if not actualEdges[key] then
+            return
+        end
+    end
+
+    --pattern matched - solve glyph
+    glyphData.solved = true
+
+    --disconnecting player wires for visual quality
+    local surface = Sky.getSurface(false)
+    for _, star in ipairs(stars) do
+        local redConn = star.get_wire_connector(defines.wire_connector_id.circuit_red, false)
+        if redConn then redConn.disconnect_all() end
+        local greenConn = star.get_wire_connector(defines.wire_connector_id.circuit_green, false)
+        if greenConn then greenConn.disconnect_all() end
+    end
+
+    --[[script wire connections
+    for _, edge in ipairs(pattern.edges) do
+        local starA = stars[edge[1]]--[[
+        local starB = stars[edge[2]]--[[
+
+        if starA and starB and starA.valid and starB.valid then
+            local connA = starA.get_wire_connector(defines.wire_connector_id.circuit_green, true)
+            local connB = starB.get_wire_connector(defines.wire_connector_id.circuit_green, true)
+
+            if connA and connB then
+                connA.connect_to(connB, false, defines.wire_origin.script)
+            end
+        end
+    end]]
+
+    --visuals & sound
+    if glyphData.mask and glyphData.mask.valid then
+        glyphData.mask.visible = true
+    end
+
+    if surface then
+        util.playSoundOnSurface(surface, glyphData.position, "kj_stargate_found_glyph", 0.75)
+        --[[surface.create_entity{
+            name = "flying-text",
+            position = glyphData.position,
+            text = "[img=virtual-signal.kj_sg_glyph_" .. letter .. "]",
+            render_player_index = nil,
+        }]]
+    end
+
+    local force = game.forces[forceN]
+    if force and force.valid then
+        force.print({"glyphDiscovered", letter, planet})
+    end
+
+    --check if all 6 glyphs of this planet are solved
+    local area = storage.sky.planetAreas[forceN] and storage.sky.planetAreas[forceN][planet]
+    if area and area.glyphs then
+        local allSolved = true
+
+        for _, g in pairs(area.glyphs) do
+            if not g.solved then
+                allSolved = false
+                break
+            end
+        end
+
+        if allSolved then
+            util.forceSurfaceSetup(force, game.surfaces[planet], 2)
+            GUI.RefreshAllAddBks(forceN, planet, 2)
+            if force and force.valid then
+                force.print("Alle Glyphen für " .. planet .. " wurden entschlüsselt! Adresse im Adressbuch verzeichnet.")--TODO change with localized string
+            end
+        end
+    end
+
+    return true
+end
+
+function Sky.checkDirtyAreas()
+    local dirtyAreas = storage.sky.dirtyAreas
+    if not dirtyAreas then return end
+
+    for force, planets in pairs(dirtyAreas) do
+        for planet, isDirty in pairs(planets) do
+            if isDirty then
+                planets[planet] = nil
+                local area = storage.sky.planetAreas[force] and storage.sky.planetAreas[force][planet]
+                if area and area.glyphs then
+                    for letter, glyphData in pairs(area.glyphs) do
+                        if not glyphData.solved then
+                            Sky.checkGlyph(force, planet, letter, glyphData)
+                        end
+                    end
+                end
+            end
+        end
+    end
+
+    --check any active session's area as backup
+    for _, session in pairs(storage.sky.sessions or {}) do
+        local area = session.area
+        if area and area.glyphs then
+            for letter, glyphData in pairs(area.glyphs) do
+                if not glyphData.solved then
+                    Sky.checkGlyph(area.force, area.planet, letter, glyphData)
+                end
+            end
+        end
+    end
+end
+
+--------------------------------------------------------------------------------
 --Debugging
 --------------------------------------------------------------------------------
 
 --TODO poisson verteilung der positionen der glyphen im areal
 -- mindestabstand, auch vom rand. suchen bis kombination gefunden
 -- ansonsten fallback mit kanten der oberen und unteren drei mit mitte
-
-function Sky.spawnTestStars(area, count)
-    local surface = Sky.getSurface(true)
-    local margin = 8
-
-    for _ = 1, count do
-        local pos = {
-            x = area.area.left_top.x + margin + math.random() * (AREA_SIZE - 2 * margin),
-            y = area.area.left_top.y + margin + math.random() * (AREA_SIZE - 2 * margin),
-        }
-        local star = surface.create_entity{name = skyNames.star, position = pos, force = area.force}
-        Sky.drawStar(star, surface)
-        star.destructible = false
-        table.insert(area.glyphs, star)
-    end
-end
 
 function Sky.spawnGlyphTest(player, letter)
     local force = player.force
@@ -450,17 +695,6 @@ function Sky.registerCommands()
         if not Sky.isValidPlanet(surface) then player.print("Not a valid planet: "..surface.name) return end
 
         Sky.enter(player)
-    end)
-
-    --/skyStars [n] - spawn n random test stars into your area of current planet
-    commands.add_command("skyStars", nil, function(command)
-        local player = game.players[command.player_index]
-        local surface = player.physical_surface
-        if not Sky.isValidPlanet(surface) then return end
-        local area = Sky.getArea(player.force, surface.name, true)
-
-        Sky.spawnTestStars(area, tonumber(command.parameter) or 10)
-        player.print("Spawned glyphs: "..#area.glyphs)
     end)
 
     --/skyStar [A-s] - spawn a star sign (glyph)
@@ -499,7 +733,6 @@ function Sky.registerCommands()
         helpers.write_file("entity_positions.json", json, false, player.index )
 
         player.print("Export done: "..#positions.." entities found.")
-
         --helpers.json_to_table(json)
     end)
 end

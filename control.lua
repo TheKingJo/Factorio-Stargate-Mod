@@ -108,6 +108,7 @@ script.on_event(defines.events.on_player_kicked, Sky.OnPlayerGone)
 script.on_event(defines.events.on_player_banned, Sky.OnPlayerGone)
 script.on_event(defines.events.on_player_died, OnPlayerDied)
 script.on_event(defines.events.on_player_changed_force, OnPlayerChangedForce)
+script.on_event(defines.events.on_selected_entity_changed, Sky.OnSelectedEntityChanged)
 
 script.on_event(defines.events.on_tick, OnTick)
 script.on_nth_tick(30*60, OnNthTickCleanup)

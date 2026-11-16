@@ -552,7 +552,7 @@ function GuiOpened(e)
         player.opened = nil
         if ent.surface_index == player.physical_surface_index
             and util.getDistance(ent.position, player.physical_position) < 7
-            and ent.energy >= 10^7 then
+            --[[and ent.energy >= 10^7]] then--TODO remove comment
             Sky.enter(player, ent)
         end
 

@@ -488,6 +488,8 @@ end
 --tracks:
 ---refreshes GDO GUIs
 function OnNthTickTasks2(e)
+    Sky.checkDirtyAreas()
+
     if #storage.openGUIs.GDO == 0 then return end
     for i = #storage.openGUIs.GDO, 1, -1 do
         local GUI = storage.openGUIs.GDO[i]

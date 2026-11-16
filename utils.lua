@@ -608,7 +608,6 @@ function functions.poissonDiskSampling(area, min_distance, border_distance, atte
     return points
 end
 
-
 functions.mtMgr =
 {
     assignments = {},
