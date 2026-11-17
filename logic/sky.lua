@@ -204,12 +204,12 @@ local function setRadar(area, state)
             area.radar = surface.create_entity{name = skyNames.radar, position = area.center, force = force}
             area.radar.destructible = false
         end
-        game.print("Spawned radar on "..area.planet)
+        --game.print("Spawned radar on "..area.planet)
     else
         if area.radar and area.radar.valid then
             area.radar.destroy()
             area.radar = nil
-            game.print("Destroyed radar on "..area.planet)
+            --game.print("Destroyed radar on "..area.planet)
         end
     end
 end
@@ -333,7 +333,7 @@ function Sky.spawnGlyph(surface, planet, position, force, letter, debug)
         local star = surface.create_entity{name = skyNames.star, position = util.vector2Add(position, {20*pos.x, -20*pos.y}), force = force}
         Sky.drawStar(star, surface)
         star.destructible = false
-        game.print("Spawned star sign: "..letter)
+        --game.print("Spawned star sign: "..letter)
 
         if not debug then
             table.insert(area.glyphs[letter].stars, star)
@@ -602,19 +602,9 @@ function Sky.checkGlyph(forceN, planet, letter, glyphData)
         glyphData.mask.visible = true
     end
 
-    if surface then
-        util.playSoundOnSurface(surface, glyphData.position, "kj_stargate_found_glyph", 0.75)
-        --[[surface.create_entity{
-            name = "flying-text",
-            position = glyphData.position,
-            text = "[img=virtual-signal.kj_sg_glyph_" .. letter .. "]",
-            render_player_index = nil,
-        }]]
-    end
-
     local force = game.forces[forceN]
     if force and force.valid then
-        force.print({"glyphDiscovered", letter, planet})
+        force.print({"glyphDiscovered", {"glyph_"..letter}, {"space-location-name."..planet}})
     end
 
     --check if all 6 glyphs of this planet are solved
@@ -633,8 +623,19 @@ function Sky.checkGlyph(forceN, planet, letter, glyphData)
             util.forceSurfaceSetup(force, game.surfaces[planet], 2)
             GUI.RefreshAllAddBks(forceN, planet, 2)
             if force and force.valid then
-                force.print("Alle Glyphen für " .. planet .. " wurden entschlüsselt! Adresse im Adressbuch verzeichnet.")--TODO change with localized string
+                force.print("Alle Glyphen für " .. {"space-location-name."..planet} .. " wurden entschlüsselt! Adresse im Adressbuch verzeichnet.")--TODO change with localized string
+                force.play_sound {
+                    path = "kj_stargate_found_address",
+                    position = glyphData.position,
+                    volume_modifier = 0.75
+                }
             end
+        else
+            force.play_sound {
+                path = "kj_stargate_found_glyph",
+                position = glyphData.position,
+                volume_modifier = 0.75
+            }
         end
     end
 
@@ -728,7 +729,7 @@ function Sky.registerCommands()
         storage.sky = nil
 
         Sky.initStorage()
-        game.print("Deleted sky surface")
+        game.print("Deleted sky surface.")
     end)
 
     --/skySavePattern

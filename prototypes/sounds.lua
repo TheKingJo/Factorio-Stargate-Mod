@@ -14,7 +14,7 @@ data:extend({
 		filename = modname.."/sounds/glyphFound.ogg",
 		volume = 1,
 		category = "environment",
-		audible_distance_modifier = 1,
+		audible_distance_modifier = 3,
 	},
 	{
 		type = "sound",
@@ -22,7 +22,7 @@ data:extend({
 		filename = modname.."/sounds/addressFound.ogg",
 		volume = 1,
 		category = "environment",
-		audible_distance_modifier = 1,
+		audible_distance_modifier = 3,
 	},
 })
 
