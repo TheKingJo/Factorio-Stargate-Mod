@@ -1,4 +1,12 @@
 local modname = "__kj_stargate__"
+local chars = {}
+
+for i = string.byte("A"), string.byte("S") do
+    table.insert(chars, string.char(i))
+end
+for i = string.byte("a"), string.byte("s") do
+    table.insert(chars, string.char(i))
+end
 
 local skyTile = table.deepcopy(data.raw.tile["empty-space"] or data.raw.tile["out-of-map"])
 skyTile.name = "kj_sg_sky_tile"
@@ -55,6 +63,40 @@ local observatoryRecipe = {
     ingredients = {},
     results = {{type = "item", name = "kj_sg_observatory", amount = 1}},
 }
+
+local glyphBlueprints = {}
+for i, char in ipairs(chars) do
+    table.insert(glyphBlueprints, {
+            type = "simple-entity",
+            name = "kj_sg_glyph_"..char,
+            flags = {"not-rotatable", "placeable-off-grid", "not-on-map", "not-blueprintable", "not-deconstructable", "not-upgradable", "no-copy-paste", "hide-alt-info", "not-selectable-in-game"},
+            selection_box = {{-2, -2}, {2, 2}},
+            localised_name = {"", {"starsign"}, " ", {"glyph_"..char}},
+            localised_description = {"", {"starsign"}, " ", {"glyph_"..char}},
+            hidden = true,
+            picture = {
+                size = 256,
+                scale = 5.5/2,
+                filename = modname.."/graphics/glyphs/mask/"..string.format("%04d", i+1)..".png",
+                blend_mode = "additive",
+            },
+        }
+    )
+    table.insert(glyphBlueprints, {
+            type = "item",
+            name = "kj_sg_glyph_"..char,
+            icon = modname.."/graphics/glyphs/mask/"..string.format("%04d", i+1)..".png",
+            localised_name = {"", {"starsign"}, " ", {"glyph_"..char}},
+            localised_description = {"", {"starsign"}, " ", {"glyph_"..char}},
+            icon_size = 256,
+            stack_size = 1,
+            hidden = true,
+            place_result = "kj_sg_glyph_"..char,
+            auto_recycle = false,
+        }
+    )
+end
+data:extend(glyphBlueprints)
 
 data:extend({
     {

@@ -68,10 +68,10 @@ local dhd_row_center =  {"MACRO", "QUAD",  "MACRO", "QUAD",  "MACRO"}
 local dhd_row_innerBot= {"MACRO", "MACRO", "QUAD",  "MACRO", "MACRO"}
 guis.dhd_grid_def, guis.dhd_grid_info = guis.dhd_frame_grid({dhd_row_outer, dhd_row_center, dhd_row_center, dhd_row_innerBot, dhd_row_outer})
 
-function guis.dhd_frame_new(events)
+function guis.dhd_frame_new()
     return {
         args = {type = "frame", name = "dhd", direction = "vertical"},
-        _closed = events and events.frame or handlers.default_close,
+        _closed = handlers.default_close,
         children = {{
             args = {type = "flow", name = "header"},
             ref = false,
@@ -83,7 +83,7 @@ function guis.dhd_frame_new(events)
                 style_mods = {horizontally_stretchable = true, height = 24},
             }, {
                 args = {type = "sprite-button", style = "close_button", sprite = "utility/close"},
-                _click = events and events.button or handlers.default_close_button,
+                _click = handlers.default_close_button,
             }},
         }, {
             args = {type = "frame", style = "inside_shallow_frame"},
@@ -128,10 +128,10 @@ function guis.dhd_letter(param, blank) --param = {letter, dhdSurface, dhdID, tog
     end
 end
 
-function guis.gdo_frame(events)
+function guis.gdo_frame()
     return {
         args = {type = "frame", name = "gdo", direction = "vertical"},
-        _closed = events and events.frame or handlers.default_close,
+        _closed = handlers.default_close,
         children = {
             {
                 args = {type = "flow", name = "header"},
@@ -141,7 +141,7 @@ function guis.gdo_frame(events)
                     args = {type = "label", caption = {"gdo"}, style = "frame_title", ignored_by_interaction = true},
                 }, {
                     args = {type = "sprite-button", style = "close_button", sprite = "utility/close"},
-                    _click = events and events.button or handlers.default_close_button,
+                    _click = handlers.default_close_button,
                 }},
             },
             {
@@ -167,7 +167,7 @@ function guis.gdo_frame(events)
     }
 end
 
-function guis.gdo_gate(gateSurface, gateID, iris, events) --gdo_gate
+function guis.gdo_gate(gateSurface, gateID, iris) --gdo_gate
     local state = "on"
     if iris and iris.power_switch_state == true then
         state = "iris"
@@ -191,7 +191,7 @@ function guis.gdo_gate(gateSurface, gateID, iris, events) --gdo_gate
                         args = {type = "textfield", name = "code", style = "stretchable_textfield"},
                     }, {
                         args = {type = "sprite-button", style = "item_and_count_select_confirm", sprite = "utility/enter", tooltip = {"gdoGui4"}},
-                        _click = events and events.button or handlers.gdo_send_code,
+                        _click = handlers.gdo_send_code,
                     }
                 }
             }
@@ -199,7 +199,7 @@ function guis.gdo_gate(gateSurface, gateID, iris, events) --gdo_gate
     }
 end
 
-function guis.gdo_iris_frame(irisID, events) --gdo_iris
+function guis.gdo_iris_frame(irisID) --gdo_iris
     return {
         args = {type = "frame", name = "gdo_iris", direction = "vertical", anchor = {
             gui = defines.relative_gui_type.power_switch_gui,
@@ -213,7 +213,7 @@ function guis.gdo_iris_frame(irisID, events) --gdo_iris
                         args = {type = "label", caption = {"gdoGuiIris1"}, style = "frame_title", ignored_by_interaction = true},
                     }, {
                         args = {type = "sprite-button", style = "item_and_count_select_confirm", sprite = "utility/add", tooltip = {"gdoGuiIris3"}},
-                        _click = events and events.button or handlers.gdo_add_code,
+                        _click = handlers.gdo_add_code,
                     }
                 },
             },
@@ -236,25 +236,25 @@ function guis.gdo_iris_frame(irisID, events) --gdo_iris
     }
 end
 
-function guis.gdo_code(irisID, code, events) --ABDEF
+function guis.gdo_code(irisID, code) --ABDEF
     return {
         args = {type = "flow", name = code, direction = "horizontal", tags = {irisID = irisID, code = code}},
         style_mods = {horizontally_stretchable = true},
         children = {{
                 args = {type = "textfield", text = code, style = "stretchable_textfield"},
-                _text_changed = events and events.button or handlers.gdo_change_code,
+                _text_changed = handlers.gdo_change_code,
             }, {
                 args = {type = "sprite-button", style = "close_button", sprite = "utility/close", tooltip = {"gdoGuiIris2"}},
-                _click = events and events.button or handlers.gdo_delete_code,
+                _click = handlers.gdo_delete_code,
             }
         }
     }
 end
 
-function guis.addBk_frame(events) --addBk
+function guis.addBk_frame() --addBk
     return {
         args = {type = "frame", name = "addBk", direction = "vertical"},
-        --_closed = events and events.frame or handlers.default_close,
+        --_closed = handlers.default_close,
         children = {
             {
                 args = {type = "flow", name = "header"},
@@ -263,11 +263,14 @@ function guis.addBk_frame(events) --addBk
                 children = {{
                     args = {type = "label", caption = {"addBk"}, style = "frame_title", ignored_by_interaction = true},
                 }, {
+                    args = {type = "sprite-button", style = "frame_action_button", sprite = "kj_sg_glyph_poo_1", tooltip = {"glyphLib"}},
+                    _click = handlers.glyphs,
+                }, {
                     args = {type = "empty-widget", style = "draggable_space_header", ignored_by_interaction = true},
                     style_mods = {horizontally_stretchable = true, height = 24},
                 }, {
                     args = {type = "sprite-button", style = "close_button", sprite = "utility/close"},
-                    _click = events and events.button or handlers.default_close_button,
+                    _click = handlers.default_close_button,
                 }},
             },
             {
@@ -279,7 +282,8 @@ function guis.addBk_frame(events) --addBk
                         args = {type = "frame", style = "filter_frame"},
                         style_mods = {natural_height = 50},
                         children = {{
-                            args = {type = "scroll-pane", style = "deep_scroll_pane"},
+                            args = {type = "scroll-pane", style = "deep_scroll_pane", horizontal_scroll_policy = "never"},
+                            style_mods = {horizontally_stretchable = true},
                             children = {{
                                 args = {type = "flow", name = "gates", direction = "vertical"},
                                 style_mods = {horizontally_stretchable = true},
@@ -343,12 +347,63 @@ function guis.addBk_address(surface, addState) --surface
     }
 end
 
+function guis.glyphLib()
+    local buttons = {}
+    for _, char in ipairs(chevronChars) do
+        table.insert(buttons, {
+            args = {type = "sprite-button", name = "kj_sg_glyph_"..char, style = "big_slot_button", sprite = "virtual-signal/kj_sg_glyph_"..char, tooltip = {"glyph_"..char}},
+            _click = handlers.glyphFromLib,
+        })
+    end
+
+    --38 Glyphs in 8 colums and 5 rows -> 2 emtpty slots
+    for _ = 1, 2 do
+        table.insert(buttons, {args = {type = "sprite-button", style = "big_slot_button", enabled = false}})
+    end
+
+    return {
+        args = {type = "frame", name = "glyphLib", direction = "vertical"},
+        children = {{
+                args = {type = "flow"},
+                ref = false,
+                children = {{
+                    args = {type = "label", caption = {"glyphLib"}, style = "frame_title", ignored_by_interaction = true},
+                }},
+            }, {
+                args = {type = "frame", style = "inside_shallow_frame"},
+                children = {{
+                    args = {type = "table", name = "glyph_table", column_count = 8},
+                    children = buttons,
+                }},
+            }
+        }
+    }
+end
+
+function handlers.glyphs(event)
+    local addBk = event.element.parent.parent
+    local lib = addBk.glyphLib
+    if lib then
+        lib.destroy()
+    else
+        glib.add(addBk, guis.glyphLib())
+    end
+end
+
 function handlers.default_close(event)
     event.element.destroy()
 end
 
 function handlers.default_close_button(event)
     event.element.parent.parent.destroy()
+end
+
+function handlers.glyphFromLib(event)
+    local player = game.players[event.player_index]
+    player.cursor_ghost = {
+        name = event.element.name,
+        quality = "normal"
+    }
 end
 
 function handlers.gdo_send_code(event)

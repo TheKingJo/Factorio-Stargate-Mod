@@ -733,7 +733,7 @@ function OnSurfaceCreated(e)
 end
 
 function OnForceCreated(e)
-    Sky.onForceCreated(e)
+    Sky.OnForceCreated(e)
     local force = e.force
 
     for _, surface in pairs(game.surfaces) do

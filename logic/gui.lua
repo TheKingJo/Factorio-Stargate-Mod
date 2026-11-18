@@ -58,20 +58,20 @@ end
 function GUI.RefreshAllAddBks(force, surface, state)
     if #storage.openGUIs.AddBk == 0 then return end
     for i = #storage.openGUIs.AddBk, 1, -1 do
-        local GUI = storage.openGUIs.AddBk[i]
+        local gui = storage.openGUIs.AddBk[i]
 
-        if not GUI then goto continue end
-        if not GUI.valid then
+        if not gui then goto continue end
+        if not gui.valid then
             table.remove(storage.openGUIs.AddBk, i)
             goto continue
         end
-        if not GUI.visible then
+        if not gui.visible then
             goto continue
         end
-        if force == game.players[GUI.player_index].force.name then
+        if force == game.players[gui.player_index].force.name then
             GUI.AddressBookTriggered({
                 prototype_name = "kj_stargate_addressBook",
-                player_index = GUI.player_index,
+                player_index = gui.player_index,
                 surface = surface,
                 state = state,
             }, state ~= nil)

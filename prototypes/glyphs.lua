@@ -30,8 +30,8 @@ for i, char in ipairs(chars) do
             type = "sprite",
             name = "kj_sg_glyph_mask_"..char,
             filename = modname.."/graphics/glyphs/mask/"..string.format("%04d", i+1)..".png",
-            scale = 0.5,
-            size = 128,
+            scale = 0.25,
+            size = 256,
         },
     })
 end

@@ -485,6 +485,7 @@ end
 
 function functions.forceSurfaceSetup(force, surface, state)
     if functions.isSkySurface(surface) then return end
+    if not prototypes.space_location[surface.name] then return end
     storage.addressBook[force.name] = storage.addressBook[force.name] or {}
     storage.addressBook[force.name][surface.name] = storage.addressBook[force.name][surface.name] or 0
     --0 = locked
