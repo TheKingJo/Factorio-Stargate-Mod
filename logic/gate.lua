@@ -158,11 +158,11 @@ stargate = {
     SetIris = function(self, state)
         if not self.childs.iris then return end
         self.childs.iris.power_switch_state = state
-        for _, GUI in pairs(storage.openGUIs.GDO) do
-            if GUI and GUI.valid then
+        for _, gui in pairs(storage.openGUIs.GDO) do
+            if gui and gui.valid then
                 GUI.GDOTriggered({
                     prototype_name = "kj_stargate_gdo",
-                    player_index = GUI.player_index,
+                    player_index = gui.player_index,
                 }, true)
             end
         end
@@ -190,7 +190,7 @@ stargate = {
         local ssControl = self.childs.signalSender.get_control_behavior()
         local value = 0
 
-        if status == false then
+        if not status then
             value = -1
         elseif status == true then
             value = 1
@@ -340,9 +340,9 @@ dhd = {
 
     CloseGUIs = function(self)
         if self.openedUIs == nil then return end
-        for _, GUI in ipairs(self.openedUIs) do
-            if GUI.valid then
-                GUI.parent.parent.parent.parent.destroy()
+        for _, gui in ipairs(self.openedUIs) do
+            if gui.valid then
+                gui.parent.parent.parent.parent.destroy()
             end
         end
     end,
@@ -398,7 +398,7 @@ function Address.generateAddress(surface)
             used[char] = true
         end
         resultString = table.concat(result)
-    until Address.checkForAddressInGlobal(resultString) == false
+    until not Address.checkForAddressInGlobal(resultString)
 
     game.print("Address: "..resultString..util.getSignalFromChar(resultString, true))
     return resultString
@@ -489,7 +489,7 @@ function Gate.activateGate(gate, pov)
         name = "kj_stargate_eventHorizon_woosh",
         position = util.vector2Add(gate.pos, {x = 0, y = (gate.manual and 0.5 or 0.45)}),
     }
-    if not gate.childs.iris or (gate.childs.iris and gate.childs.iris.power_switch_state == false) then
+    if not gate.childs.iris or (gate.childs.iris and not gate.childs.iris.power_switch_state) then
         gate.childs.woosh = gate.entity.surface.create_entity {
             name = "kj_stargate_woosh",
             position = util.vector2Add(gate.pos, {x = 0, y = entOffY.w}),
@@ -505,7 +505,7 @@ function Gate.findRandomGateOnSurface(surface)
     local gates = {}
     if not storage.stargate[surface] then return nil end
     for _, gate in pairs(storage.stargate[surface]) do
-        if gate.active == false then
+        if not gate.active then
             table.insert(gates, gate)
         end
     end

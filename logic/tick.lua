@@ -61,7 +61,7 @@ function OnTick(e)
                     surface = eH.gate.entity.surface,
                     render_layer = "object",
                 }
-                if not eH.gate.childs.iris or (eH.gate.childs.iris and eH.gate.childs.iris.power_switch_state == false) then
+                if not eH.gate.childs.iris or (eH.gate.childs.iris and not eH.gate.childs.iris.power_switch_state) then
                     eH.gate.childs.dmg1 = eH.gate.entity.surface.create_entity {
                         name = "kj_stargate_woosh_dmg",
                         position = effectPos1,
@@ -105,7 +105,7 @@ function OnNthTickPlayer(e)
         for gID, gate in pairs(storage.stargate[player.surface.name]) do
             if gate.safeToTravel == true and gate.destination then
                 if gate.valid == true and gate.entity and gate.entity.valid then
-                    if not gate.childs.iris or (gate.childs.iris and gate.childs.iris.power_switch_state == false) then
+                    if not gate.childs.iris or (gate.childs.iris and not gate.childs.iris.power_switch_state) then
                         local vehicle = player.physical_vehicle
                         if (vehicle and vehicle.prototype.type == "spider-vehicle") then goto continueGate end
                         if util.getDistance(player.physical_position, gate.childs.tpArea.position) > 13 then goto continueGate end
@@ -147,7 +147,7 @@ function OnNthTickPlayer(e)
     for sName, surface in pairs(storage.stargate) do
         for gID, gate in pairs(surface) do
             if gate.detailedCheckup == true and gate.valid == true and gate.entity and gate.entity.valid and gate.safeToTravel == true and gate.destination then
-                if not gate.childs.iris or (gate.childs.iris and gate.childs.iris.power_switch_state == false) then
+                if not gate.childs.iris or (gate.childs.iris and not gate.childs.iris.power_switch_state) then
                     --search near area for cars, units, robots?
                     local cars = game.surfaces[sName].find_entities_filtered({position = gate.pos, radius = 5, type = "car"})
                     local units = game.surfaces[sName].find_entities_filtered({position = gate.pos, radius = 5, type = "unit"})
@@ -307,9 +307,9 @@ function OnNthTickSGates(e)
             gate:SetEnergyStatus()
             local receiver = gate.childs.signalReceiver
 
-            if gate.active == false and storage.tasks.signaledGates[gate.id] == nil then --gate is inactive and also not dialing
+            if not gate.active and storage.tasks.signaledGates[gate.id] == nil then --gate is inactive and also not dialing
                 local signals = receiver.get_signals(1)
-                if gate.safeToTravel == false and signals ~= nil and game.tick > (gate.senderLastTick or 0) and gate:CheckEnergy("low") then
+                if not gate.safeToTravel and signals ~= nil and game.tick > (gate.senderLastTick or 0) and gate:CheckEnergy("low") then
                     if receiver.get_signals_changed(1, game.tick - 10) == true then
                         local address, pooGlyphID = "", ""
                         local addressLetters = {}
@@ -403,7 +403,7 @@ function OnNthTickSGates(e)
             else --gate is connected or dialing
                 local success = true
 
-                if gate.active == false then --gate is dialing
+                if not gate.active then --gate is dialing
                     if storage.tasks.signaledGates[gate.id] ~= nil then
                         if receiver.get_signals_changed(1, game.tick - 10) == true then
                             local pooLookup = {[7] = "_"..storage.tasks.signaledGates[gate.id].pooID}
@@ -423,7 +423,7 @@ function OnNthTickSGates(e)
                 end
 
                 --signal changed while dialing
-                if success == false then
+                if not success then
                     if gate.sAnim1 then gate.sAnim1.destroy() end
                     if gate.sAnim2 then gate.sAnim2.destroy() end
                     util.playSoundOnSurface(gate.entity.surface, gate.pos, "kj_stargate_s_fail")
@@ -441,7 +441,7 @@ function OnNthTickSGates(e)
                     end
                 end
 
-                if success == false or (gate.travelDirection == "sender" and receiver.get_signal({type = "virtual", name = "kj_sg_glyph_connect"}, 1) == -1) then
+                if not success or (gate.travelDirection == "sender" and receiver.get_signal({type = "virtual", name = "kj_sg_glyph_connect"}, 1) == -1) then
                     gate.childs.ringSound.power_switch_state = false
                     gate.entity.minable_flag = true
 
@@ -492,19 +492,19 @@ function OnNthTickTasks2(e)
 
     if #storage.openGUIs.GDO == 0 then return end
     for i = #storage.openGUIs.GDO, 1, -1 do
-        local GUI = storage.openGUIs.GDO[i]
-        if not GUI then goto continue end
-        if not GUI.valid then
+        local root = storage.openGUIs.GDO[i]
+        if not root then goto continue end
+        if not root.valid then
             table.remove(storage.openGUIs.GDO, i)
             goto continue
         end
-        if not GUI.visible then
+        if not root.visible then
             goto continue
         end
 
         GUI.GDOTriggered({
             prototype_name = "kj_stargate_gdo",
-            player_index = GUI.player_index,
+            player_index = root.player_index,
         }, true)
         ::continue::
     end

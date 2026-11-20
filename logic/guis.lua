@@ -241,7 +241,7 @@ function guis.gdo_code(irisID, code) --ABDEF
         args = {type = "flow", name = code, direction = "horizontal", tags = {irisID = irisID, code = code}},
         style_mods = {horizontally_stretchable = true},
         children = {{
-                args = {type = "textfield", text = code, style = "stretchable_textfield"},
+                args = {type = "textfield", name = "textField", text = code, style = "stretchable_textfield"},
                 _text_changed = handlers.gdo_change_code,
             }, {
                 args = {type = "sprite-button", style = "close_button", sprite = "utility/close", tooltip = {"gdoGuiIris2"}},
@@ -476,7 +476,7 @@ function handlers.dhd_letter_click(event)
         if dhd then
             local gate = dhd.stargate
             if char == "connect" then
-                if gate.active == false then
+                if not gate.active then
                     util.playSoundOnSurface(gate.entity.surface, gate.pos, "kj_stargate_dhdc")
                     dhd:Connect(dhdSurface, game.players[event.player_index])
                 else
@@ -484,8 +484,8 @@ function handlers.dhd_letter_click(event)
                         dhd:Disconnect()
                     end
                 end
-            elseif gate.active == false and gate.safeToTravel == false then
-                if element.toggled == false then --clicked letter button
+            elseif not gate.active and not gate.safeToTravel then
+                if not element.toggled then --clicked letter button
                     if #dhd.address < 7 then
                         element.toggled = not element.toggled
                         util.playSoundOnSurface(dhd.entity.surface, gate.pos, util.randomSound("kj_stargate_dhd", 7))

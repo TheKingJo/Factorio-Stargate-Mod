@@ -14,6 +14,7 @@ skyTile.hidden = true
 skyTile.autoplace = nil
 skyTile.map_color = {r = 0.02, g = 0.02, b = 0.06}
 skyTile.order = "z[kj-sky]"
+skyTile.default_cover_tile = nil
 
 local radar = table.deepcopy(data.raw.radar["radar"])
 radar.name = "kj_sg_sky_radar"
@@ -69,6 +70,8 @@ for i, char in ipairs(chars) do
     table.insert(glyphBlueprints, {
             type = "simple-entity",
             name = "kj_sg_glyph_"..char,
+            icon = modname.."/graphics/glyphs/mask/"..string.format("%04d", i+1)..".png",
+            icon_size = 256,
             flags = {"not-rotatable", "placeable-off-grid", "not-on-map", "not-blueprintable", "not-deconstructable", "not-upgradable", "no-copy-paste", "hide-alt-info", "not-selectable-in-game"},
             selection_box = {{-2, -2}, {2, 2}},
             localised_name = {"", {"starsign"}, " ", {"glyph_"..char}},
@@ -86,9 +89,9 @@ for i, char in ipairs(chars) do
             type = "item",
             name = "kj_sg_glyph_"..char,
             icon = modname.."/graphics/glyphs/mask/"..string.format("%04d", i+1)..".png",
+            icon_size = 256,
             localised_name = {"", {"starsign"}, " ", {"glyph_"..char}},
             localised_description = {"", {"starsign"}, " ", {"glyph_"..char}},
-            icon_size = 256,
             stack_size = 1,
             hidden = true,
             place_result = "kj_sg_glyph_"..char,

@@ -623,7 +623,7 @@ function Sky.checkGlyph(forceN, planet, letter, glyphData)
             util.forceSurfaceSetup(force, game.surfaces[planet], 2)
             GUI.RefreshAllAddBks(forceN, planet, 2)
             if force and force.valid then
-                force.print("Alle Glyphen für " .. {"space-location-name."..planet} .. " wurden entschlüsselt! Adresse im Adressbuch verzeichnet.")--TODO change with localized string
+                force.print({"addressDiscovered", {"space-location-name."..planet}})
                 force.play_sound {
                     path = "kj_stargate_found_address",
                     position = glyphData.position,

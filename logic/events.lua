@@ -550,10 +550,19 @@ function GuiOpened(e)
 
     elseif ent.name == skyNames.observatory then
         player.opened = nil
-        if ent.surface_index == player.physical_surface_index
-            and util.getDistance(ent.position, player.physical_position) < 7
+        local surface = game.surfaces[ent.surface_index]
+
+        if ent.surface_index == player.physical_surface_index and util.getDistance(ent.position, player.physical_position) < 7
             --[[and ent.energy >= 10^7]] then--TODO remove comment
-            Sky.enter(player, ent)
+            if not settings.global["kj_stargate_observatory_night"].value
+                or surface.daytime > surface.evening and surface.daytime < surface.morning
+                or surface.freeze_daytime
+                or surface.always_day then
+
+                Sky.enter(player, ent)
+            else
+                player.print({"observatoryAtNight"})
+            end
         end
 
     elseif ent.name == skyNames.star then

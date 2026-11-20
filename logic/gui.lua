@@ -58,20 +58,20 @@ end
 function GUI.RefreshAllAddBks(force, surface, state)
     if #storage.openGUIs.AddBk == 0 then return end
     for i = #storage.openGUIs.AddBk, 1, -1 do
-        local gui = storage.openGUIs.AddBk[i]
+        local root = storage.openGUIs.AddBk[i]
 
-        if not gui then goto continue end
-        if not gui.valid then
+        if not root then goto continue end
+        if not root.valid then
             table.remove(storage.openGUIs.AddBk, i)
             goto continue
         end
-        if not gui.visible then
+        if not root.visible then
             goto continue
         end
-        if force == game.players[gui.player_index].force.name then
+        if force == game.players[root.player_index].force.name then
             GUI.AddressBookTriggered({
                 prototype_name = "kj_stargate_addressBook",
-                player_index = gui.player_index,
+                player_index = root.player_index,
                 surface = surface,
                 state = state,
             }, state ~= nil)
@@ -92,7 +92,7 @@ function GUI.GDOTriggered(e, refresh)
     for _, entity in pairs(entities) do
         local gate = storage["stargate"][entity.surface.name][entity.unit_number]
 
-        if gate.active and gate.destination and gate.destination.manual == false then
+        if gate.active and gate.destination and not gate.destination.manual then
             gates[gate.destination.childs.iris.unit_number] = gate.destination
         end
     end
@@ -147,29 +147,29 @@ function GUI.GDOTriggered(e, refresh)
 end
 
 function GUI.RefreshAllGDOIris(mode)
-    if #storage.openGUIs.GUI.GDOIris == 0 then return end
+    if #storage.openGUIs.GDOIris == 0 then return end
 
-    for i = #storage.openGUIs.GUI.GDOIris, 1, -1 do
-        local GUI = storage.openGUIs.GUI.GDOIris[i]
+    for i = #storage.openGUIs.GDOIris, 1, -1 do
+        local root = storage.openGUIs.GDOIris[i]
 
-        if not GUI then goto continue end
-        if not GUI.valid then
-            table.remove(storage.openGUIs.GUI.GDOIris, i)
+        if not root then goto continue end
+        if not root.valid then
+            table.remove(storage.openGUIs.GDOIris, i)
             goto continue
         end
-        if not GUI.visible then goto continue end
+        if not root.visible then goto continue end
 
-        local gui = game.players[GUI.player_index].gui.relative.gdo_iris.children[2].children[1].children[1].gdos
+        root = game.players[root.player_index].gui.relative.gdo_iris.children[2].children[1].children[1].gdos
 
         if mode.change then
-            gui[mode.change[1]].name = mode.change[2]
-            gui[mode.change[1]].text = mode.change[2]
+            root[mode.change[1]].textField.text = mode.change[2]
+            root[mode.change[1]].name = mode.change[2]
 
         elseif mode.add then
-            glib.add(gui, sg_guis.gdo_code(gui.tags.irisID, mode.add))
+            glib.add(root, sg_guis.gdo_code(root.tags.irisID, mode.add))
 
         elseif mode.delete then
-            gui[mode.delete].destroy()
+            root[mode.delete].destroy()
         end
         ::continue::
     end
@@ -186,7 +186,7 @@ function GUI.GDOIris(data)
         if not gui then
             gui, refs = glib.add(player.gui.relative, sg_guis.gdo_iris_frame(irisID))
 
-            table.insert(storage.openGUIs.GUI.GDOIris, gui)
+            table.insert(storage.openGUIs.GDOIris, gui)
         else
             refs = {gdos = gui.children[2].children[1].children[1].gdos}
         end

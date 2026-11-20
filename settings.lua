@@ -27,4 +27,11 @@ data:extend({
 		default_value = false,
 		order = "kj_stargate_twoWayTravel",
 	},
+	{
+		type = "bool-setting",
+		name = "kj_stargate_observatory_night",
+		setting_type = "runtime-global",
+		default_value = true,
+		order = "kj_stargate_observatory_night",
+	},
 })

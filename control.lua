@@ -76,7 +76,7 @@ commands.add_command("rotate", nil, function(command)
     end
     for _, surface in pairs(storage.stargate) do
         for _, gate in pairs(surface) do
-            if gate.manual == false then
+            if not gate.manual then
                 gate.childs.rings.orientation = util.orientationFromGlyph(rotation)
                 gate.lastGlyph = util.glyphFromOrientation(gate.childs.rings.orientation)
             end
