@@ -254,7 +254,7 @@ end
 function guis.addBk_frame() --addBk
     return {
         args = {type = "frame", name = "addBk", direction = "vertical"},
-        --_closed = handlers.default_close,
+        _closed = handlers.default_close,
         children = {
             {
                 args = {type = "flow", name = "header"},
@@ -268,6 +268,9 @@ function guis.addBk_frame() --addBk
                 }, {
                     args = {type = "empty-widget", style = "draggable_space_header", ignored_by_interaction = true},
                     style_mods = {horizontally_stretchable = true, height = 24},
+                }, {
+                    args = {type = "sprite-button", name = "pin", style = "frame_action_button", sprite = "glib-pin", auto_toggle = true},
+                    _click = handlers.pin,
                 }, {
                     args = {type = "sprite-button", style = "close_button", sprite = "utility/close"},
                     _click = handlers.default_close_button,
@@ -294,6 +297,15 @@ function guis.addBk_frame() --addBk
             }
         }
     }
+end
+
+function handlers.pin(event)
+    local player = game.get_player(event.player_index)
+    if event.element.toggled then
+        player.opened = nil
+    else
+        player.opened = event.element.parent.parent
+    end
 end
 
 function guis.addBk_address(surface, addState) --surface
@@ -391,7 +403,9 @@ function handlers.glyphs(event)
 end
 
 function handlers.default_close(event)
-    event.element.destroy()
+    if not (event.element.children[1].pin and event.element.children[1].pin.toggled) then
+        event.element.destroy()
+    end
 end
 
 function handlers.default_close_button(event)
