@@ -378,8 +378,8 @@ function functions.removeFromGlobal(name, entity)
     if not storage[name] then return end
     if not storage[name][sName] then return end
 
-    local storObj, id = functions.findInGlobal(name, entity)
-    local returnValue
+    local storObj, id, returnValue = functions.findInGlobal(name, entity)
+    if not storObj then return end
 
     if storObj[opposite[name]] ~= nil then --object to be removed has mapped opposite entity - find new for them or nil it
         local shortestEnt = functions.findEntity(name, oppositeEntity[opposite[name]], storObj[opposite[name]].entity, entity)
@@ -430,6 +430,10 @@ function functions.removeFromGlobal(name, entity)
         for _,glyph in pairs(storObj.glyphs) do
             glyph.destroy()
         end
+    end
+
+    if storObj.CloseGUIs then
+        storObj:CloseGUIs()
     end
 
     storage.tasks.activeGates[id] = nil

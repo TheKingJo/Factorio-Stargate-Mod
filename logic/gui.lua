@@ -201,3 +201,79 @@ function GUI.GDOIris(data)
         if gui then gui.destroy() end --no gdo gui in other power switches
     end
 end
+
+function GUI.RefreshDHDs(player_index, dhd, status)
+    if #storage.openGUIs.DHD == 0 then return end
+    for i = #storage.openGUIs.DHD, 1, -1 do
+        local root = storage.openGUIs.DHD[i]
+
+        if not root then goto continue end
+        if not root.valid then
+            table.remove(storage.openGUIs.DHD, i)
+            goto continue
+        end
+        if not root.visible then goto continue end
+
+        if root.player_index ~= player_index then
+            GUI.DHD({
+                entity = dhd.entity,
+                player_index = root.player_index,
+                status = status,
+            }, true)
+        end
+
+        ::continue::
+    end
+end
+
+function GUI.DHD(e, refresh)
+    local player = game.players[e.player_index]
+    local dhd, _ = e.dhd or util.findInGlobal("dhd", e.entity), nil
+    if dhd == nil or dhd.stargate == nil then
+        player.opened = nil
+        return
+    end
+
+    local gui, refs = player.gui.screen.dhd, nil
+
+    if not refresh then
+        if gui then gui.destroy() end --always rebuild, old buttons may carry tags of another dhd
+        gui, refs = glib.add(player.gui.screen, sg_guis.dhd_frame_new())
+        table.insert(storage.openGUIs.DHD, gui)
+    else
+        gui.children[2].children[1].children[1].children[1].destroy() --destroy glyph button collection
+        _, refs = glib.add(gui.children[2].children[1].children[1], sg_guis.dhd_grid_def)
+    end
+
+    if refs.glyphs then
+        local surface, state, connectCell, keys = e.entity.surface.name, false, sg_guis.dhd_grid_info.at[3][3], {}
+        dhd:OpenGUI(gui)
+
+        if dhd.stargate.travelDirection == "sender" and dhd.stargate.active == true then
+            state = true
+        end
+        glib.add(refs["cell_"..connectCell], sg_guis.dhd_letter({"connect", surface, dhd.id, e.status or state, true}))
+
+        for _, char in ipairs(chevronChars) do
+            table.insert(keys, char)
+        end
+        table.insert(keys, 11, "poo_"..POO[surface])
+
+        --cells that stay empty
+        local cell = 0
+        for _, char in ipairs(keys) do
+            cell = cell + 1
+            while skipCells[cell] do --fill placeholders until the next char cell
+                if cell ~= connectCell then
+                    glib.add(refs["cell_"..cell], sg_guis.dhd_letter({}, true))
+                end
+                cell = cell + 1
+            end
+            glib.add(refs["cell_"..cell], sg_guis.dhd_letter({char, surface, dhd.id, dhd.addressLetters[char], dhdGridSizes[cell]}))
+        end
+    end
+
+    gui.force_auto_center()
+    gui.bring_to_front()
+    player.opened = gui
+end

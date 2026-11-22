@@ -482,58 +482,55 @@ function handlers.gdo_delete_code(event)
 end
 
 function handlers.dhd_letter_click(event)
-    if event.button == defines.mouse_button_type.left then
-        local element = event.element
-        local dhdSurface, dhdID, char = element.tags.surface, element.tags.dhdID, element.tags.letter
-        local dhd = util.findIDInGlobal("dhd", dhdSurface, dhdID)
+    local element = event.element
+    local dhdSurface, dhdID, char = element.tags.surface, element.tags.dhdID, element.tags.letter
+    local dhd = util.findIDInGlobal("dhd", dhdSurface, dhdID)
+    if not dhd then return end
 
-        if dhd then
-            local gate = dhd.stargate
-            if char == "connect" then
-                if not gate.active then
-                    util.playSoundOnSurface(gate.entity.surface, gate.pos, "kj_stargate_dhdc")
-                    dhd:Connect(dhdSurface, game.players[event.player_index])
-                else
-                    if gate.travelDirection == "sender" then
-                        dhd:Disconnect()
-                    end
-                end
-            elseif not gate.active and not gate.safeToTravel then
-                if not element.toggled then --clicked letter button
-                    if #dhd.address < 7 then
-                        element.toggled = not element.toggled
-                        util.playSoundOnSurface(dhd.entity.surface, gate.pos, util.randomSound("kj_stargate_dhd", 7))
-                        dhd.glyphs[(#dhd.address or 0) + 1].animation_offset = charLookup[char]
-                        dhd.addressLetters[char] = true
-                        table.insert(dhd.address, char)
-                        gate.chevrons.animation_offset = gate.chevrons.animation_offset + 1
-                    end
-                else --unclicked letter button
-                    local index = util.deleteFromITable(dhd.address, char)
-                    if dhd.glyphs[index] == nil then
-                        dhd:CloseGUIs()
-                        return
-                    end
-                    dhd.glyphs[index].destroy() --prüfen ob existiert, und wenn nicht GUI schließen
-                    element.toggled = not element.toggled
-                    util.playSoundOnSurface(gate.entity.surface, gate.pos, util.randomSound("kj_stargate_dhd", 7))
-                    dhd.addressLetters[char] = nil
-                    table.remove(dhd.glyphs, index)
-                    table.insert(dhd.glyphs, rendering.draw_animation{
-                        animation = "kj_stargate_dhd_"..dhd.entity.direction,
-                        animation_speed = 0,
-                        target = dhd.pos,
-                        surface = dhd.entity.surface,
-                        render_layer = "object",
-                    })
-                    gate.chevrons.animation_offset = math.max(gate.chevrons.animation_offset - 1, 0)
-                end
-                dhd:TrackIdling()
-            end
+    local gate = dhd.stargate
+    if char == "connect" then
+        if not gate.active then
+            util.playSoundOnSurface(gate.entity.surface, gate.pos, "kj_stargate_dhdc")
+            dhd:Connect(dhdSurface, game.players[event.player_index])
         else
-            game.print("dhd not found")
+            if gate.travelDirection == "sender" then
+                dhd:Disconnect()
+            end
         end
+    elseif not gate.active and not gate.safeToTravel then
+        if not element.toggled then --clicked letter button
+            if #dhd.address < 7 then
+                element.toggled = not element.toggled
+                util.playSoundOnSurface(dhd.entity.surface, gate.pos, util.randomSound("kj_stargate_dhd", 7))
+                dhd.glyphs[(#dhd.address or 0) + 1].animation_offset = charLookup[char]
+                dhd.addressLetters[char] = true
+                table.insert(dhd.address, char)
+                gate.chevrons.animation_offset = gate.chevrons.animation_offset + 1
+            end
+        else --unclicked letter button
+            local index = util.deleteFromITable(dhd.address, char)
+            if dhd.glyphs[index] == nil then
+                dhd:CloseGUIs()
+                return
+            end
+            dhd.glyphs[index].destroy() --prüfen ob existiert, und wenn nicht GUI schließen
+            element.toggled = not element.toggled
+            util.playSoundOnSurface(gate.entity.surface, gate.pos, util.randomSound("kj_stargate_dhd", 7))
+            dhd.addressLetters[char] = nil
+            table.remove(dhd.glyphs, index)
+            table.insert(dhd.glyphs, rendering.draw_animation{
+                animation = "kj_stargate_dhd_"..dhd.entity.direction,
+                animation_speed = 0,
+                target = dhd.pos,
+                surface = dhd.entity.surface,
+                render_layer = "object",
+            })
+            gate.chevrons.animation_offset = math.max(gate.chevrons.animation_offset - 1, 0)
+        end
+        dhd:TrackIdling()
     end
+
+    GUI.RefreshDHDs(event.player_index, dhd)
 end
 
 glib.register_handlers(handlers)

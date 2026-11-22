@@ -7,7 +7,7 @@ stargate = {
         if otherGate.destination ~= nil then --other gate has connection
             if thisGate.dhd then
                 thisGate.dhd:ResetGlyphs()
-                thisGate.dhd:CloseGUIs()
+                GUI.RefreshDHDs(65536, thisGate.dhd)
             end
             util.playSoundOnSurface(thisGate.entity.surface, thisGate.pos, "kj_stargate_fail")
         else
@@ -321,7 +321,7 @@ dhd = {
                 util.playSoundOnSurface(self.entity.surface, self.pos, "kj_stargate_fail")
             end
             self:ResetGlyphs()
-            self:CloseGUIs()
+            GUI.RefreshDHDs(65536, self)
         end
 	end,
 
@@ -333,16 +333,16 @@ dhd = {
         storage.tasks.busyDhds[self.id] = {tick = game.tick + 20*60, dhd = self}
     end,
 
-    OpenedGUI = function(self, glyphTableUI)
-        self.openedUIs = self.openedUIs or {}
-        table.insert(self.openedUIs, glyphTableUI)
+    OpenGUI = function(self, dhdGUI)
+        self.openedGUIs = self.openedGUIs or {}
+        table.insert(self.openedGUIs, dhdGUI)
     end,
 
     CloseGUIs = function(self)
-        if self.openedUIs == nil then return end
-        for _, gui in ipairs(self.openedUIs) do
+        if not self.openedGUIs then return end
+        for _, gui in ipairs(self.openedGUIs) do
             if gui.valid then
-                gui.parent.parent.parent.parent.destroy()
+                gui.destroy()
             end
         end
     end,
@@ -460,7 +460,7 @@ end
 
 function Gate.activateGate(gate, pov)
     if gate.dhd then
-        gate.dhd:CloseGUIs()
+        GUI.RefreshDHDs(65536, gate.dhd, true)
         if storage.tasks.busyDhds and storage.tasks.busyDhds[gate.dhd.id] then
             storage.tasks.busyDhds[gate.dhd.id] = nil
         end
