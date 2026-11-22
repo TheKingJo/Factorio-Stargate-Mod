@@ -453,8 +453,8 @@ data:extend({
         name = "kj_stargate_signaled_placement",
         icon = modname.."/graphics/s_icon.png",
         icon_size = 128,
-        collision_box = {{-5, -3.5}, {5, 5}},
-        selection_box = {{-5, -3.5}, {5, 5}},
+        collision_box = {{-5.4, -3.8}, {5.4, 5.8}},
+        selection_box = {{-5.4, -3.8}, {5.4, 5.8}},
         drawing_box_vertical_extension = 3,
         minable = {
             mining_time = 5,
@@ -499,8 +499,8 @@ data:extend({
         name = "kj_stargate_signaled_iris_placement",
         icon = modname.."/graphics/s_gate_iris_icon.png",
         icon_size = 128,
-        collision_box = {{-5, -3.5}, {5, 5}},
-        selection_box = {{-5, -3.5}, {5, 5}},
+        collision_box = {{-5.4, -3.8}, {5.4, 5.8}},
+        selection_box = {{-5.4, -3.8}, {5.4, 5.8}},
         drawing_box_vertical_extension = 3,
         minable = {
             mining_time = 5,
@@ -603,8 +603,8 @@ data:extend({
         icon = modname.."/graphics/s_icon.png",
         icon_size = 128,
         collision_mask = {layers = {doodad = true}},
-        collision_box = {{-3, -1.5}, {3, 3}},
-        selection_box = {{-3, -1.5}, {3, 3}},
+        collision_box = {{-3, -1.3}, {3, 3.2}},
+        selection_box = {{-3, -1.3}, {3, 3.2}},
         minable = {
             mining_time = 5,
             results = {
@@ -1753,7 +1753,6 @@ data:extend({
         type = "tile",
         name = "kj_stargate_slowDownTile",
         hidden = true,
-        flags = {"not-on-map"},
         allows_being_covered = false,
         walking_speed_modifier = 0.5,
         vehicle_friction_modifier = 0.5,
@@ -1773,30 +1772,18 @@ data:extend({
             },
             empty_transitions = true
         },
-    },
-    {
-        type = "tile",
-        name = "kj_stargate_metalTile",
-        hidden = true,
-        flags = {"not-on-map"},
-        allows_being_covered = false,
-        walking_speed_modifier = 1,
-        vehicle_friction_modifier = 1,
-        collision_mask = {layers={ground_tile=true}},
-        map_color = {r = 0.55, g = 0.55, b = 0.55, a = 1},
-        layer = 0,
-        walking_sound = metal,
-        driving_sound = nil,
-        variants = {
-            main =
-            {
-                {
-                    picture = "__core__/graphics/empty.png",
-                    count = 1,
-                    size = 1
-                }
-            },
-            empty_transitions = true
-        },
-    },
+    }
 })
+
+local metalTile = table.deepcopy(data.raw["tile"]["refined-concrete"])
+metalTile.name = "kj_stargate_metalTile"
+metalTile.hidden = true
+metalTile.allows_being_covered = false
+metalTile.walking_speed_modifier = 1
+metalTile.vehicle_friction_modifier = 1
+metalTile.map_color = {r = 0.55, g = 0.55, b = 0.55, a = 1}
+metalTile.walking_sound = metal
+metalTile.driving_sound = nil
+metalTile.minable = nil
+metalTile.decorative_removal_probability = 1
+data:extend({metalTile})

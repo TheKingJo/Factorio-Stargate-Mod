@@ -327,6 +327,10 @@ function functions.removeAllGates()
                     end
                 end
                 ch.baseEnt.surface.set_tiles(gate.oldTiles)
+                for _, tile in ipairs(sg.oldTiles) do
+                    tile.name = "refined-concrete"
+                end
+                ch.baseEnt.surface.set_tiles(gate.oldTiles)
             end
 
             if ch then

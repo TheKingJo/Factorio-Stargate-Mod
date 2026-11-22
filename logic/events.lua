@@ -141,7 +141,7 @@ function OnBuilt(e)
             poleVisibleMiddle = surface.create_entity{
                 name = SGNAMES.pole.."invisible",
                 force = "neutral",
-                position = util.vector2Add(pos, {x = 0, y = -0.9}),
+                position = util.vector2Add(pos, {x = 0, y = -1}),
             },
 
             ringSound = surface.create_entity{
@@ -234,18 +234,52 @@ function OnBuilt(e)
             visible = false,
         }
 
-        local calcPosis = {}
-        for i = 1, -1, -2 do
+        --[[y+0.5 always
+        metal tile:
+            x:-1to+1 y: -2to+5
+        concrete:
+            x:-2/+2  y: -3to+5
+            x:-3/+3  y: -3to+1
+            x:-1to+1 y: -3
+            x:-4/+4  y: -1
+            x:-5/+5  y: -1
+        ]]
+        local oldTiles = {}
+        local metalConcretePos = {}
+        for x = -1, 1, 1 do
             for y = -2, 5, 1 do
-                table.insert(calcPosis, {position = util.vector2Add(pos, {-0.5 * i, y}), name = "kj_stargate_metalTile"})
+                local pos = util.vector2Add(pos, {x, 0.5 + y})
+                table.insert(metalConcretePos, {position = pos, name = "kj_stargate_metalTile"})
+                table.insert(oldTiles, {position = pos, name = "refined-concrete"})
             end
         end
-        local oldTiles = {}
-        for _, tile in pairs(calcPosis) do
+        local concretePos = {}
+        for x = -2, 2, 4 do
+            for y = -3, 5, 1 do
+                table.insert(concretePos, {position = util.vector2Add(pos, {x, 0.5 + y}), name = "refined-concrete"})
+            end
+        end
+        for x = -3, 3, 6 do
+            for y = -3, 1, 1 do
+                table.insert(concretePos, {position = util.vector2Add(pos, {x, 0.5 + y}), name = "refined-concrete"})
+            end
+        end
+        for x = -1, 1, 1 do
+            table.insert(concretePos, {position = util.vector2Add(pos, {x, 0.5 -3}), name = "refined-concrete"})
+        end
+        for x = -4, 4, 8 do
+            table.insert(concretePos, {position = util.vector2Add(pos, {x, 0.5 -1}), name = "refined-concrete"})
+        end
+        for x = -5, 5, 10 do
+            table.insert(concretePos, {position = util.vector2Add(pos, {x, 0.5 -1}), name = "refined-concrete"})
+        end
+
+        for _, tile in pairs(metalConcretePos) do
             tile = surface.get_tile(tile.position.x, tile.position.y)
             table.insert(oldTiles, {name = tile.name, position = tile.position})
         end
-        surface.set_tiles(calcPosis)
+        surface.set_tiles(metalConcretePos)
+        surface.set_tiles(concretePos)
 
         local wireConsR = childs.poleVisibleRight.get_wire_connectors(true)
         local wireConsL = childs.poleVisibleLeft.get_wire_connectors(true)
@@ -456,18 +490,22 @@ function OnRemoved(e)
     --game.print(ent.name.." destroyed")
 
 	if ent.name == SGNAMES.entity or ent.name == SGNAMES.entitySignaled then
-        local sg = util.findInGlobal("stargate", ent)
-        if sg and sg.oldTiles then
-            for i = #sg.oldTiles, 1, -1 do
-                local tile = sg.oldTiles[i]
+        local gate = util.findInGlobal("stargate", ent)
+        if gate and gate.oldTiles then
+            for i = #gate.oldTiles, 1, -1 do
+                local tile = gate.oldTiles[i]
                 if ent.surface.get_tile(tile.position.x, tile.position.y).name == "nuclear-ground" then
-                    table.remove(sg.oldTiles, i)
+                    table.remove(gate.oldTiles, i)
                 end
             end
-            ent.surface.set_tiles(sg.oldTiles)
+            ent.surface.set_tiles(gate.oldTiles)
+            for _, tile in ipairs(gate.oldTiles) do
+                tile.name = "refined-concrete"
+            end
+            ent.surface.set_tiles(gate.oldTiles)
         end
 
-        if sg.childs.iris then
+        if gate.childs.iris then
             --[[local player = game.players[e.player_index]
             if player and player.valid then
                 player.insert({name = SGNAMES.iris, count = 1})
