@@ -603,8 +603,8 @@ data:extend({
         icon = modname.."/graphics/s_icon.png",
         icon_size = 128,
         collision_mask = {layers = {doodad = true}},
-        collision_box = {{-3, -1.3}, {3, 3.2}},
-        selection_box = {{-3, -1.3}, {3, 3.2}},
+        collision_box = {{-3, -1.1}, {3, 3.3}},
+        selection_box = {{-3, -1.1}, {3, 3.3}},
         minable = {
             mining_time = 5,
             results = {

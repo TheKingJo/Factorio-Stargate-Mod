@@ -240,6 +240,7 @@ function GUI.DHD(e, refresh)
         if gui then gui.destroy() end --always rebuild, old buttons may carry tags of another dhd
         gui, refs = glib.add(player.gui.screen, sg_guis.dhd_frame_new())
         table.insert(storage.openGUIs.DHD, gui)
+        gui.force_auto_center()
     else
         gui.children[2].children[1].children[1].children[1].destroy() --destroy glyph button collection
         _, refs = glib.add(gui.children[2].children[1].children[1], sg_guis.dhd_grid_def)
@@ -273,7 +274,6 @@ function GUI.DHD(e, refresh)
         end
     end
 
-    gui.force_auto_center()
     gui.bring_to_front()
     player.opened = gui
 end

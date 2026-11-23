@@ -174,7 +174,7 @@ function guis.gdo_gate(gateSurface, gateID, iris) --gdo_gate
     end
 
     return {
-        args = {type = "frame", name = "gdo_gate", style = "bordered_frame", tags = {irisID = gateID}},
+        args = {type = "frame", style = "bordered_frame", tags = {irisID = gateID}},
         style_mods = {horizontal_align = "left", horizontally_stretchable = true},
         children = {
             {
