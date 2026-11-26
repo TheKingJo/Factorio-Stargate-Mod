@@ -34,4 +34,12 @@ data:extend({
 		default_value = true,
 		order = "kj_stargate_observatory_night",
 	},
+	{
+		type = "int-setting",
+		name = "kj_stargate_randomStar_difficulty",
+		setting_type = "runtime-global",
+		default_value = 3,
+		allowed_values = {1,2,3,4,5},
+		order = "kj_stargate_randomStar_difficulty",
+	},
 })

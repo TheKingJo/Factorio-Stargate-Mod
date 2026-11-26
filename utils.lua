@@ -513,7 +513,6 @@ function functions.rndFloat(min, max)
     return min + math.random() * (max - min)
 end
 
-
 --Poisson Disk Sampling (Bridson)
 --area = {left_top = {x, y}, right_bottom = {x, y}}
 --min_distance = minimal distance between 2 points

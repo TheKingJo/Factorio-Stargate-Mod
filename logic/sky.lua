@@ -137,8 +137,9 @@ function Sky.getArea(force, planet)
         table.remove(glyphs, i)
     end
 
-    local randomStars = {}
-    randomStars = util.poissonDiskSampling(area.area, 20, 3)
+
+    local starDifficulty, randomStars = {30, 25, 20, 15, 10}, {}
+    randomStars = util.poissonDiskSampling(area.area, starDifficulty[settings.global["kj_stargate_randomStar_difficulty"].value], 3)
     for _ = 1, 10, 1 do
         --table.insert(randomStars, {x = math.random(area.area.left_top.x + 1.5, area.area.right_bottom.x - 1.5),
                                    --y = math.random(area.area.left_top.y + 1.5, area.area.right_bottom.y - 1.5)})
