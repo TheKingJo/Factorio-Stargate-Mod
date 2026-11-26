@@ -32,7 +32,7 @@ data:extend({
 			type = "build-entity",
 			entity = "kj_stargate_placement",
 		},
-		prerequisites = {"kj_stargate", "circuit-network", "lamp", "steel-processing"},
+		prerequisites = {"kj_stargate", "circuit-network", "lamp", "concrete"},
 	},
 	{
 		type = "technology",

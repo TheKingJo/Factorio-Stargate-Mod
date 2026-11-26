@@ -6,11 +6,10 @@ data:extend({
 		energy_required = 10,
 		ingredients = {
             {type = "item", name = "kj_stargate", amount = 1},
-            {type = "item", name = "steel-plate", amount = 25},
-            {type = "item", name = "iron-stick",  amount = 50},
-            {type = "item", name = "iron-plate",  amount = 50},
+            {type = "item", name = "steel-plate", amount = 50},
             {type = "item", name = "copper-cable",amount = 50},
             {type = "item", name = "small-lamp",  amount = 10},
+            {type = "item", name = "refined-concrete",  amount = 59},
         },
 		results = {{type = "item", name = "kj_stargate_signaled_placement", amount = 1}},
 	},
@@ -21,12 +20,7 @@ data:extend({
 		energy_required = 10,
 		ingredients = {
             {type = "item", name = "kj_stargate_iris",  amount = 1},
-            {type = "item", name = "kj_stargate", amount = 1},
-            {type = "item", name = "steel-plate", amount = 25},
-            {type = "item", name = "iron-stick",  amount = 50},
-            {type = "item", name = "iron-plate",  amount = 50},
-            {type = "item", name = "copper-cable",amount = 50},
-            {type = "item", name = "small-lamp",  amount = 10},
+            {type = "item", name = "kj_stargate_signaled_placement", amount = 1},
         },
 		results = {{type = "item", name = "kj_stargate_signaled_iris_placement", amount = 1}},
 	},
@@ -62,5 +56,15 @@ data:extend({
             --{type = "item", name = "iron-plate", amount = 1},
         },
 		results = {{type = "item", name = "kj_dhd", amount = 1}},
+	},
+	{
+		type = "recipe",
+		name = "kj_sg_observatory",
+		enabled = true,
+		energy_required = 0.1,
+		ingredients = {
+            --{type = "item", name = "iron-plate", amount = 1},
+		},
+		results = {{type = "item", name = "kj_sg_observatory", amount = 1}},
 	},
 })

@@ -10,6 +10,25 @@ end
 data:extend({
 	{
 		type = "sound",
+		name = "kj_stargate_found_glyph",
+		filename = modname.."/sounds/glyphFound.ogg",
+		volume = 1,
+		category = "environment",
+		audible_distance_modifier = 3,
+	},
+	{
+		type = "sound",
+		name = "kj_stargate_found_address",
+		filename = modname.."/sounds/addressFound.ogg",
+		volume = 1,
+		category = "environment",
+		audible_distance_modifier = 3,
+	},
+})
+
+data:extend({
+	{
+		type = "sound",
 		name = "kj_stargate_dhd_connect",
 		filename = modname.."/sounds/dhd_connect.ogg",
 		volume = 1,

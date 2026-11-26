@@ -8,211 +8,9 @@ function LuaShortCut(e)
     end
 
     if name == "kj_stargate_gdo" then
-        GDOTriggered(e)
+        GUI.GDOTriggered(e)
     elseif name == "kj_stargate_addressBook" then
-        AddressBookTriggered(e)
-    end
-end
-
-function AddressBookTriggered(e, refresh)
-    local player = game.players[e.player_index]
-    local gates = storage.addressBook[player.force.name]
-    local gui, refs = player.gui.screen.addBk, nil
-
-    if not gui then
-        gui, refs = glib.add(player.gui.screen, sg_guis.addBk_frame())
-        gui.force_auto_center()
-        gui.bring_to_front()
-        player.opened = gui
-        table.insert(storage.openGUIs.AddBk, gui)
-    else
-        gui.visible = true
-        refs = {gates = gui.children[2].children[1].children[1].children[1].gates}
-        if refresh and refresh == true then
-            local surface = e.surface
-            local ogIndex = refs.gates[surface].get_index_in_parent()
-
-            refs.gates[surface].destroy()
-            local newSurface = glib.add(refs.gates, sg_guis.addBk_address(surface, e.state))
-            local current_index = newSurface.get_index_in_parent()
-
-            while current_index > ogIndex do
-                refs.gates.swap_children(current_index, current_index - 1)
-                current_index = current_index - 1
-            end
-        else
-            refs.gates.clear()
-        end
-    end
-
-    if refs and refs.gates and not refresh then
-        local count = 0
-        for surface, state in pairs(gates) do
-            if state > 0 then
-                glib.add(refs.gates, sg_guis.addBk_address(surface, state))
-                count = count + 1
-            end
-        end
-        if count == 0 then
-            glib.add(refs.gates, {
-                args = {type = "frame", style = "bordered_frame"},
-                style_mods = {horizontal_align = "left"},
-                children = {{
-                    args = {type = "flow", direction = "horizontal"},
-                    style_mods = {horizontally_stretchable = true, horizontal_align = "center"},
-                    children = {{
-                        args = {type = "label", style = "frame_title", caption = {"addBk_empty"}},
-                    }}
-                }}
-            })
-        end
-    end
-end
-
-function RefreshAllAddBks(force, surface, state)
-    if #storage.openGUIs.AddBk == 0 then return end
-    for i = #storage.openGUIs.AddBk, 1, -1 do
-        local GUI = storage.openGUIs.AddBk[i]
-
-        if not GUI then goto continue end
-        if not GUI.valid then
-            table.remove(storage.openGUIs.AddBk, i)
-            goto continue
-        end
-        if not GUI.visible then
-            goto continue
-        end
-        if force == game.players[GUI.player_index].force.name then
-            AddressBookTriggered({
-                prototype_name = "kj_stargate_addressBook",
-                player_index = GUI.player_index,
-                surface = surface,
-                state = state,
-            }, state ~= nil)
-        end
-
-        ::continue::
-    end
-end
-
-function GDOTriggered(e, refresh)
-    local player, gates = game.players[e.player_index], {}
-    local entities = game.surfaces[player.surface_index].find_entities_filtered{
-        position = player.position,
-        radius = 10,
-        name = {sgNames.entity, sgNames.entitySignaled}
-    }
-
-    for _, entity in pairs(entities) do
-        local gate = storage["stargate"][entity.surface.name][entity.unit_number]
-
-        if gate.active and gate.destination and gate.destination.manual == false then
-            gates[gate.destination.childs.iris.unit_number] = gate.destination
-        end
-    end
-
-    local gui, refs = player.gui.screen.gdo, nil
-    if not gui then
-        gui, refs = glib.add(player.gui.screen, sg_guis.gdo_frame())
-
-        gui.force_auto_center()
-        gui.bring_to_front()
-        player.opened = gui
-        table.insert(storage.openGUIs.GDO, gui)
-    else
-        gui.visible = true
-        refs = {gates = gui.children[2].children[1].children[1].children[1].gates}
-        if refresh and refresh == true then
-            for _, child in pairs(refs.gates.children) do
-                local irisID = child.tags.irisID
-
-                if irisID then
-                    local state, iris = "on", storage.irisedGates[tonumber(irisID)].childs.iris
-                    if iris.power_switch_state == true then
-                        state = "iris"
-                    end
-                    child.children[1].children[1].sprite = "kj_sg_gate_"..state
-                end
-            end
-        else
-            refs.gates.clear()
-        end
-    end
-
-    if refs and refs.gates and not refresh then
-        if not next(gates) then
-            glib.add(refs.gates, {
-                args = {type = "frame", style = "bordered_frame"},
-                style_mods = {horizontal_align = "left"},
-                children = {{
-                    args = {type = "flow", direction = "horizontal"},
-                    style_mods = {horizontally_stretchable = true, horizontal_align = "center"},
-                    children = {{
-                        args = {type = "label", style = "frame_title", caption = {"gdoGui3"}},
-                    }}
-                }}
-            })
-        else
-            for id, gate in pairs(gates) do
-                glib.add(refs.gates, sg_guis.gdo_gate(gate.entity.surface.name, id, gate.childs.iris))
-            end
-        end
-    end
-end
-
-function RefreshAllGDOIris(mode)
-    if #storage.openGUIs.GDOIris == 0 then return end
-
-    for i = #storage.openGUIs.GDOIris, 1, -1 do
-        local GUI = storage.openGUIs.GDOIris[i]
-
-        if not GUI then goto continue end
-        if not GUI.valid then
-            table.remove(storage.openGUIs.GDOIris, i)
-            goto continue
-        end
-        if not GUI.visible then goto continue end
-
-        local gui = game.players[GUI.player_index].gui.relative.gdo_iris.children[2].children[1].children[1].gdos
-
-        if mode.change then
-            gui[mode.change[1]].name = mode.change[2]
-            gui[mode.change[1]].text = mode.change[2]
-
-        elseif mode.add then
-            glib.add(gui, sg_guis.gdo_code(gui.tags.irisID, mode.add))
-
-        elseif mode.delete then
-            gui[mode.delete].destroy()
-        end
-        ::continue::
-    end
-end
-
-function GDOIris(data)
-    local player = game.players[data.player_index]
-    local gui, refs = player.gui.relative.gdo_iris, nil
-
-    if data.name == sgNames.iris then
-        local irisID = data.unit_number or gui.tags.irisID
-        local gate = storage.irisedGates[irisID]
-
-        if not gui then
-            gui, refs = glib.add(player.gui.relative, sg_guis.gdo_iris_frame(irisID))
-
-            table.insert(storage.openGUIs.GDOIris, gui)
-        else
-            refs = {gdos = gui.children[2].children[1].children[1].gdos}
-        end
-
-        if refs and refs.gdos then
-            refs.gdos.clear()
-            for code, _ in pairs(gate.gdos) do
-                glib.add(refs.gdos, sg_guis.gdo_code(irisID, code))
-            end
-        end
-    else
-        if gui then gui.destroy() end --no gdo gui in other power switches
+        GUI.AddressBookTriggered(e)
     end
 end
 
@@ -235,15 +33,15 @@ function OnBuilt(e)
     if not ent.valid then return end
     --game.print("Placed "..ent.name)
 
-	if ent.name == sgNames.placementSignaled or ent.name == sgNames.placementSignaledIris then --signaled stargate placed / iris
+	if ent.name == SGNAMES.placementSignaled or ent.name == SGNAMES.placementSignaledIris then --signaled stargate placed / iris
         local iris = false
         local pos = ent.position
         local surface = ent.surface
-        if ent.name == sgNames.placementSignaledIris then
+        if ent.name == SGNAMES.placementSignaledIris then
             iris = true
         end
         local entity = surface.create_entity{
-            name = sgNames.entitySignaled,
+            name = SGNAMES.entitySignaled,
             force = "neutral",
             position = util.vector2Add(pos, {x = 0, y = entOffY.entS}),
         }
@@ -256,7 +54,7 @@ function OnBuilt(e)
         }
         local childs = {
             tpArea = surface.create_entity{
-                name = sgNames.tpArea,
+                name = SGNAMES.tpArea,
                 force = "neutral",
                 position = util.vector2Add(pos, {x = 0, y = -1.8}),
             },
@@ -273,89 +71,89 @@ function OnBuilt(e)
             },
 
             colliderH11 = surface.create_entity{
-                name = sgNames.colliderHL,
+                name = SGNAMES.colliderHL,
                 position = util.vector2Add(pos, {x = 0, y = -2.275}),
                 force = "neutral",
             },
             colliderH12 = surface.create_entity{
-                name = sgNames.colliderHL,
+                name = SGNAMES.colliderHL,
                 position = util.vector2Add(pos, {x = 0, y = -2.275-0.75}),
                 force = "neutral",
             },
 
             colliderVB1 = surface.create_entity{
-                name = sgNames.colliderV,
+                name = SGNAMES.colliderV,
                 position = util.vector2Add(pos, {x = -2.75, y = -0.5}),
                 force = "neutral",
             },
             colliderVB2 = surface.create_entity{
-                name = sgNames.colliderV,
+                name = SGNAMES.colliderV,
                 position = util.vector2Add(pos, {x = 2.75, y = -0.5}),
                 force = "neutral",
             },
             colliderVB3 = surface.create_entity{
-                name = sgNames.colliderV,
+                name = SGNAMES.colliderV,
                 position = util.vector2Add(pos, {x = -1.75-0.025, y = -0.5}),
                 force = "neutral",
             },
             colliderVB4 = surface.create_entity{
-                name = sgNames.colliderV,
+                name = SGNAMES.colliderV,
                 position = util.vector2Add(pos, {x = 1.75+0.025, y = -0.5}),
                 force = "neutral",
             },
 
             colliderH21 = surface.create_entity{
-                name = sgNames.colliderHB,
+                name = SGNAMES.colliderHB,
                 position = util.vector2Add(pos, {x = -3.5, y = -1}),
                 force = "neutral",
             },
             colliderH22 = surface.create_entity{
-                name = sgNames.colliderHB,
+                name = SGNAMES.colliderHB,
                 position = util.vector2Add(pos, {x = 3.5, y = -1}),
                 force = "neutral",
             },
 
             colliderVL1 = surface.create_entity{
-                name = sgNames.colliderHLL,
+                name = SGNAMES.colliderHLL,
                 position = util.vector2Add(pos, {x = -1.5, y = 1.5}),
                 direction = defines.direction.east,
                 force = "neutral",
             },
             colliderVL2 = surface.create_entity{
-                name = sgNames.colliderHLL,
+                name = SGNAMES.colliderHLL,
                 position = util.vector2Add(pos, {x = 1.5, y = 1.5}),
                 direction = defines.direction.west,
                 force = "neutral",
             },
 
             rings = surface.create_entity{
-                name = sgNames.rings,
+                name = SGNAMES.rings,
                 position = util.vector2Add(pos, {x = 0, y = -1.85}),
                 force = "neutral",
             },
 
             lights = surface.create_entity{
-                name = sgNames.lights,
+                name = SGNAMES.lights,
                 force = "neutral",
                 position = util.vector2Add(pos, {x = 0, y = 0}),
             },
 
             poleVisibleMiddle = surface.create_entity{
-                name = sgNames.pole.."invisible",
+                name = SGNAMES.pole.."invisible",
                 force = "neutral",
-                position = util.vector2Add(pos, {x = 0, y = -0.9}),
+                position = util.vector2Add(pos, {x = 0, y = -1}),
             },
 
             ringSound = surface.create_entity{
-                name = sgNames.ringSound,
+                name = SGNAMES.ringSound,
                 force = "neutral",
                 position = util.vector2Add(pos, {x = 0, y = 3}),
             },
         }
         if iris == true then
             childs.iris = surface.create_entity{
-                name = sgNames.iris,
-                force = game.get_player(e.player_index).force,
+                name = SGNAMES.iris,
+                force = game.players[e.player_index].force,
                 position = util.vector2Add(pos, {x = 0, y = -2}),
             }
             childs.iris.minable_flag = false
@@ -368,12 +166,12 @@ function OnBuilt(e)
         entity.electric_interface_mode = defines.electric_interface_mode.tertiary_input
 
         childs.poleVisibleRight = surface.create_entity{
-            name = sgNames.pole.."visible_right",
+            name = SGNAMES.pole.."visible_right",
             force = "neutral",
             position = util.vector2Add(pos, {x = 4.7, y = -0.528}),
         }
         childs.poleVisibleLeft = surface.create_entity{
-            name = sgNames.pole.."visible_left",
+            name = SGNAMES.pole.."visible_left",
             force = "neutral",
             position = util.vector2Add(pos, {x =-4.7, y = -0.527}),
         }
@@ -436,18 +234,52 @@ function OnBuilt(e)
             visible = false,
         }
 
-        local calcPosis = {}
-        for i = 1, -1, -2 do
+        --[[y+0.5 always
+        metal tile:
+            x:-1to+1 y: -2to+5
+        concrete:
+            x:-2/+2  y: -3to+5
+            x:-3/+3  y: -3to+1
+            x:-1to+1 y: -3
+            x:-4/+4  y: -1
+            x:-5/+5  y: -1
+        ]]
+        local oldTiles = {}
+        local metalConcretePos = {}
+        for x = -1, 1, 1 do
             for y = -2, 5, 1 do
-                table.insert(calcPosis, {position = util.vector2Add(pos, {-0.5 * i, y}), name = "kj_stargate_metalTile"})
+                local pos = util.vector2Add(pos, {x, 0.5 + y})
+                table.insert(metalConcretePos, {position = pos, name = "kj_stargate_metalTile"})
+                table.insert(oldTiles, {position = pos, name = "refined-concrete"})
             end
         end
-        local oldTiles = {}
-        for _, tile in pairs(calcPosis) do
+        local concretePos = {}
+        for x = -2, 2, 4 do
+            for y = -3, 5, 1 do
+                table.insert(concretePos, {position = util.vector2Add(pos, {x, 0.5 + y}), name = "refined-concrete"})
+            end
+        end
+        for x = -3, 3, 6 do
+            for y = -3, 1, 1 do
+                table.insert(concretePos, {position = util.vector2Add(pos, {x, 0.5 + y}), name = "refined-concrete"})
+            end
+        end
+        for x = -1, 1, 1 do
+            table.insert(concretePos, {position = util.vector2Add(pos, {x, 0.5 -3}), name = "refined-concrete"})
+        end
+        for x = -4, 4, 8 do
+            table.insert(concretePos, {position = util.vector2Add(pos, {x, 0.5 -1}), name = "refined-concrete"})
+        end
+        for x = -5, 5, 10 do
+            table.insert(concretePos, {position = util.vector2Add(pos, {x, 0.5 -1}), name = "refined-concrete"})
+        end
+
+        for _, tile in pairs(metalConcretePos) do
             tile = surface.get_tile(tile.position.x, tile.position.y)
             table.insert(oldTiles, {name = tile.name, position = tile.position})
         end
-        surface.set_tiles(calcPosis)
+        surface.set_tiles(metalConcretePos)
+        surface.set_tiles(concretePos)
 
         local wireConsR = childs.poleVisibleRight.get_wire_connectors(true)
         local wireConsL = childs.poleVisibleLeft.get_wire_connectors(true)
@@ -496,11 +328,11 @@ function OnBuilt(e)
         end
 
         ent.destroy()
-    elseif ent.name == sgNames.placement then --manual stargate placed
+    elseif ent.name == SGNAMES.placement then --manual stargate placed
         local pos = ent.position
         local surface = ent.surface
         local entity = surface.create_entity{
-            name = sgNames.entity,
+            name = SGNAMES.entity,
             force = "neutral",
             position = util.vector2Add(pos, {x = 0, y = entOffY.ent}),
         }
@@ -513,57 +345,57 @@ function OnBuilt(e)
         }
         local childs = {
             tpArea = surface.create_entity{
-                name = sgNames.tpArea,
+                name = SGNAMES.tpArea,
                 force = "neutral",
                 position = util.vector2Add(pos, {x = 0, y = -1.8}),
             },
 
             colliderV1 = surface.create_entity{
-                name = sgNames.colliderV,
+                name = SGNAMES.colliderV,
                 position = util.vector2Add(pos, {x = -3.5, y = -1}),
             },
             colliderV2 = surface.create_entity{
-                name = sgNames.colliderV,
+                name = SGNAMES.colliderV,
                 position = util.vector2Add(pos, {x = 3.5, y = -1}),
             },
 
             colliderH11 = surface.create_entity{
-                name = sgNames.colliderHL,
+                name = SGNAMES.colliderHL,
                 position = util.vector2Add(pos, {x = 0, y = -2.275}),
             },
 
             colliderH21 = surface.create_entity{
-                name = sgNames.colliderHS,
+                name = SGNAMES.colliderHS,
                 position = util.vector2Add(pos, {x = -2.5, y = -0.5}),
             },
             colliderH22 = surface.create_entity{
-                name = sgNames.colliderHS,
+                name = SGNAMES.colliderHS,
                 position = util.vector2Add(pos, {x = 2.5, y = -0.5}),
             },
             colliderH23 = surface.create_entity{
-                name = sgNames.colliderHS,
+                name = SGNAMES.colliderHS,
                 position = util.vector2Add(pos, {x = -3, y = 0}),
             },
             colliderH24 = surface.create_entity{
-                name = sgNames.colliderHS,
+                name = SGNAMES.colliderHS,
                 position = util.vector2Add(pos, {x = 3, y = 0}),
             },
             colliderH31 = surface.create_entity{
-                name = sgNames.colliderHS,
+                name = SGNAMES.colliderHS,
                 position = util.vector2Add(pos, {x = -2.25, y = -1.6}),
             },
             colliderH32 = surface.create_entity{
-                name = sgNames.colliderHS,
+                name = SGNAMES.colliderHS,
                 position = util.vector2Add(pos, {x = 2.25, y = -1.6}),
             },
 
             colliderD1 = surface.create_entity{
-                name = sgNames.colliderD,
+                name = SGNAMES.colliderD,
                 position = util.vector2Add(pos, {x = -2.366, y = 0.225}),
                 direction = defines.direction.southeast,
             },
             colliderD2 = surface.create_entity{
-                name = sgNames.colliderD,
+                name = SGNAMES.colliderD,
                 position = util.vector2Add(pos, {x = 2.366, y = 0.225}),
                 direction = defines.direction.southwest,
             },
@@ -625,7 +457,7 @@ function OnBuilt(e)
         util.addToGlobal("stargate", entity, content)
 
         ent.destroy()
-    elseif ent.name == sgNames.dhdName then --dhd placed
+    elseif ent.name == SGNAMES.dhdName then --dhd placed
         ent.rotatable = false
         ent.force = "neutral"
 
@@ -657,28 +489,32 @@ function OnRemoved(e)
     if not ent.valid then return end
     --game.print(ent.name.." destroyed")
 
-	if ent.name == sgNames.entity or ent.name == sgNames.entitySignaled then
-        local sg = util.findInGlobal("stargate", ent)
-        if sg and sg.oldTiles then
-            for i = #sg.oldTiles, 1, -1 do
-                local tile = sg.oldTiles[i]
+	if ent.name == SGNAMES.entity or ent.name == SGNAMES.entitySignaled then
+        local gate = util.findInGlobal("stargate", ent)
+        if gate and gate.oldTiles then
+            for i = #gate.oldTiles, 1, -1 do
+                local tile = gate.oldTiles[i]
                 if ent.surface.get_tile(tile.position.x, tile.position.y).name == "nuclear-ground" then
-                    table.remove(sg.oldTiles, i)
+                    table.remove(gate.oldTiles, i)
                 end
             end
-            ent.surface.set_tiles(sg.oldTiles)
+            ent.surface.set_tiles(gate.oldTiles)
+            for _, tile in ipairs(gate.oldTiles) do
+                tile.name = "refined-concrete"
+            end
+            ent.surface.set_tiles(gate.oldTiles)
         end
 
-        if sg.childs.iris then
-            --[[local player = game.get_player(e.player_index)
+        if gate.childs.iris then
+            --[[local player = game.players[e.player_index]
             if player and player.valid then
-                player.insert({name = sgNames.iris, count = 1})
+                player.insert({name = SGNAMES.iris, count = 1})
             end]]
             --TODO place iris item on the ground IF gate is not being fully destroyed by damage
         end
         util.removeFromGlobal("stargate", ent)
 
-    elseif ent.name == sgNames.dhdName then
+    elseif ent.name == SGNAMES.dhdName then
         local dhd, _ = util.findInGlobal("dhd", ent)
         if dhd and dhd.stargate then
             dhd:Connect("deineMom")
@@ -691,7 +527,9 @@ function OnRemoved(e)
             --util.playSoundOnSurface(ent.surface, stargate.pos, "kj_stargate_close")
             --if stargate.animation then stargate.animation.destroy() end
         end
-    elseif e.cause and e.cause.name == sgNames.iris then
+    elseif ent.name == skyNames.observatory then
+        Sky.OnObservatoryRemoved(ent)
+    elseif e.cause and e.cause.name == SGNAMES.iris then
         if settings.global["kj_stargate_realistic_death"].value == true then
             table.insert(storage.corpses, {tick = e.tick, name = ent.name})
         end
@@ -701,67 +539,43 @@ end
 function GuiOpened(e)
     local player = game.players[e.player_index]
     if not e.entity then return end
+    local ent = e.entity
 
-    if e.entity.name == sgNames.dhdName then
-        local dhd, dhdID = util.findInGlobal("dhd", e.entity)
-        if dhd == nil or dhd.stargate == nil then
-            player.opened = nil
-            return
-        end
-
-        local gui, refs = player.gui.screen.dhd, nil
-
-        if gui then gui.destroy() end --always rebuild, old buttons may carry tags of another dhd
-        gui, refs = glib.add(player.gui.screen, sg_guis.dhd_frame_new())
-
-        if refs.glyphs then
-            local surface, state, connectCell, keys = e.entity.surface.name, false, sg_guis.dhd_grid_info.at[3][3], {}
-            dhd:OpenedGUI(refs.glyphs)
-
-            if dhd.stargate.travelDirection == "sender" and dhd.stargate.active == true then state = true end
-            glib.add(refs["cell_"..connectCell], sg_guis.dhd_letter({"connect", surface, dhd.id, state, true}))
-
-            for _, char in ipairs(chevronChars) do
-                table.insert(keys, char)
-            end
-            table.insert(keys, 11, "poo_"..poo[surface])
-
-            --cells that stay empty
-            local cell = 0
-            for _, char in ipairs(keys) do
-                cell = cell + 1
-                while skipCells[cell] do --fill placeholders until the next char cell
-                    if cell ~= connectCell then
-                        glib.add(refs["cell_"..cell], sg_guis.dhd_letter({}, true))
-                    end
-                    cell = cell + 1
-                end
-                glib.add(refs["cell_"..cell], sg_guis.dhd_letter({char, surface, dhd.id, dhd.addressLetters[char], dhdGridSizes[cell]}))
-            end
-        end
-
-        gui.force_auto_center()
-        gui.bring_to_front()
-        player.opened = gui
-
-    elseif e.entity.name == sgNames.entitySignaled then
-        player.opened = nil
-
-    elseif e.entity.type == "power-switch" then
-        GDOIris({
-            name = e.entity.name,
+    if ent.name == SGNAMES.dhdName then
+        GUI.DHD({
+            entity = ent,
             player_index = e.player_index,
-            unit_number = e.entity.unit_number,
         })
-    end
-end
 
-function OnPlayerDied(e)
-    local player = game.players[e.player_index]
-    local gui = player.gui.screen.gdo
-    if gui then
-        player.gui.screen.gdo.destroy()
+    elseif ent.name == SGNAMES.entitySignaled then
         player.opened = nil
+
+    elseif ent.name == skyNames.observatory then
+        player.opened = nil
+        local surface = game.surfaces[ent.surface_index]
+
+        if ent.surface_index == player.physical_surface_index and util.getDistance(ent.position, player.physical_position) < 7
+            --[[and ent.energy >= 10^7]] then--TODO remove comment
+            if not settings.global["kj_stargate_observatory_night"].value
+                or surface.daytime > surface.evening and surface.daytime < surface.morning
+                or surface.freeze_daytime
+                or surface.always_day then
+
+                Sky.enter(player, ent)
+            else
+                player.print({"observatoryAtNight"})
+            end
+        end
+
+    elseif ent.name == skyNames.star then
+        player.opened = nil
+
+    elseif ent.type == "power-switch" then
+        GUI.GDOIris({
+            name = ent.name,
+            player_index = e.player_index,
+            unit_number = ent.unit_number,
+        })
     end
 end
 
@@ -829,6 +643,16 @@ function OnDamaged(e)
     end
 end
 
+function OnPlayerDied(e)
+    Sky.OnPlayerGone(e)
+    local player = game.players[e.player_index]
+    local gui = player.gui.screen.gdo
+    if gui then
+        player.gui.screen.gdo.destroy()
+        player.opened = nil
+    end
+end
+
 function OnPlayerEnteredVehicle(e)
     local ent = e.entity
     if ent.name == "kj_stargate_ring" then
@@ -845,7 +669,7 @@ function OnPlayerChangedPos(e)
     local player = game.players[e.player_index]
     local gui = player.gui.screen.gdo
     if gui then
-        GDOTriggered({
+        GUI.GDOTriggered({
             prototype_name = "kj_stargate_gdo",
             player_index = e.player_index,
         })
@@ -860,60 +684,67 @@ function OnPlayerChangedForce(e)
 end
 
 function Chunk(e)
-    local position = e.position
-    local surface = e.surface
-    if surface.platform ~= nil then return end
+    if util.isSkySurface(e.surface) then
+        Sky.OnChunkGenerated(e)
+    else
+        local position = e.position
+        local surface = e.surface
+        if surface.platform ~= nil then return end
+        if util.isSkySurface(surface) then return end
 
-    if position.x == 0 and position.y == 0 then
-        if not storage.autoGenGates[surface.name] then
-            storage.autoGenGates[surface.name] = true
-        else
-            return
-        end
+        if position.x == 0 and position.y == 0 then
+            if not storage.autoGenGates[surface.name] then
+                storage.autoGenGates[surface.name] = true
+            else
+                return
+            end
 
-        local pos
-        local i = 0
-        repeat
-            i = i + 1
-            pos = {math.random(-100,100), math.random(-100,100)}
-            pos = surface.find_non_colliding_position("kj_stargate_auto_gen", pos, 5, 1, false)
-        until pos ~= nil or i == 20
+            local pos
+            local i = 0
+            repeat
+                i = i + 1
+                pos = {math.random(-100,100), math.random(-100,100)}
+                pos = surface.find_non_colliding_position("kj_stargate_auto_gen", pos, 5, 1, false)
+            until pos ~= nil or i == 20
 
-        if pos == nil then
-            pos = surface.find_non_colliding_position("kj_stargate_auto_gen", {0,0}, 1000, 1, false)
-        end
+            if pos == nil then
+                pos = surface.find_non_colliding_position("kj_stargate_auto_gen", {0,0}, 1000, 1, false)
+            end
 
-        if pos ~= nil then
-            local ent = surface.create_entity{
-                name = "kj_stargate_auto_gen",
-                position = pos,
-                force = "neutral",
-            }
-            ent.graphics_variation = math.random(1,4)
-            ent = surface.create_entity{
-                name = "kj_dhd_auto_gen",
-                position = pos,
-                force = "neutral",
-            }
-            ent.graphics_variation = math.random(1,4)
-            game.print("Placed stargate and dhd at [gps="..pos.x..","..pos.y..","..surface.name.."]. Needed "..i.." attempts.")
-        else
-            game.print("Couldn't place stargate and dhd on "..surface.name.."! Starting area too crowded.")
+            if pos ~= nil then
+                local ent = surface.create_entity{
+                    name = "kj_stargate_auto_gen",
+                    position = pos,
+                    force = "neutral",
+                }
+                ent.graphics_variation = math.random(1,4)
+                ent = surface.create_entity{
+                    name = "kj_dhd_auto_gen",
+                    position = pos,
+                    force = "neutral",
+                }
+                ent.graphics_variation = math.random(1,4)
+                game.print("Placed stargate and dhd at [gps="..pos.x..","..pos.y..","..surface.name.."]. Needed "..i.." attempts.")
+            else
+                game.print("Couldn't place stargate and dhd on "..surface.name.."! Starting area too crowded.")
+            end
         end
     end
 end
 
 function OnSurfaceCreated(e)
     local surface = game.surfaces[e.surface_index]
-    addAddressToGlobal(surface, generateAddress(surface))
+    if util.isSkySurface(surface) then return end
+    Address.addAddressToGlobal(surface, Address.generateAddress(surface))
 
     for _, force in pairs(game.forces) do
         util.forceSurfaceSetup(force, surface)
-        RefreshAllAddBks(force.name, surface)
+        GUI.RefreshAllAddBks(force.name, surface)
     end
 end
 
 function OnForceCreated(e)
+    Sky.OnForceCreated(e)
     local force = e.force
 
     for _, surface in pairs(game.surfaces) do
@@ -922,10 +753,12 @@ function OnForceCreated(e)
 end
 
 function OnForceMerged(e)
+    Sky.onForcesMerged(e)
     storage.addressBook[e.source_name] = nil
 end
 
 function OnPlayerChangedSurface(e)
+    Sky.OnPlayerChangedSurface(e)
     if not e.surface_index then return end
     local player = game.players[e.player_index]
     util.forceSurfaceSetup(player.force, player.surface)

@@ -4,9 +4,12 @@ require("constants")
 require("util")
 require("logic.gate")
 require("logic.events")
+require("logic.GUI")
 require("logic.tick")
 require("logic.init")
-sg_guis = require("logic.gui")
+require("logic.sky")
+starPositions = require("logic.starPositions")
+sg_guis = require("logic.guis")
 mod_gui = require("mod-gui")
 glib = require("__glib__/glib")
 
@@ -22,8 +25,8 @@ commands.add_command("updateAddressBooks", nil, function(command)
 
     for force, surfaces in pairs(storage.addressBook) do
         for surface, _ in pairs(surfaces) do
-            storage.addressBook[force][surface] = state
-            RefreshAllAddBks(force, surface, state)
+            storage.addressBook[force][surface].state = state
+            GUI.RefreshAllAddBks(force, surface, storage.addressBook[force][surface])
         end
     end
 end)
@@ -73,7 +76,7 @@ commands.add_command("rotate", nil, function(command)
     end
     for _, surface in pairs(storage.stargate) do
         for _, gate in pairs(surface) do
-            if gate.manual == false then
+            if not gate.manual then
                 gate.childs.rings.orientation = util.orientationFromGlyph(rotation)
                 gate.lastGlyph = util.glyphFromOrientation(gate.childs.rings.orientation)
             end
@@ -99,8 +102,13 @@ script.on_event(defines.events.on_post_entity_died, OnCorpsed)
 script.on_event(defines.events.on_player_changed_surface, OnPlayerChangedSurface)
 script.on_event(defines.events.on_player_driving_changed_state, OnPlayerEnteredVehicle)
 script.on_event(defines.events.on_player_changed_position, OnPlayerChangedPos)
+script.on_event(defines.events.on_player_controller_changed, Sky.OnPlayerControllerChanged)
+script.on_event(defines.events.on_player_left_game, Sky.OnPlayerGone)
+script.on_event(defines.events.on_player_kicked, Sky.OnPlayerGone)
+script.on_event(defines.events.on_player_banned, Sky.OnPlayerGone)
 script.on_event(defines.events.on_player_died, OnPlayerDied)
 script.on_event(defines.events.on_player_changed_force, OnPlayerChangedForce)
+script.on_event(defines.events.on_selected_entity_changed, Sky.OnSelectedEntityChanged)
 
 script.on_event(defines.events.on_tick, OnTick)
 script.on_nth_tick(30*60, OnNthTickCleanup)
@@ -111,6 +119,7 @@ script.on_nth_tick( 4, OnNthTickSGateDialing)
 script.on_nth_tick( 2, OnNthTickPlayer)
 
 script.on_event(defines.events.on_surface_created, OnSurfaceCreated)
+script.on_event(defines.events.on_pre_surface_deleted, Sky.OnPreSurfaceDeleted)
 
 script.on_event(defines.events.on_force_created, OnForceCreated)
 script.on_event(defines.events.on_forces_merged, OnForceMerged)
@@ -125,4 +134,6 @@ script.on_event(defines.events.on_lua_shortcut, LuaShortCut)
 script.on_event("kj_stargate_addressBook", LuaShortCut)
 script.on_event("kj_stargate_gdo", LuaShortCut)
 
---TODO on surface deleted coverage ig
+Sky.registerCommands()
+
+--TODO on_surface_deleted case implementen ig
