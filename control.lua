@@ -25,8 +25,8 @@ commands.add_command("updateAddressBooks", nil, function(command)
 
     for force, surfaces in pairs(storage.addressBook) do
         for surface, _ in pairs(surfaces) do
-            storage.addressBook[force][surface] = state
-            GUI.RefreshAllAddBks(force, surface, state)
+            storage.addressBook[force][surface].state = state
+            GUI.RefreshAllAddBks(force, surface, storage.addressBook[force][surface])
         end
     end
 end)

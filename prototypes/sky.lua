@@ -16,55 +16,6 @@ skyTile.map_color = {r = 0.02, g = 0.02, b = 0.06}
 skyTile.order = "z[kj-sky]"
 skyTile.default_cover_tile = nil
 
-local radar = table.deepcopy(data.raw.radar["radar"])
-radar.name = "kj_sg_sky_radar"
-radar.hidden = true
-radar.minable = nil
-radar.placeable_by = nil
-radar.next_upgrade = nil
-radar.fast_replaceable_group = nil
-radar.corpse = nil
-radar.dying_explosion = nil
-radar.flags = {"placeable-off-grid", "not-on-map", "not-blueprintable", "not-deconstructable", "not-upgradable", "no-copy-paste", "hide-alt-info", "not-selectable-in-game"}
-radar.selectable_in_game = false
-radar.selection_box = nil
-radar.collision_mask = {layers = {}}
-radar.energy_source = {type = "void"}
-radar.energy_usage = "1W"
-radar.energy_per_sector = "1J"
-radar.energy_per_nearby_scan = "1J"
-radar.max_distance_of_sector_revealed = 0
-radar.max_distance_of_nearby_sector_revealed = 1
-radar.connects_to_other_radars = false
-radar.is_military_target = false
-radar.pictures = {
-    filename = "__core__/graphics/empty.png",
-    priority = "low",
-    width = 1,
-    height = 1,
-    direction_count = 1,
-}
-radar.integration_patch = nil
-radar.water_reflection = nil
-radar.working_sound = nil
-radar.radius_minimap_visualisation_color = nil
-radar.circuit_connector = nil
-radar.circuit_wire_max_distance = 0
-
-local observatoryItem = table.deepcopy(data.raw.item["accumulator"])
-observatoryItem.name = "kj_sg_observatory"
-observatoryItem.place_result = "kj_sg_observatory"
-observatoryItem.subgroup = "transport"
-observatoryItem.order = "5"
-local observatoryRecipe = {
-    type = "recipe",
-    name = "kj_sg_observatory",
-    enabled = true,
-    energy_required = 0.1,
-    ingredients = {},
-    results = {{type = "item", name = "kj_sg_observatory", amount = 1}},
-}
-
 local glyphBlueprints = {}
 for i, char in ipairs(chars) do
     table.insert(glyphBlueprints, {
@@ -102,6 +53,31 @@ end
 data:extend(glyphBlueprints)
 
 data:extend({
+    {
+        type = "radar",
+        name = "kj_sg_sky_radar",
+        icon = "__base__/graphics/icons/radar.png",
+        flags = {"placeable-off-grid", "not-on-map", "not-blueprintable", "not-deconstructable", "not-upgradable", "no-copy-paste", "hide-alt-info", "not-selectable-in-game"},
+        max_health = 250,
+        selectable_in_game = false,
+        hidden = true,
+        collision_mask = {layers = {}},
+        energy_per_sector = "1J",
+        max_distance_of_sector_revealed = 0,
+        max_distance_of_nearby_sector_revealed = 1,
+        connects_to_other_radars = false,
+        is_military_target = false,
+        energy_per_nearby_scan = "1J",
+        energy_source = {type = "void"},
+        energy_usage = "1W",
+        pictures = {
+            filename = "__core__/graphics/empty.png",
+            priority = "low",
+            width = 1,
+            height = 1,
+            direction_count = 1,
+        },
+    },
     {
         type = "animation",
         name = "kj_sg_star",
@@ -168,8 +144,8 @@ data:extend({
     {
         type = "electric-energy-interface",
         name = "kj_sg_observatory",
-        icon = modname.."/graphics/s_icon.png",
-        icon_size = 128,
+        icon = "__space-exploration-graphics__/graphics/icons/telescope-xray.png",
+        icon_size = 64,
         dying_explosion = "big-explosion",
         collision_box = {{-2.3, -2.3}, {2.3, 2.3}},
         selection_box = {{-2.5, -2.5}, {2.5, 2.5}},
@@ -273,4 +249,4 @@ data:extend({
             },
         }
     },
-skyTile, radar, observatoryItem, observatoryRecipe})
+skyTile})

@@ -310,25 +310,32 @@ end
 
 function guis.addBk_address(surface, addState) --surface
     local element
-    if addState == 1 then
+    if addState.status == 1 then
         element = {
             args = {type = "label", caption = {"", {"addBk_unknown"}}},
             style_mods = {top_padding = 5},
         }
-    elseif addState == 2 or addState == 3 then
-        local address, letters, index = util.stringToArray(storage.addresses[surface]), {}, nil
-        if addState == 2 then
-            index = "?"
-            address = util.shuffleArray(address, surface)
+
+    elseif addState.status == 2 or addState.status == 3 then
+        local address, letters = util.stringToArray(storage.addresses[surface]), {}
+
+        if addState.status == 2 then
+            for _, letter in ipairs(addState.address) do
+                table.insert(letters, {args = {type = "label", style = "frame_title", caption = "?"}})
+                table.insert(letters, {args = {type = "sprite", style = "image", sprite = "virtual-signal/kj_sg_glyph_"..letter}})
+            end
+
+            for _ = 1, 6 - #addState.address, 1 do
+                table.insert(letters, {args = {type = "label", style = "frame_title", caption = "?"}})
+                table.insert(letters, {args = {type = "sprite", style = "image", sprite = "virtual-signal/signal-question-mark"}})
+            end
         end
 
-        for i, letter in ipairs(address) do
-            table.insert(letters, {
-                args = {type = "label", style = "frame_title", caption = index or i},
-            })
-            table.insert(letters, {
-                args = {type = "sprite", style = "image", sprite = "virtual-signal/kj_sg_glyph_"..letter},
-            })
+        if addState.status == 3 then
+            for i, letter in ipairs(address) do
+                table.insert(letters, {args = {type = "label", style = "frame_title", caption = i}})
+                table.insert(letters, {args = {type = "sprite", style = "image", sprite = "virtual-signal/kj_sg_glyph_"..letter}})
+            end
         end
 
         element = {

@@ -575,28 +575,12 @@ function Sky.checkGlyph(forceN, planet, letter, glyphData)
     glyphData.solved = true
 
     --disconnecting player wires for visual quality
-    local surface = Sky.getSurface(false)
     for _, star in ipairs(stars) do
         local redConn = star.get_wire_connector(defines.wire_connector_id.circuit_red, false)
         if redConn then redConn.disconnect_all() end
         local greenConn = star.get_wire_connector(defines.wire_connector_id.circuit_green, false)
         if greenConn then greenConn.disconnect_all() end
     end
-
-    --[[script wire connections
-    for _, edge in ipairs(pattern.edges) do
-        local starA = stars[edge[1]]--[[
-        local starB = stars[edge[2]]--[[
-
-        if starA and starB and starA.valid and starB.valid then
-            local connA = starA.get_wire_connector(defines.wire_connector_id.circuit_green, true)
-            local connB = starB.get_wire_connector(defines.wire_connector_id.circuit_green, true)
-
-            if connA and connB then
-                connA.connect_to(connB, false, defines.wire_origin.script)
-            end
-        end
-    end]]
 
     --visuals & sound
     if glyphData.mask and glyphData.mask.valid then
@@ -607,6 +591,9 @@ function Sky.checkGlyph(forceN, planet, letter, glyphData)
     if force and force.valid then
         force.print({"glyphDiscovered", {"glyph_"..letter}, {"space-location-name."..planet}})
     end
+
+    util.forceSurfaceSetup(force, game.surfaces[planet], 2, letter)
+    GUI.RefreshAllAddBks(forceN, planet, storage.addressBook[forceN][planet])
 
     --check if all 6 glyphs of this planet are solved
     local area = storage.sky.planetAreas[forceN] and storage.sky.planetAreas[forceN][planet]
@@ -621,8 +608,6 @@ function Sky.checkGlyph(forceN, planet, letter, glyphData)
         end
 
         if allSolved then
-            util.forceSurfaceSetup(force, game.surfaces[planet], 2)
-            GUI.RefreshAllAddBks(forceN, planet, 2)
             if force and force.valid then
                 force.print({"addressDiscovered", {"space-location-name."..planet}})
                 force.play_sound {

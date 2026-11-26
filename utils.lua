@@ -491,17 +491,27 @@ function functions.randomSound(name, number)
     return name..math.random(1, number)
 end
 
-function functions.forceSurfaceSetup(force, surface, state)
+function functions.forceSurfaceSetup(force, surface, state, letter)
     if functions.isSkySurface(surface) then return end
     if not prototypes.space_location[surface.name] then return end
     storage.addressBook[force.name] = storage.addressBook[force.name] or {}
-    storage.addressBook[force.name][surface.name] = storage.addressBook[force.name][surface.name] or 0
-    --0 = locked
-    --1 = unlocked
-    --2 = unlocked, address known
-    --3 = unlocked, address known, address order known
+    storage.addressBook[force.name][surface.name] = storage.addressBook[force.name][surface.name] or {status = 0}
+    --[[{
+        status = x,
+            0 = locked
+            1 = unlocked
+            2 = unlocked, address known
+            3 = unlocked, address known, address order known
+        address = {A, B, ...},
+    }]]
     if force.is_space_location_unlocked(surface.name) then
-        storage.addressBook[force.name][surface.name] = math.max(state or 1, storage.addressBook[force.name][surface.name])
+        local address = storage.addressBook[force.name][surface.name].address or {}
+        if letter then table.insert(address, letter) end
+
+        storage.addressBook[force.name][surface.name] = {
+            status = math.max(state or 1, storage.addressBook[force.name][surface.name].status),
+            address = address,
+        }
     end
 end
 

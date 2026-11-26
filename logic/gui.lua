@@ -33,9 +33,9 @@ function GUI.AddressBookTriggered(e, refresh)
 
     if refs and refs.gates and not refresh then
         local count = 0
-        for surface, state in pairs(gates) do
-            if state > 0 then
-                glib.add(refs.gates, sg_guis.addBk_address(surface, state))
+        for surfaceN, surface in pairs(gates) do
+            if surface.status > 0 then
+                glib.add(refs.gates, sg_guis.addBk_address(surfaceN, surface))
                 count = count + 1
             end
         end

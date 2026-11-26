@@ -57,4 +57,14 @@ data:extend({
         },
 		results = {{type = "item", name = "kj_dhd", amount = 1}},
 	},
+	{
+		type = "recipe",
+		name = "kj_sg_observatory",
+		enabled = true,
+		energy_required = 0.1,
+		ingredients = {
+            --{type = "item", name = "iron-plate", amount = 1},
+		},
+		results = {{type = "item", name = "kj_sg_observatory", amount = 1}},
+	},
 })

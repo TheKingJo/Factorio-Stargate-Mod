@@ -703,6 +703,7 @@ function Gate.OnGateEstablished(gate, surface, player)
     if force == nil then
         game.print("Error?")
     end
-    storage.addressBook[force][surface] = 3
-    GUI.RefreshAllAddBks(force, surface, 3)
+    storage.addressBook[force][surface].status = 3
+    storage.addressBook[force][surface].address = util.stringToArray(storage.addresses[surface])
+    GUI.RefreshAllAddBks(force, surface, storage.addressBook[force][surface])
 end
